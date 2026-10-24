@@ -3,9 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="Reviro: truco argentino con flor. Jugá contra la máquina, recorré La Huella y anotá tus partidas en persona.">
+<meta name="description" content="Reviro: truco argentino con flor. Jugá contra la IA, 1v1 y 2v2 en tiempo real, recorré La Huella y anotá tus partidas en persona.">
 <meta name="theme-color" content="#1c1109">
 <style>html{color-scheme:light}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<script src="js/firebase-config.js"></script>
+<script>
+if (window.REVIRO_FIREBASE && window.REVIRO_FIREBASE.apiKey) {
+  var s = document.createElement('script'); s.type = 'module'; s.src = 'js/net.js'; document.head.appendChild(s);
+}
+</script>
 </head>
 <body>
 <title>Reviro</title>
@@ -365,6 +371,10 @@ input.plain{text-transform:none;letter-spacing:normal}
 .tbar.mine i{background:rgba(176,38,28,.65)}
 .tbar.low i{background:var(--bad)}
 .tbar span{position:relative;display:block;text-align:center;font-size:.75rem;font-weight:700;line-height:18px;color:var(--ink)}
+.autherr{margin:0;color:var(--bad);font-weight:600}
+.stat-b b.pos{color:var(--good)}
+.stat-b b.neg{color:var(--bad)}
+.gate input[type=email],.gate input[type=password]{background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--ink);font:inherit}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media (max-width:420px){.felt.n4{--pc:34px}.felt.n2{--pc:42px}.sc b{font-size:1.5rem}.brand{font-size:1.3rem}.pill{padding:3px 8px 3px 5px;font-size:.85rem}}
 </style>
@@ -983,11 +993,14 @@ function renderSnd(){const on=!SET.mute;const b=$('#sndbtn');b.setAttribute('ari
 /* ---------- billetera: fichas, monedas, cosas compradas ---------- */
 const WAL={chips:1000,coins:150,owned:[],eq:{av:'gaucho',dorso:'pampa',pano:'quincho',kit:'arg'},stats:{played:0,won:0,streak:0,best:0,earned:0},daily:'',applied:[],mis:null,ach:{cnt:{},done:[]},evk:[],tut:[]};
 let walRef=null,walQ=Promise.resolve(),walReady=false;
+const WAL0=JSON.parse(JSON.stringify(WAL));
+/* en la web con cuentas, cada usuario guarda su billetera aparte en este dispositivo */
+const walKey=()=>(typeof FB!=='undefined'&&FB&&uid)?'reviro.wallet.'+uid:'reviro.wallet';
 function renderWallet(){$('#chips').textContent=fmt(WAL.chips);$('#coins').textContent=fmt(WAL.coins)}
 const itemOf=(type,id)=>(type==='av'?AVM:type==='dorso'?DM:type==='kit'?KITM:PM)[id];
 const myAv=()=>WAL.eq.av==='hincha'?kitAv(WAL.eq.kit):WAL.eq.av;
 const owns=(type,id,price)=>{const it=itemOf(type,id);if(it&&it.boss)return !!(WAL.gira&&WAL.gira.bosses.includes(it.boss));return !price||WAL.owned.includes(type+':'+id)};
-async function loadWallet(){try{const l=JSON.parse(localStorage.getItem('reviro.wallet')||'null');if(l)mergeWal(l)}catch(e){}
+async function loadWallet(){try{const l=JSON.parse(localStorage.getItem(walKey())||'null');if(l)mergeWal(l)}catch(e){}
   if(db&&uid){try{walRef=db.doc('data/users/'+uid+'/wallet');const s=await walRef.get();if(s.exists)mergeWal(s.data())}catch(e){walRef=null}}
   walReady=true;renderWallet();
   const today=new Date().toLocaleDateString('en-CA');
@@ -998,7 +1011,7 @@ async function loadWallet(){try{const l=JSON.parse(localStorage.getItem('reviro.
 function mergeWal(d){for(const k of ['chips','coins','daily','th2','nick','fcode','registered','copas'])if(d[k]!==undefined)WAL[k]=d[k];
   if(Array.isArray(d.owned))WAL.owned=d.owned;if(d.mis)WAL.mis=d.mis;if(d.ach)WAL.ach={cnt:d.ach.cnt||{},done:d.ach.done||[]};if(Array.isArray(d.evk))WAL.evk=d.evk;if(Array.isArray(d.tut))WAL.tut=d.tut;if(Array.isArray(d.friends))WAL.friends=d.friends;if(d.gira)WAL.gira={beat:d.gira.beat||{},bosses:d.gira.bosses||[]};if(Array.isArray(d.applied))WAL.applied=d.applied;
   if(d.eq)WAL.eq=Object.assign({},WAL.eq,d.eq);if(d.stats)WAL.stats=Object.assign({},WAL.stats,d.stats)}
-async function saveWallet(){const body=JSON.parse(JSON.stringify(WAL));try{localStorage.setItem('reviro.wallet',JSON.stringify(body))}catch(e){}
+async function saveWallet(){const body=JSON.parse(JSON.stringify(WAL));try{localStorage.setItem(walKey(),JSON.stringify(body))}catch(e){}
   if(walRef){try{await walRef.set(body)}catch(e){walRef=null}}}
 function applyTx(key,d){walQ=walQ.then(async()=>{if(WAL.applied.includes(key))return false;
     if((d.coins||0)<0&&WAL.coins+d.coins<0)return false;
@@ -1051,6 +1064,7 @@ function computeSena(g){partnerSena=null;if(mode!=='offline'||g.n!==4||Math.rand
 /* ---------- vistas ---------- */
 function render(){const v=$('#view');
   if(view==='boot')v.innerHTML=bootHTML();
+  else if(view==='auth')v.innerHTML=authHTML();
   else if(view==='login')v.innerHTML=loginHTML();
   else if(view==='register')v.innerHTML=registerHTML();
   else if(view==='welcome')v.innerHTML=welcomeHTML();
@@ -1068,6 +1082,7 @@ function render(){const v=$('#view');
   else if(view==='room')v.innerHTML=roomHTML();
   else if(view==='game')v.innerHTML=gameHTML();
   $('#overlay').innerHTML=overlayHTML();FX={};musicUpdate();
+  {const pl=document.querySelector('.pills');if(pl)pl.style.visibility=(view==='auth'||view==='boot'||view==='login')?'hidden':'visible'}
   if(view==='room'&&T){const ids=T.seats.filter(s=>s.id).map(s=>s.id);ensureNames(ids);fetchLooks(ids)}
   if(view==='game'&&mode==='online'&&G){const ids=G.seats.filter(s=>s.id).map(s=>s.id);ensureNames(ids);fetchLooks(ids)}
   if(view==='menu'&&lobby.length)ensureNames(lobby.map(t=>t.host))}
@@ -1151,14 +1166,14 @@ function profileHTML(){const a=AVM[WAL.eq.av]||AVM.gaucho,st=WAL.stats,pct=st.pl
   const tg=(k,l,sub)=>`<div class="toggle"><span>${l}<small>${sub}</small></span><button type="button" class="sw" data-a="toggle" data-k="${k}" aria-pressed="${!!SET[k]}" aria-label="${l}"></button></div>`;
   return `<div class="prof">${avatarSVG(myAv(),132,true)}<div style="flex:1;min-width:0"><h2>${esc(myDisp())}${PREMIUM?' <span class="prem">Premium</span>':''}</h2><p>${esc(a.name)} · ${esc(a.bio)}</p>${myEmail?`<p class="note">Cuenta: ${esc(myEmail)}</p>`:''}
     <form class="row" data-form="nick" style="margin-top:10px"><input type="text" id="nickin" class="plain" maxlength="20" placeholder="Tu apodo" value="${esc(WAL.nick||'')}" aria-label="Apodo" autocomplete="off"><button class="btn sm" type="submit">Guardar apodo</button></form></div></div>
-  <div class="stats">
+  ${FB?fbStatsHTML():`<div class="stats">
     <div class="stat-b"><small>Partidas</small><b>${fmt(st.played)}</b></div>
     <div class="stat-b"><small>Ganadas</small><b>${fmt(st.won)}</b></div>
     <div class="stat-b"><small>Efectividad</small><b>${pct}%</b></div>
     <div class="stat-b"><small>Racha</small><b>${st.streak}</b></div>
     <div class="stat-b"><small>Mejor racha</small><b>${st.best}</b></div>
     <div class="stat-b"><small>Monedas ganadas</small><b>${fmt(st.earned)}</b></div>
-  </div>
+  </div>`}
   <div class="grid">
     <section class="box"><h2>Tu mesa</h2>
       <div class="row" style="gap:14px">${avatarSVG(myAv(),56)}<div class="bigback" style="background:${backBg(WAL.eq.dorso)}"></div><div class="swatch" style="width:110px;height:72px;background:${PM[WAL.eq.pano].bg};border-color:${PM[WAL.eq.pano].edge}">${cardHTML('3O')}</div></div>
@@ -1272,7 +1287,7 @@ function overlayHTML(){
   return''}
 
 /* ---------- control de partida ---------- */
-function startSolo(){TUT=null;mySena=null;CAMP=null;const n=+SET.n,stake=+SET.stake;if(stake>WAL.chips){toast('No te alcanzan las fichas');return}
+function startSolo(){TUT=null;mySena=null;CAMP=null;if(FB){fbStartAI();return}const n=+SET.n,stake=+SET.stake;if(stake>WAL.chips){toast('No te alcanzan las fichas');return}
   const seats=Array.from({length:n},(_,i)=>i===0?{me:true}:{bot:true});
   cfg={n,target:+SET.target,stake,diff:SET.diff,flor:SET.flor===true||SET.flor==='true'};botLooks=pickBotLooks(n);
   mode='offline';mySeat=0;view='game';confirmExit=false;panel=null;
@@ -1286,6 +1301,8 @@ async function commit(ng){confirmMazo=false;
   if(mode==='offline'){setG(ng);settle(G);if(CAMP)settleGira(G);render();drive();return}
   if(busy)return;const base=T&&T.game?T.game.seq:-1;if(ng.seq<=base)return;
   setG(ng);settle(G);render();busy=true;let ok=false;
+  if(FB){try{const r=await NET.rooms.commitMove(T.code,ng);ok=r.ok;if(!ok&&r.room)T=r.room}catch(e){toast('No se pudo enviar la jugada. Revisá tu conexión.')}
+    busy=false;if(!ok&&T&&T.game)setG(T.game);reconcile();render();drive();return}
   try{if(!await getLease(tableRef))throw new Error('busy');
     const s=await tableRef.get();const cur=s.exists?s.data().game:null;
     if(!cur||cur.matchId!==ng.matchId||cur.seq!==ng.seq-1){if(s.exists)T=s.data()}
@@ -1319,6 +1336,7 @@ const CODECH='ABCDEFGHJKLMNPQRSTUVWXYZ';
 function genCode(){let c='';for(let i=0;i<4;i++)c+=CODECH[Math.floor(Math.random()*CODECH.length)];return c}
 function subLobby(){if(!db||unsubLobby)return;try{unsubLobby=db.collection('tables').where('status','==','waiting').onSnapshot(s=>{lobby=s.docs.map(d=>d.data());if(view==='menu')render()},()=>{unsubLobby=null})}catch(e){}}
 async function createTable(){const on=SET.on;if(on.stake>WAL.chips){toast('No te alcanzan las fichas');return}
+  if(FB){try{const code=await NET.rooms.createRoom({n:+on.n,target:+on.target,stake:+on.stake,flor:on.flor===true||on.flor==='true'});INVITED=new Set();openTable(code);return code}catch(e){toast('No se pudo crear la sala. Revisá tu conexión.');return}}
   try{let code,ref;for(let i=0;i<5;i++){code=genCode();ref=db.doc('tables/'+code);const ex=await ref.get();if(!ex.exists)break}
     const seats=Array.from({length:+on.n},(_,i)=>i===0?{id:uid,bot:false}:{id:null,bot:false});
     await ref.set({code,n:+on.n,target:+on.target,stake:+on.stake,flor:on.flor===true||on.flor==='true',host:uid,seats,status:'waiting',created:Date.now(),game:null});INVITED=new Set();openTable(code);return code}
@@ -1330,21 +1348,27 @@ function openTable(code){code=code.toUpperCase();if(unsubTable)unsubTable();tabl
   let first=true;unsubTable=tableRef.onSnapshot(s=>{onTable(s,first);first=false},()=>toast('Se cortó la conexión con la mesa'))}
 function onTable(snap,first){if(!snap.exists){toast(first?'No existe una mesa con ese código':'La mesa se cerró');leaveTable(true);return}
   T=snap.data();mySeat=T.seats.findIndex(s=>s.id===uid);isHost=T.host===uid;
+  if(FB&&T.status==='finished'&&T.result&&mySeat>=0)fbRecord(T.code,T.result.matchId);
   if(T.status==='closed'){toast('El anfitrión cerró la mesa');leaveTable(true);return}
-  if(T.status==='waiting'){view='room';G=null;if(first&&mySeat<0){const i=T.seats.findIndex(s=>!s.id&&!s.bot);if(i>=0&&T.stake<=WAL.chips)sit(i)}}
+  if(T.status==='waiting'){view='room';G=null;if(first&&mySeat<0){const i=T.seats.findIndex(s=>!s.id&&!s.bot);if(i>=0&&T.stake<=WAL.chips){if(FB)NET.rooms.join(T.code).catch(()=>{});else sit(i)}}}
   else if(T.game){mode='online';view='game';if(!busy&&(!G||gsig(G)!==gsig(T.game)))setG(T.game);
     if(mySeat>=0&&T.stake)applyTx(G.matchId+':in',{chips:-T.stake});settle(G)}
   render();drive()}
 async function getLease(ref){for(let k=0;k<8;k++){const r=await ref.acquire({holder:uid+':'+TABID,ttlMs:1500});if(r.acquired)return true;await new Promise(res=>setTimeout(res,Math.min(1600,Math.max(120,(r.expiresAt?Date.parse(r.expiresAt)-Date.now():300)+40))))}return false}
 async function withLease(fn){if(!await getLease(tableRef)){toast('Alguien está moviendo los asientos, probá de nuevo');return}
   const s=await tableRef.get();if(!s.exists)return;const d=s.data();if(d.status!=='waiting')return;await fn(d)}
-async function sit(i){try{await withLease(async d=>{if(d.seats[i].id||d.seats[i].bot){toast('Ese asiento ya está ocupado');return}
+async function sit(i){if(FB){try{const r=await NET.rooms.sit(T.code,i);if(!r.ok)toast(r.reason==='ocupado'?'Ese asiento ya está ocupado':'La sala ya empezó')}catch(e){toast('No pudiste sentarte. Revisá tu conexión.')}return}
+  try{await withLease(async d=>{if(d.seats[i].id||d.seats[i].bot){toast('Ese asiento ya está ocupado');return}
   const seats=d.seats.map(x=>x.id===uid?{id:null,bot:false}:x);seats[i]={id:uid,bot:false};await tableRef.update({seats})})}catch(e){toast('No pudiste sentarte. Pedile al dueño que te comparta la página con permiso para editar.')}}
-async function setSeat(i,val){try{await withLease(async d=>{const seats=d.seats.slice();seats[i]=val;await tableRef.update({seats})})}catch(e){toast('No se pudo cambiar el asiento')}}
-async function startOnline(){if(!T)return;const g=newMatch({n:T.n,target:T.target,stake:T.stake,flor:T.flor!==false,seats:T.seats.map(s=>({id:s.id,bot:!!s.bot})),matchId:T.code+'-'+Date.now().toString(36),diff:'medio'});
+async function setSeat(i,val){if(FB){try{await NET.rooms.updateSeats(T.code,s=>{s[i]=val;return s})}catch(e){toast('No se pudo cambiar el asiento')}return}
+  try{await withLease(async d=>{const seats=d.seats.slice();seats[i]=val;await tableRef.update({seats})})}catch(e){toast('No se pudo cambiar el asiento')}}
+async function startOnline(){if(!T)return;
+  if(FB){try{const r=await NET.rooms.startRoom(T.code,(seats,d)=>newMatch({n:d.n,target:d.target,stake:d.stake,flor:d.flor!==false,seats:seats.map(s=>({id:s.id,bot:!!s.bot})),matchId:d.code+'-'+Date.now().toString(36),diff:d.diff||'medio'}));if(!r.ok)toast('No se pudo empezar la partida')}catch(e){toast('No se pudo empezar la partida')}return}
+  const g=newMatch({n:T.n,target:T.target,stake:T.stake,flor:T.flor!==false,seats:T.seats.map(s=>({id:s.id,bot:!!s.bot})),matchId:T.code+'-'+Date.now().toString(36),diff:'medio'});
   try{await tableRef.update({status:'playing',game:g})}catch(e){toast('No se pudo empezar la partida')}}
 async function leaveTable(silent){const ref=tableRef,t=T;if(unsubTable){unsubTable();unsubTable=null}if(R){R.leave().catch(()=>{});R=null}
-  if(!silent&&ref&&t&&t.status==='waiting'){try{if(t.host===uid)await ref.update({status:'closed'});else{if(await getLease(ref)){const s=await ref.get();if(s.exists)await ref.update({seats:s.data().seats.map(x=>x.id===uid?{id:null,bot:false}:x)})}}}catch(e){}}
+  if(FB&&t){NET.rooms.leaveRoom(t.code).catch(()=>{})}
+  else if(!silent&&ref&&t&&t.status==='waiting'){try{if(t.host===uid)await ref.update({status:'closed'});else{if(await getLease(ref)){const s=await ref.get();if(s.exists)await ref.update({seats:s.data().seats.map(x=>x.id===uid?{id:null,bot:false}:x)})}}}catch(e){}}
   try{localStorage.removeItem('reviro.table')}catch(e){}T=null;tableRef=null;G=null;mode=null;view='menu';panel=null;clearTimeout(driveT);render()}
 function toMenu(){TUT=null;mySena=null;const wasCamp=!!CAMP;CAMP=null;if(mode==='online')leaveTable(true);else{G=null;mode=null;view=wasCamp?'gira':'menu';panel=null;clearTimeout(driveT);render()}}
 
@@ -1498,7 +1522,7 @@ function cleanNick(s){return String(s||'').replace(/[\u0000-\u001f<>]/g,'').repl
 function myDisp(){return WAL.nick||myName||'Vos'}
 function dispName(id){if(!id)return'';if(id===uid)return myDisp();const l=LOOKS[id];return (l&&l.nick)||NAMES[id]||''}
 function saveNick(v){const n=cleanNick(v);if(n&&n.length<2){toast('El apodo necesita al menos 2 letras');return}WAL.nick=n;saveWallet();writeLooks();toast(n?'Ahora te llamás '+n:'Apodo borrado');render()}
-function friendLink(){return APP_URL+'#a-'+(WAL.fcode||'')}
+function friendLink(){return (window.claude?APP_URL:location.href.split('#')[0])+'#a-'+(WAL.fcode||'')}
 function friendSet(){const s=new Set(WAL.friends||[]);for(const id of REVF)s.add(id);s.delete(uid);return s}
 function subFriends(){if(!db||!uid||unsubRev)return;try{unsubRev=db.collection('looks').where('friends','array-contains',uid).onSnapshot(s=>{REVF=s.docs.map(d=>d.id);s.docs.forEach(d=>{LOOKS[d.id]=d.data()});if(view==='profile'||view==='ranking')render()},()=>{unsubRev=null})}catch(e){}}
 async function addFriendByCode(raw){const code=String(raw||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
@@ -1800,8 +1824,8 @@ function settingsHTML(){const tg=(k,l,sub,inv)=>`<div class="toggle"><span>${l}<
       <p>Jugás como <b>${esc(myDisp())}</b>${PREMIUM?' · <span class="prem">Premium</span>':''}</p>
       ${myEmail?`<p class="note">Cuenta: ${esc(myEmail)}</p>`:''}
       <p class="note">Tu código de amigo es <b>${esc(WAL.fcode||'—')}</b>. El apodo y los amigos se manejan desde Perfil.</p>
-      <button class="btn" data-a="nav" data-v="profile">Ir a Perfil</button></section>
-    ${adminHTML()}
+      <button class="btn" data-a="nav" data-v="profile">Ir a Perfil</button>${fbAccountHTML()}</section>
+    ${adminHTML()}${fbAdminHTML()}
   </div>`}
 
 
@@ -1831,13 +1855,13 @@ async function quickPlay(){if(!db||!uid){toast('El juego online necesita tu cuen
   const t=lobby.filter(x=>x.status==='waiting'&&x.host!==uid&&Date.now()-(x.created||0)<3*3600e3&&(x.stake||0)<=WAL.chips&&x.seats.some(s=>!s.id&&!s.bot)).sort((a,b)=>b.created-a.created)[0];
   if(t){toast('Te sentamos en la mesa '+t.code);openTable(t.code);return}
   const code=await createTable();if(code)toast('No había mesas abiertas: armamos una. Invitá amigos o completá con bots.')}
-async function fillAndStart(){if(!isHost||!tableRef)return;let seats=null;
+async function fillAndStart(){if(!isHost||!tableRef)return;if(FB){startOnline();return}let seats=null;
   try{await withLease(async d=>{seats=d.seats.map(s=>s.id||s.bot?s:{id:null,bot:true});await tableRef.update({seats})})}catch(e){toast('No se pudo completar la mesa');return}
   if(!seats)return;T=Object.assign({},T,{seats});startOnline()}
 
 /* ---------- reloj por jugada (online) ---------- */
 const TURN_MS=30000;let lastTimeout=-1;
-function turnInfo(){if(view!=='game'||mode!=='online'||!G||G.matchOver||G.hand.ended)return null;const a=actor(G);if(a<0||G.seats[a].bot||isAbsent(a))return null;
+function turnInfo(){if(view!=='game'||mode!=='online'||!G||G.matchOver||G.hand.ended)return null;if(G.seats.filter(s=>s.id&&!s.bot).length<2)return null;const a=actor(G);if(a<0||G.seats[a].bot||isAbsent(a))return null;
   const rem=Math.max(0,TURN_MS-(Date.now()-(G.lastAct||Date.now())));return{a,rem}}
 function turnBarHTML(){const t=turnInfo();if(!t)return'';const pct=Math.round(t.rem*100/TURN_MS);
   return `<div class="tbar ${t.a===mySeat?'mine':''}" aria-hidden="true"><i id="tbari" style="width:${pct}%"></i><span id="tbart">${Math.ceil(t.rem/1000)} s · ${esc(t.a===mySeat?'tu turno':nameOf(t.a))}</span></div>`}
@@ -1845,6 +1869,82 @@ function turnTick(){const t=turnInfo();if(!t)return;const i=document.getElementB
   if(i){i.style.width=Math.round(t.rem*100/TURN_MS)+'%';i.parentElement.classList.toggle('low',t.rem<8000)}if(s)s.textContent=Math.ceil(t.rem/1000)+' s · '+(t.a===mySeat?'tu turno':nameOf(t.a));
   if(t.rem<=0&&controllerSeat()===mySeat&&lastTimeout!==G.seq&&!busy){lastTimeout=G.seq;const who=nameOf(t.a);
     try{commit(act(G,t.a,aiAct(G,t.a,'medio')));toast('Se acabó el tiempo: el bot jugó por '+(t.a===mySeat?'vos':who))}catch(e){}}}
+
+
+/* ---------- cuentas con Firebase (versión web): ingreso, registro, roles, estadísticas y administración ---------- */
+let AUTHV='login',AUTHERR='',AUTHBUSY=false,AUTHINFO=null,MYUSER=null,ADM_ROOMS=null,ADM_USERS=null,admUnsubs=[];
+const waitNET=()=>window.NET?Promise.resolve(window.NET):new Promise(res=>{window.addEventListener('net-ready',()=>res(window.NET),{once:true});setTimeout(()=>res(window.NET||null),20000)});
+function authHTML(){const free=AVS.filter(a=>!a.price);const e=AUTHERR?`<p class="autherr" role="alert">${esc(AUTHERR)}</p>`:'';const dis=AUTHBUSY?'disabled':'';
+  const tabs=AUTHV==='complete'?'':`<div class="subtabs" role="group"><button type="button" data-a="authv" data-v="login" aria-pressed="${AUTHV==='login'}">Ingresar</button><button type="button" data-a="authv" data-v="register" aria-pressed="${AUTHV==='register'}">Crear cuenta</button></div>`;
+  let body='';
+  if(AUTHV==='login')body=`<form class="box" data-form="login"><h2>Ingresá a tu cuenta</h2>
+    <div class="field"><span>Mail</span><input type="email" id="aemail" class="plain" autocomplete="email" required></div>
+    <div class="field"><span>Contraseña</span><input type="password" id="apass" class="plain" autocomplete="current-password" required></div>
+    ${e}<button class="btn prim" type="submit" ${dis}>${AUTHBUSY?'Entrando…':'Ingresar'}</button>
+    <button class="btn ghost sm" type="button" data-a="authv" data-v="reset">Me olvidé la contraseña</button></form>`;
+  if(AUTHV==='reset')body=`<form class="box" data-form="reset"><h2>Recuperar contraseña</h2><p class="note">Te mandamos un mail para elegir una contraseña nueva.</p>
+    <div class="field"><span>Mail</span><input type="email" id="aemail" class="plain" autocomplete="email" required></div>
+    ${e}<button class="btn prim" type="submit" ${dis}>Mandar mail</button><button class="btn ghost sm" type="button" data-a="authv" data-v="login">Volver</button></form>`;
+  if(AUTHV==='register'||AUTHV==='complete')body=`<form class="box" data-form="${AUTHV}"><h2>${AUTHV==='complete'?'Terminá tu registro':'Creá tu cuenta'}</h2>
+    ${AUTHV==='register'?`<div class="field"><span>Mail</span><input type="email" id="aemail" class="plain" autocomplete="email" required></div>`:''}
+    <div class="field"><span>Nombre de usuario</span><input type="text" id="auser" class="plain" maxlength="20" autocomplete="username" placeholder="De 3 a 20 letras, números, punto o guion bajo" required></div>
+    ${AUTHV==='register'?`<div class="field"><span>Contraseña</span><input type="password" id="apass" class="plain" autocomplete="new-password" minlength="6" placeholder="Al menos 6 caracteres" required></div>`:''}
+    <div class="field"><span>Elegí tu personaje</span><div class="regavs">${free.map(a=>`<button type="button" class="regav" data-a="regav" data-id="${a.id}" aria-pressed="${regAv===a.id}">${avatarSVG(a.id,96,true)}<b>${esc(a.name)}</b></button>`).join('')}</div></div>
+    ${e}<button class="btn prim" type="submit" ${dis}>${AUTHBUSY?'Creando…':'Crear mi cuenta'}</button>
+    <p class="note">Te vamos a mandar un mail para verificar tu cuenta. Las fichas y las monedas de Reviro no tienen valor en dinero.</p></form>`;
+  return `<div class="gate"><h1 class="gtitle">Re<span>viro</span></h1>${tabs}${body}</div>`}
+const fval=id=>{const el=document.getElementById(id);return el?el.value:''};
+async function authSubmit(kind){if(AUTHBUSY)return;AUTHERR='';AUTHBUSY=true;
+  const email=fval('aemail'),pass=fval('apass'),user=fval('auser');render();
+  try{
+    if(kind==='login')await NET.auth.login({email,password:pass});
+    else if(kind==='register'){await NET.auth.register({email,username:user,password:pass,avatar:regAv});await onFbUser(AUTHINFO,true)}
+    else if(kind==='complete'){await NET.auth.completeProfile({username:user,avatar:regAv});await onFbUser(AUTHINFO,true)}
+    else if(kind==='reset'){await NET.auth.resetPassword(email);toast('Te mandamos el mail para recuperar la contraseña');AUTHV='login'}
+  }catch(err){AUTHERR=err.message||'Algo salió mal. Probá de nuevo.'}
+  AUTHBUSY=false;render()}
+function resetSession(){for(const k of Object.keys(WAL))delete WAL[k];Object.assign(WAL,JSON.parse(JSON.stringify(WAL0)));walRef=null;renderWallet();uid=null;db=null;usr=null;roomCap=null;MYUSER=null;isOwnerV=false;PREMIUM=false;myName='';myEmail=null;
+  [unsubLobby,unsubRev,unsubPrem,unsubInv,unsubRank].forEach(u=>{try{u&&u()}catch(e){}});unsubLobby=unsubRev=unsubPrem=unsubInv=unsubRank=null;
+  admUnsubs.forEach(u=>{try{u()}catch(e){}});admUnsubs=[];unsubAdmin=null;ADM_ROOMS=ADM_USERS=null}
+async function onFbUser(info,fresh){AUTHINFO=info;
+  if(!info){resetSession();AUTHV='login';view='auth';render();return}
+  if(!info.user&&!(NET.auth.user())){AUTHV='complete';view='auth';render();return}
+  const u=NET.auth.user();if(uid===info.uid&&view!=='auth'&&!fresh)return;
+  uid=info.uid;db=NET.db;usr=NET.usr;roomCap=NET.roomCap;myName=u.username;myEmail=info.email;isOwnerV=NET.auth.isAdmin();PREMIUM=isOwnerV;
+  await loadWallet();
+  if(!WAL.nick)WAL.nick=u.username;
+  if(!WAL.registered){WAL.registered=true;WAL.eq.av=AVM[u.avatar]?u.avatar:'gaucho';saveWallet();writeLooks();view='welcome'}
+  else if(view==='auth'||view==='boot')view='menu';
+  NET.stats.watchUser(uid,x=>{MYUSER=x;const adm=NET.auth.isAdmin();if(adm!==isOwnerV){isOwnerV=adm;PREMIUM=PREMIUM||adm;subAdmin();subFbAdmin()}if(view==='profile'||view==='settings')render()});
+  subLobby();subFriends();subPremium();subAdmin();subFbAdmin();subInvites();checkInviteHash();
+  NET.stats.recordPending().catch(()=>{});render()}
+const RECORDED=new Set();
+function fbRecord(code,matchId){if(RECORDED.has(matchId))return;RECORDED.add(matchId);
+  NET.stats.recordMatch(code).then(r=>{if(r&&r.stats){MYUSER=Object.assign({},MYUSER,{stats:r.stats});render()}}).catch(()=>RECORDED.delete(matchId))}
+function fbStatsHTML(){const s=(MYUSER&&MYUSER.stats)||NET.EMPTY_STATS;const cs=s.currentStreak||0;
+  return `<div class="stats">
+    <div class="stat-b"><small>Partidas</small><b>${fmt(s.played)}</b></div>
+    <div class="stat-b"><small>Ganadas</small><b>${fmt(s.wins)}</b></div>
+    <div class="stat-b"><small>Win rate</small><b>${s.played?Math.round(s.winRate*100):0}%</b></div>
+    <div class="stat-b"><small>Racha actual</small><b class="${cs>0?'pos':cs<0?'neg':''}">${cs>0?'+'+cs:cs}</b></div>
+    <div class="stat-b"><small>Mejor racha</small><b>${fmt(s.bestStreak)}</b></div>
+    <div class="stat-b"><small>Rol</small><b style="font-size:1.1rem">${isOwnerV?'Admin':'Jugador'}</b></div>
+  </div><p class="note" style="margin-top:6px">Cuentan las partidas en salas: contra la IA, 1v1 y 2v2. La Huella y el tutorial son de práctica.</p>`}
+function subFbAdmin(){if(!FB||!isOwnerV||admUnsubs.length)return;try{admUnsubs.push(NET.admin.watchRooms(r=>{ADM_ROOMS=r;if(view==='settings')render()}));admUnsubs.push(NET.admin.watchUsers(u=>{ADM_USERS=u;if(view==='settings')render()}))}catch(e){}}
+function fbAdminHTML(){if(!FB||!isOwnerV)return'';const rooms=ADM_ROOMS||[],users=ADM_USERS||[];
+  const nm=id=>{const u=users.find(x=>x.uid===id);return u?u.username:'—'};
+  return `<section class="box admin"><h2>Salas activas</h2>
+    ${ADM_ROOMS===null?'<p class="note">Cargando…</p>':rooms.length?`<ul class="flist">${rooms.map(r=>`<li><span style="flex:1"><b>${esc(r.code)}</b> · ${esc(r.type||'')} · ${r.status==='playing'?'jugando':'esperando'}<small>Anfitrión: ${esc(nm(r.host))} · ${(r.playerIds||[]).length} jugador${(r.playerIds||[]).length===1?'':'es'}${r.game?' · '+r.game.scores[0]+' a '+r.game.scores[1]:''}</small></span><button class="btn sm warn" data-a="admclose" data-id="${esc(r.code)}">Cerrar</button></li>`).join('')}</ul>`:'<p class="note">No hay salas abiertas.</p>'}</section>
+  <section class="box admin"><h2>Usuarios y roles</h2>
+    ${ADM_USERS===null?'<p class="note">Cargando…</p>':`<ul class="flist">${users.map(u=>{const s=u.stats||{};const adm=u.role==='admin';return `<li>${avatarSVG(AVM[u.avatar]?u.avatar:'gaucho',34)}<span style="flex:1">${esc(u.username||'—')}${adm?' <span class="prem">Admin</span>':''}<small>${fmt(s.played||0)} partidas · ${s.played?Math.round((s.winRate||0)*100):0}% ganadas</small></span>${u.uid===uid?'':`<button class="btn sm ${adm?'warn':'brass'}" data-a="admrole" data-id="${esc(u.uid)}" data-v="${adm?'player':'admin'}">${adm?'Quitar admin':'Hacer admin'}</button>`}</li>`}).join('')}</ul>`}
+    <p class="note">El admin fijo es alejandro.clemente05@gmail.com, con el mail verificado.</p></section>`}
+function fbAccountHTML(){if(!FB)return'';const ver=AUTHINFO&&AUTHINFO.emailVerified;
+  return `${ver?'':`<div class="demo">Todavía no verificaste tu mail. ${NET.ADMIN_EMAILS.includes((myEmail||'').toLowerCase())?'Hasta que lo verifiques no se activan tus permisos de admin. ':''}<button class="btn sm" data-a="reverify">Reenviar mail</button></div>`}
+    <button class="btn ghost" data-a="logout">Cerrar sesión</button>`}
+async function fbStartAI(){const n=+SET.n,stake=+SET.stake;if(stake>WAL.chips){toast('No te alcanzan las fichas');return}
+  try{const code=await NET.rooms.createRoom({n,target:+SET.target,flor:SET.flor===true||SET.flor==='true',stake,diff:SET.diff,bots:n-1});
+    await NET.rooms.startRoom(code,(seats,d)=>newMatch({n:d.n,target:d.target,stake:d.stake,flor:d.flor!==false,seats:seats.map(s=>({id:s.id,bot:!!s.bot})),matchId:code+'-'+Date.now().toString(36),diff:d.diff||'medio'}));
+    openTable(code)}catch(e){toast('No se pudo armar la partida. Revisá tu conexión.')}}
 
 /* ---------- eventos ---------- */
 document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closest('[data-a],[data-set],[data-card]');if(!t)return;
@@ -1889,6 +1989,11 @@ document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closes
   case 'zone':giraZone=t.dataset.id;render();return;
   case 'girago':startGira(t.dataset.id);return;
   case 'regav':regAv=t.dataset.id;render();return;
+  case 'authv':AUTHV=t.dataset.v;AUTHERR='';render();return;
+  case 'logout':NET.auth.logout();return;
+  case 'reverify':NET.auth.resendVerification().then(()=>toast('Te mandamos el mail de verificación')).catch(()=>toast('No se pudo mandar el mail'));return;
+  case 'admclose':NET.admin.closeRoom(t.dataset.id).then(()=>toast('Sala cerrada')).catch(()=>toast('No se pudo cerrar'));return;
+  case 'admrole':NET.admin.setRole(t.dataset.id,t.dataset.v).then(()=>toast(t.dataset.v==='admin'?'Ahora es admin':'Ya no es admin')).catch(()=>toast('No se pudo cambiar el rol'));return;
   case 'an':anotAdd(+t.dataset.t,+t.dataset.d);return;
   case 'anundo':anotUndo();return;
   case 'anreset':if(!anotConfirm){anotConfirm=true;render();return}anotConfirm=false;ANOT.s=[0,0];ANOT.hist=[];saveAnot();render();return;
@@ -1910,7 +2015,8 @@ document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closes
 });
 document.addEventListener('keydown',e=>{const t=e.target;if((e.key==='Enter'||e.key===' ')&&t.classList&&t.classList.contains('zp')){e.preventDefault();giraZone=t.dataset.id;render()}});
 document.addEventListener('change',e=>{const m=/^an([01])$/.exec(e.target.id||'');if(m){ANOT.names[+m[1]]=cleanNick(e.target.value)||(m[1]==='0'?'Nosotros':'Ellos');saveAnot()}});
-document.addEventListener('submit',e=>{const fr=e.target.closest('[data-form="reg"]');if(fr){e.preventDefault();doRegister();return}
+document.addEventListener('submit',e=>{const fa=e.target.closest('[data-form="login"],[data-form="register"],[data-form="complete"],[data-form="reset"]');if(fa){e.preventDefault();authSubmit(fa.dataset.form);return}
+  const fr=e.target.closest('[data-form="reg"]');if(fr){e.preventDefault();doRegister();return}
   const fp=e.target.closest('[data-form="prem"]');if(fp){e.preventDefault();premiumByCode($('#premin').value);return}
   const fn=e.target.closest('[data-form="nick"]');if(fn){e.preventDefault();saveNick($('#nickin').value);return}
   const ff=e.target.closest('[data-form="friend"]');if(ff){e.preventDefault();addFriendByCode($('#friendin').value);return}
@@ -1918,13 +2024,16 @@ document.addEventListener('submit',e=>{const fr=e.target.closest('[data-form="re
   if(!/^[A-Z]{4}$/.test(c)){toast('El código tiene cuatro letras');return}openTable(c)});
 
 /* fuera de claude.ai (por ejemplo, en GitHub Pages) el juego corre en modo local: todo se guarda en este dispositivo */
-const LOCAL=!(window.claude&&typeof window.claude.use==='function');
+const FB=!(window.claude&&typeof window.claude.use==='function')&&!!(window.REVIRO_FIREBASE&&window.REVIRO_FIREBASE.apiKey);
+const LOCAL=!(window.claude&&typeof window.claude.use==='function')&&!FB;
 async function start(data){
   view='boot';
   if(data&&data.G&&data.mode==='offline'){mode='offline';mySeat=0;view='game';cfg=data.cfg;botLooks=data.botLooks||pickBotLooks(data.G.n);G=data.G}
   renderSnd();renderWallet();render();drive();
   setInterval(presenceTick,3000);setInterval(turnTick,500);
   try{CL=window.claude;if(CL&&CL.use){[db,usr,roomCap]=await Promise.all([CL.use('db'),CL.use('user'),CL.use('room')]);uid=usr?await usr.id():null;if(usr){try{const me=await usr.me();myName=me.name||'';myEmail=me.email||null}catch(e){}try{isOwnerV=!!(await usr.isOwner())}catch(e){}}}}catch(e){db=null}
+  if(FB){await waitNET();if(!window.NET){$('#view').innerHTML=`<div class="gate"><h1 class="gtitle">Re<span>viro</span></h1><section class="box"><h2>No se pudo conectar</h2><p>No pudimos llegar al servidor del juego. Revisá tu conexión y recargá la página.</p></section></div>`;return}
+    if(view!=='game')view='boot';render();NET.auth.onChange(info=>onFbUser(info));return}
   if(LOCAL){await loadWallet();if(!WAL.registered){if(view!=='game')view='register';regAv=AVM[WAL.eq.av]&&!AVM[WAL.eq.av].price?WAL.eq.av:'gaucho'}else if(view==='boot')view='menu';render();return}
   if(!uid||!db){if(view!=='game')view='login';render();return}
   PREMIUM=isOwnerV;await loadWallet();

@@ -1,0 +1,165 @@
+rules_version = '2';
+
+// Reglas de seguridad de Reviro.
+// Se publican en Firebase Console > Firestore Database > Reglas, o con `firebase deploy --only firestore:rules`.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- helpers ----------
+    function signedIn() { return request.auth != null; }
+    function isSelf(uid) { return signedIn() && request.auth.uid == uid; }
+    function changed() { return request.resource.data.diff(resource.data).affectedKeys(); }
+
+    // Admin fijo: este mail, verificado. Si agregás más mails, sumalos también en js/net.js (ADMIN_EMAILS).
+    function isFixedAdmin() {
+      return signedIn()
+        && request.auth.token.email == 'alejandro.clemente05@gmail.com'
+        && request.auth.token.email_verified == true;
+    }
+    function isAdmin() {
+      return isFixedAdmin()
+        || (signedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+            && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+    }
+
+    // ---------- nombres de usuario únicos ----------
+    // usernames/{usuario en minúsculas} = { uid }
+    match /usernames/{name} {
+      allow get: if true;                       // para saber si un nombre está libre antes de registrarse
+      allow list: if false;
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['uid']);
+      allow delete: if isAdmin();
+    }
+
+    // ---------- usuarios, roles y estadísticas ----------
+    match /users/{uid} {
+      allow read: if signedIn();
+
+      allow create: if isSelf(uid)
+        && request.resource.data.role == 'player'
+        && request.resource.data.usernameLower == request.resource.data.username.lower()
+        && existsAfter(/databases/$(database)/documents/usernames/$(request.resource.data.usernameLower))
+        && getAfter(/databases/$(database)/documents/usernames/$(request.resource.data.usernameLower)).data.uid == uid
+        && request.resource.data.stats == { 'played': 0, 'wins': 0, 'losses': 0, 'winRate': 0, 'currentStreak': 0, 'bestStreak': 0 };
+
+      allow update: if
+           // el jugador cambia su personaje
+           (isSelf(uid) && changed().hasOnly(['avatar']))
+           // el jugador registra el resultado de una partida (ver validStats)
+        || (isSelf(uid) && changed().hasOnly(['stats', 'lastMatchId']) && validStats(uid))
+           // el admin fijo deja asentado su propio rol
+        || (isSelf(uid) && isFixedAdmin() && changed().hasOnly(['role']) && request.resource.data.role == 'admin')
+           // un admin cambia el rol de otro usuario
+        || (isAdmin() && changed().hasOnly(['role']) && request.resource.data.role in ['player', 'admin']);
+
+      allow delete: if isAdmin();
+
+      // Una partida solo se puede sumar una vez, y tiene que coincidir con el resultado guardado en la sala.
+      function validStats(uid) {
+        let id = request.resource.data.lastMatchId;
+        let recPath = /databases/$(database)/documents/users/$(uid)/matches/$(id);
+        let o = resource.data.stats;
+        let n = request.resource.data.stats;
+        let won = getAfter(recPath).data.won;
+        return id is string
+          && !exists(recPath) && existsAfter(recPath)
+          && n.keys().hasOnly(['played', 'wins', 'losses', 'winRate', 'currentStreak', 'bestStreak'])
+          && n.played == o.played + 1
+          && n.winRate is number && n.winRate >= 0 && n.winRate <= 1
+          && ((won == true
+                && n.wins == o.wins + 1 && n.losses == o.losses
+                && ((o.currentStreak > 0 && n.currentStreak == o.currentStreak + 1) || (o.currentStreak <= 0 && n.currentStreak == 1)))
+           || (won == false
+                && n.wins == o.wins && n.losses == o.losses + 1
+                && ((o.currentStreak < 0 && n.currentStreak == o.currentStreak - 1) || (o.currentStreak >= 0 && n.currentStreak == -1))))
+          && ((n.currentStreak > o.bestStreak && n.bestStreak == n.currentStreak)
+           || (n.currentStreak <= o.bestStreak && n.bestStreak == o.bestStreak));
+      }
+
+      match /matches/{matchId} {
+        allow read: if isSelf(uid) || isAdmin();
+        allow create: if isSelf(uid) && validRecord(uid, matchId);
+        allow update, delete: if false;
+
+        function validRecord(uid, matchId) {
+          let d = request.resource.data;
+          let room = get(/databases/$(database)/documents/rooms/$(d.roomId)).data;
+          return d.matchId == matchId
+            && room.status == 'finished'
+            && room.result.matchId == matchId
+            && uid in room.teams
+            && d.team == room.teams[uid]
+            && d.won == (room.result.winnerTeam == room.teams[uid]);
+        }
+      }
+
+      match /private/{docId} {
+        allow read, write: if isSelf(uid) || isAdmin();
+      }
+    }
+
+    // ---------- salas en tiempo real ----------
+    match /rooms/{code} {
+      function isMember() {
+        return request.auth.uid in resource.data.playerIds || resource.data.host == request.auth.uid;
+      }
+      // alguien que no está en la sala solo puede sentarse en un asiento libre mientras se espera
+      function joining() {
+        return resource.data.status == 'waiting'
+          && request.auth.uid in request.resource.data.playerIds
+          && changed().hasOnly(['seats', 'playerIds', 'type', 'updatedAt']);
+      }
+
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.host == request.auth.uid
+        && request.resource.data.status == 'waiting'
+        && request.resource.data.code == code
+        && request.resource.data.n in [2, 4];
+      allow update: if signedIn()
+        && (isMember() || joining() || isAdmin())
+        && request.resource.data.host == resource.data.host
+        && request.resource.data.code == resource.data.code
+        && request.resource.data.status in ['waiting', 'playing', 'finished', 'closed']
+        // una sala terminada no cambia de resultado (salvo revancha, que vuelve a 'playing')
+        && (resource.data.status != 'finished' || request.resource.data.status in ['playing', 'closed', 'finished']);
+      allow delete: if isAdmin() || (signedIn() && resource.data.host == request.auth.uid);
+
+      match /presence/{uid} {
+        allow read: if signedIn();
+        allow write: if isSelf(uid);
+      }
+      match /events/{eventId} {
+        allow read: if signedIn();
+        allow create: if signedIn() && request.resource.data.by == request.auth.uid;
+        allow update, delete: if isAdmin();
+      }
+    }
+
+    // ---------- perfil público (personaje, apodo, código de amigo, amigos, puntos) ----------
+    match /profiles/{uid} {
+      allow read: if signedIn();
+      allow write: if isSelf(uid);
+    }
+
+    // ---------- billetera privada (fichas, monedas, cosas compradas) ----------
+    match /wallets/{uid} {
+      allow read, write: if isSelf(uid);
+    }
+
+    // ---------- premium: solo lo da un admin ----------
+    match /premium/{uid} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // ---------- invitaciones a mesa ----------
+    match /invites/{id} {
+      allow read: if signedIn() && (resource.data.to == request.auth.uid || resource.data.from == request.auth.uid);
+      allow create: if signedIn() && request.resource.data.from == request.auth.uid;
+      allow delete: if signedIn() && (resource.data.to == request.auth.uid || resource.data.from == request.auth.uid);
+    }
+  }
+}

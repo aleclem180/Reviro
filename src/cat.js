@@ -1,0 +1,325 @@
+/* ---------- catálogo: personajes, dorsos y paños ---------- */
+const SK=['#f3d4b5','#e6b88f','#cf9467','#a86c43','#7b4b2b'];
+const AVS=[
+ {id:'gaucho',name:'El Gaucho',price:0,bio:'Juega de poncho, ceba mate entre mano y mano y nunca canta en falso.',
+  spec:{lid:true,bg:'#b5622f',skin:SK[2],hair:'sides',hc:'#2b1b12',eyes:'dot',mouth:'smile',facial:'mustache',hat:'gaucho',hatc:'#241812',band:'#c0392b',shirt:'#e9dcc2',poncho:'#7d2a1d',outfit:'gaucho',sleeve:'#e7e9e2',prop:'mate'}},
+ {id:'estudiante',name:'El Estudiante',price:0,bio:'Rinde el final mañana y sigue jugando "la última".',
+  spec:{bg:'#4b6fa8',skin:SK[0],hair:'curly',hc:'#5a3a22',eyes:'glasses',mouth:'smile',shirt:'#2f3b4f',outfit:'hoodie',prop:'apuntes'}},
+ {id:'tachero',name:'El Tachero',price:0,bio:'Sabe de todo, opina de todo y te canta retruco en un semáforo.',
+  spec:{lid:true,bg:'#e0b33a',skin:SK[1],hair:'sides',hc:'#3a2a20',eyes:'dot',mouth:'smirk',facial:'mustache',hat:'cap',hatc:'#1d1d1d',shirt:'#6b4f3a',outfit:'sweater',prop:'wave'}},
+ {id:'veterano',name:'El Veterano del Bar',price:300,bio:'Cuarenta años en la misma mesa. Lee tus señas antes de que las hagas.',
+  spec:{lid:true,bg:'#2f5d50',skin:SK[1],hair:'sides',hc:'#c9c9c9',brow:'#9a9a9a',eyes:'dot',mouth:'smile',facial:'mustache',fc:'#e2e2e2',hat:'boina',hatc:'#22314a',shirt:'#5b5245',outfit:'cardigan',prop:'naipes'}},
+ {id:'hincha',name:'La Hincha',price:300,bio:'Canta truco como si fuera un gol en el último minuto.',
+  spec:{bg:'#1d3f8a',skin:SK[3],hair:'long',hc:'#2b1b12',eyes:'happy',mouth:'grin',blush:true,shirt:'#fff',outfit:'albiceleste',sleeve:'#fff',bare:true,prop:'bufanda'}},
+ {id:'asador',name:'El Asador',price:300,bio:'Da vuelta la carne y te gana la mano sin soltar la pinza.',
+  spec:{lid:true,bg:'#8e2a1f',skin:SK[3],hair:'short',hc:'#1e1612',eyes:'dot',mouth:'smile',facial:'beard',shirt:'#3b5a7a',outfit:'delantal',bare:true,prop:'chori'}},
+ {id:'abuela',name:'La Abuela',price:300,bio:'Juega desde 1962. No le mientas, que se da cuenta.',
+  spec:{bg:'#c9a6c8',skin:SK[0],hair:'bun',hc:'#e3e3e3',brow:'#a8a8a8',eyes:'glasses',mouth:'smile',blush:true,shirt:'#7a5c8a',shawl:'#e9d7b9',outfit:'chal',prop:'tejido'}},
+ {id:'godin',name:'El Godín',price:350,bio:'Truco en el almuerzo. Vuelve a la oficina con quince en las buenas.',
+  spec:{bg:'#6f8ea3',skin:SK[1],hair:'short',hc:'#4a3426',eyes:'tired',mouth:'flat',shirt:'#2f3540',tie:'#a3312a',outfit:'traje',prop:'cafe'}},
+ {id:'cheto',name:'El Cheto',price:400,bio:'Pulóver al hombro, anteojos en la cabeza y envido de 33, obvio.',
+  spec:{bg:'#9cc3e6',skin:SK[0],hair:'slick',hc:'#c79a4a',eyes:'dot',mouth:'smirk',hat:'shadesHead',shirt:'#f29fb3',sweater:'#22365c',outfit:'cheto',bare:true,prop:'vaso'}},
+ {id:'fisura',name:'El Fisura',price:400,bio:'No durmió, no piensa dormir y quiere vale cuatro.',
+  spec:{bg:'#5b3b7a',skin:SK[2],hair:'messy',hc:'#1e1e1e',eyes:'shades',mouth:'grin',facial:'stubble',shirt:'#d9d4c4',jacket:'#1f1f1f',outfit:'campera',sleeve:'#1f1f1f',prop:'pizza'}},
+ {id:'dona',name:'La Doña del Barrio',price:400,bio:'Ruleros puestos. Sabe todo lo que pasa en la cuadra y en tu mano.',
+  spec:{bg:'#f0a35e',skin:SK[2],hair:'rulos',hc:'#6a3d2a',eyes:'dot',mouth:'smirk',blush:true,earring:true,shirt:'#d65a7a',outfit:'bata',prop:'escoba'}},
+ {id:'mochilero',name:'El Mochilero',price:450,bio:'Recorrió el país de punta a punta con un mazo en la mochila.',
+  spec:{bg:'#3f8f8a',skin:SK[3],hair:'sides',hc:'#3a2a1c',eyes:'dot',mouth:'smile',facial:'stubble',hat:'gorro',hatc:'#d9822b',hatc2:'#f2e6d0',shirt:'#4b6b3a',outfit:'mochila',bare:true,prop:'mapa'}},
+ {id:'rolinga',name:'El Rolinga',price:500,bio:'Flequillo, pañuelo al cuello y un truco que suena a recital.',
+  spec:{bg:'#c23b2e',skin:SK[1],hair:'long',fringe:true,hc:'#141414',eyes:'dot',mouth:'smirk',shirt:'#202020',scarf:'#e8d44d',outfit:'panuelo',bare:true,prop:'mic'}},
+ {id:'hippie',name:'La Hippie de la Feria',price:500,bio:'Te vende un collar, te lee la mano y después te la gana.',
+  spec:{bg:'#7fae6a',skin:SK[4],hair:'braids',hc:'#2b1b12',eyes:'happy',mouth:'smile',earring:true,hat:'vincha',band:'#7a3fa0',shirt:'#c8553d',outfit:'poncho2',prop:'girasol'}},
+ {id:'tanguero',name:'El Tanguero',price:600,bio:'Canta el envido con voz de bandoneón.',
+  spec:{lid:true,bg:'#b8222f',skin:SK[0],hair:'sides',hc:'#121212',eyes:'dot',mouth:'smirk',facial:'thinmust',hat:'fedora',hatc:'#151515',band:'#f2f2f2',shirt:'#151515',outfit:'tango',prop:'rosa'}},
+ {id:'murguera',name:'La Murguera',price:600,bio:'Galera con lentejuelas y un falta envido de carnaval.',
+  spec:{bg:'#3a2a7a',skin:SK[4],hair:'long',hc:'#2b1b12',eyes:'wink',mouth:'grin',blush:true,hat:'galera',hatc:'#e0453a',shirt:'#2ea36b',outfit:'levita',prop:'serpentinas'}},
+ {id:'influencer',name:'La Influencer',price:600,bio:'Graba cada mano. Si gana, sube historia.',
+  spec:{bg:'#f3b6c9',skin:SK[2],hair:'long',hc:'#e8c06a',eyes:'lashes',mouth:'lips',earring:true,ring:true,shirt:'#ffffff',outfit:'top',bare:true,prop:'phone'}},
+];
+const AVM=Object.fromEntries(AVS.map(a=>[a.id,a]));
+const GUARDA_URL="url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2728%27 height=%2712%27%3E%3Crect width=%2728%27 height=%2712%27 fill=%27%23efe0bf%27/%3E%3Crect width=%2728%27 height=%271.4%27 fill=%27%232a170b%27/%3E%3Crect y=%2710.6%27 width=%2728%27 height=%271.4%27 fill=%27%232a170b%27/%3E%3Cpath d=%27M14 2.2L19 6L14 9.8L9 6Z%27 fill=%27%232a170b%27/%3E%3Cpath d=%27M14 4.2L16.4 6L14 7.8L11.6 6Z%27 fill=%27%23b0261c%27/%3E%3Cpath d=%27M0 3L3.4 6L0 9ZM28 3L24.6 6L28 9Z%27 fill=%27%23b0261c%27/%3E%3C/svg%3E')";
+const DORSOS=[
+ {id:'pampa',name:'Guarda pampa',price:0,bio:'La guarda de los ponchos, en negro y punzó.',bg:GUARDA_URL+' left center/18px 8px repeat, #efe0bf'},
+ {id:'bordo',name:'Bordó de club',price:0,bio:'El de siempre, rombos dorados sobre bordó.',bg:'repeating-linear-gradient(45deg, rgba(220,170,72,.75) 0 1px, transparent 1px 5px), repeating-linear-gradient(-45deg, rgba(220,170,72,.45) 0 1px, transparent 1px 5px), #6e1f33'},
+ {id:'marino',name:'Azul marino',price:400,bio:'Trama fina y elegante, como los mazos de antes.',bg:'repeating-linear-gradient(45deg, #c9d6ea 0 1px, transparent 1px 5px), repeating-linear-gradient(-45deg, #c9d6ea 0 1px, transparent 1px 5px), #1d2f57'},
+ {id:'cuero',name:'Cuero curtido',price:500,bio:'Como la tapa de un mate de calabaza viejo.',bg:'repeating-linear-gradient(90deg, rgba(0,0,0,.12) 0 2px, transparent 2px 6px), radial-gradient(circle at 30% 30%, #9a6436, #6b3f1e)'},
+ {id:'celeste',name:'Celeste y blanco',price:600,bio:'Tres franjas y un sol dorado al medio.',bg:'radial-gradient(circle at 50% 50%, #f6b40e 0 10%, transparent 11%), linear-gradient(#74acdf 0 33%, #ffffff 33% 67%, #74acdf 67%)'},
+ {id:'noche',name:'Noche de peña',price:700,bio:'Cielo de campo con estrellas, para jugar hasta el amanecer.',bg:'radial-gradient(1.2px 1.2px at 20% 30%, #fff 90%, transparent), radial-gradient(1px 1px at 70% 62%, #fff 90%, transparent), radial-gradient(1.6px 1.6px at 40% 80%, #f6d27a 90%, transparent), radial-gradient(1px 1px at 82% 18%, #fff 90%, transparent), radial-gradient(1.4px 1.4px at 55% 40%, #f6d27a 90%, transparent), #0f1638'},
+ {id:'oro',name:'Oro viejo',price:800,bio:'Cuadriculado sobre dorado. Para los que ganan seguido.',bg:'repeating-linear-gradient(0deg, rgba(80,50,0,.35) 0 1px, transparent 1px 6px), repeating-linear-gradient(90deg, rgba(80,50,0,.35) 0 1px, transparent 1px 6px), linear-gradient(135deg, #f1cf6b, #b8861f)'},
+ {id:'fileteado',name:'Fileteado porteño',price:900,bio:'Rosetón rojo y dorado sobre negro, como los carteles de colectivo.',bg:'radial-gradient(circle at 50% 50%, #e9c46a 0 14%, #c0392b 15% 24%, transparent 25%), repeating-radial-gradient(circle at 50% 50%, transparent 0 4px, rgba(233,196,106,.55) 4px 5px), #111'},
+];
+DORSOS.push(
+ {id:'ombu',name:'Ombú',boss:'ba',bio:'Premio del jefe de la Llanura del Ombú.',bg:'radial-gradient(circle at 50% 38%, #3e7a38 0 20%, transparent 21%), radial-gradient(circle at 34% 46%, #4c8c44 0 13%, transparent 14%), radial-gradient(circle at 66% 46%, #4c8c44 0 13%, transparent 14%), linear-gradient(#5a3a22,#5a3a22) 50% 78%/10% 28% no-repeat, linear-gradient(#cfe3f0 0 72%, #c9a227 72%)'},
+ {id:'cuarteto',name:'Cuarteto',boss:'centro',bio:'Premio del jefe de las Sierras del Cuarteto.',bg:'repeating-linear-gradient(135deg, #e0453a 0 4px, #ffd23f 4px 8px, #3ec1d3 8px 12px, #7a3fa0 12px 16px)'},
+ {id:'sietecolores',name:'Siete Colores',boss:'noa',bio:'Premio del jefe de los Cerros de Siete Colores.',bg:'linear-gradient(#c4532d 0 14%,#d9822b 14% 28%,#e8c35a 28% 42%,#8a5a9e 42% 56%,#3f8f6b 56% 70%,#b5302a 70% 84%,#6b3f1e 84%)'},
+ {id:'viento',name:'Viento sur',boss:'patagonia',bio:'Premio del jefe de la Tierra del Viento.',bg:'repeating-radial-gradient(circle at 0 0, #3f6f8f 0 3px, #e9f1f6 3px 5px)'});
+const DM=Object.fromEntries(DORSOS.map(d=>[d.id,d]));
+const PANOS=[
+ {id:'quincho',name:'Mesa de quincho',price:0,bio:'Tablones de madera, como en el fondo de la estancia.',bg:'repeating-linear-gradient(90deg, rgba(0,0,0,.28) 0 2px, transparent 2px 25%), repeating-linear-gradient(91deg, rgba(255,255,255,.035) 0 2px, transparent 2px 9px), linear-gradient(180deg, #7a4b28, #573117)',edge:'#2a170b'},
+ {id:'cuerovaca',name:'Cuero vacuno',price:900,bio:'Cuero de vaca manchado, para jugar como en la estancia.',bg:'radial-gradient(ellipse 22% 16% at 20% 30%, #3a2416 98%, transparent), radial-gradient(ellipse 18% 24% at 72% 62%, #3a2416 98%, transparent), radial-gradient(ellipse 14% 10% at 40% 82%, #3a2416 98%, transparent), radial-gradient(ellipse 16% 12% at 86% 18%, #3a2416 98%, transparent), #8a5a35',edge:'#2a170b'},
+ {id:'bordo',name:'Paño bordó',price:0,bio:'La mesa del club, con su borde de bronce.',bg:'radial-gradient(90% 70% at 50% 45%, #561a2e, #3a1120)',edge:'rgba(220,170,72,.4)'},
+ {id:'verde',name:'Verde de casino',price:600,bio:'El clásico paño verde de las mesas de juego.',bg:'radial-gradient(90% 70% at 50% 45%, #1d6644, #0f3a26)',edge:'rgba(220,170,72,.4)'},
+ {id:'azul',name:'Azul medianoche',price:700,bio:'Para las partidas que terminan tarde.',bg:'radial-gradient(90% 70% at 50% 45%, #1f3a6e, #10203f)',edge:'rgba(160,190,240,.45)'},
+ {id:'petroleo',name:'Petróleo',price:700,bio:'Un verde azulado profundo, tranquilo para la vista.',bg:'radial-gradient(90% 70% at 50% 45%, #1a5d66, #0d3236)',edge:'rgba(220,170,72,.4)'},
+ {id:'bodegon',name:'Mesa de bodegón',price:1000,bio:'Madera gastada, la de la esquina con vino de la casa.',bg:'repeating-linear-gradient(92deg, rgba(0,0,0,.14) 0 3px, transparent 3px 11px, rgba(255,255,255,.04) 11px 13px, transparent 13px 22px), linear-gradient(180deg, #6b4224, #4a2c17)',edge:'rgba(30,15,5,.8)'},
+ {id:'fileteado',name:'Negro fileteado',price:1200,bio:'Negro brillante con doble filete dorado.',bg:'radial-gradient(90% 70% at 50% 45%, #2a2426, #121012)',edge:'#e9c46a'},
+];
+PANOS.push(
+ {id:'ibera',name:'Esteros del Iberá',boss:'litoral',bio:'Premio del jefe de la Tierra del Chamamé.',bg:'radial-gradient(ellipse 8% 5% at 20% 30%, #6fbf73 98%, transparent), radial-gradient(ellipse 6% 4% at 70% 72%, #6fbf73 98%, transparent), radial-gradient(ellipse 7% 4% at 82% 25%, #f2c6d8 98%, transparent), radial-gradient(90% 70% at 50% 45%, #1f6b6b, #0e3b3d)',edge:'#a7d3c4'},
+ {id:'vinedo',name:'Viñedo de altura',boss:'cuyo',bio:'Premio del jefe de los Valles de la Vendimia.',bg:'repeating-linear-gradient(100deg, rgba(70,120,45,.6) 0 6px, transparent 6px 20px), linear-gradient(180deg, #6b3f2a, #3f2416)',edge:'#7b2f4a'},
+ {id:'monte',name:'Monte chaqueño',boss:'nea',bio:'Premio del jefe del Monte Impenetrable.',bg:'radial-gradient(circle at 15% 25%, #2f5a1f 0 6%, transparent 7%), radial-gradient(circle at 60% 70%, #2f5a1f 0 8%, transparent 9%), radial-gradient(circle at 85% 30%, #3d6b28 0 7%, transparent 8%), radial-gradient(90% 70% at 50% 45%, #4a6b2a, #243a14)',edge:'#c9a227'},
+ {id:'faro',name:'Noche del faro',boss:'tdf',bio:'Premio del jefe del Último Faro.',bg:'conic-gradient(from 200deg at 85% 15%, rgba(255,240,180,.35) 0deg 18deg, transparent 18deg), radial-gradient(90% 70% at 50% 45%, #1b2f55, #0a1428)',edge:'#f2d27a'});
+const PM=Object.fromEntries(PANOS.map(p=>[p.id,p]));
+const BOSS_PRIZE={ba:['dorso','ombu'],litoral:['pano','ibera'],centro:['dorso','cuarteto'],cuyo:['pano','vinedo'],noa:['dorso','sietecolores'],nea:['pano','monte'],patagonia:['dorso','viento'],tdf:['pano','faro']};
+const prizeLabel=p=>p?(p[0]==='dorso'?'el dorso '+DM[p[1]].name:'el paño '+PM[p[1]].name):'';
+const PACKS=[{coins:500,ars:500},{coins:1100,ars:1000,tag:'+10% de regalo'},{coins:3000,ars:2500,tag:'+20% de regalo'},{coins:6500,ars:5000,tag:'+30% de regalo'}];
+const SENAS={cejas:'Levanta las cejas: ancho de espada',guino:'Guiña un ojo: ancho de basto',bocader:'Tuerce la boca a la derecha: siete de espada',bocaizq:'Tuerce la boca a la izquierda: siete de oro',labio:'Se muerde el labio: tiene un tres',cachetes:'Infla los cachetes: tiene flor',ojos:'Cierra los ojos: no tiene nada'};
+const SENA_SHORT={cejas:'Cejas · ancho de espada',guino:'Guiño · ancho de basto',bocader:'Boca der. · 7 de espada',bocaizq:'Boca izq. · 7 de oro',labio:'Labio · un tres',cachetes:'Cachetes · flor',ojos:'Ojos cerrados · nada'};
+const REACTS={vamos:'¡Vamos!',mentiroso:'¡Mentiroso!',quemano:'¡Qué mano!',buenas:'Son buenas…',uff:'¡Uff!',juga:'¡Jugá, che!'};
+const BOT_REPLIES=['¡Ja! Ya vas a ver','Tranquilo, pibe','Se viene el retruco','Esa no te la creo','Mirá vos…'];
+
+/* ---------- dibujo de personajes v3: medio cuerpo con más detalle ---------- */
+const OL='#33190f';
+function shade(hex,amt){const m=/^#?([0-9a-f]{6})$/i.exec(hex);if(!m)return hex;const n=parseInt(m[1],16);let r=n>>16,g=(n>>8)&255,b=n&255;
+  const t=amt<0?0:255,k=Math.abs(amt);r=Math.round(r+(t-r)*k);g=Math.round(g+(t-g)*k);b=Math.round(b+(t-b)*k);return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1)}
+const TORSO='M17 100V77Q17 60 32 55.6Q41 53 50 53.4Q59 53 68 55.6Q83 60 83 77V100Z';
+function limb(d,w,col){return `<path d="${d}" stroke="${OL}" stroke-width="${w+2.2}" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" stroke="${col}" stroke-width="${w}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`}
+let AVN=0;
+/* la cabeza se dibuja en el sistema de 64 (centro 32,30) y se ubica en (50,28) escalada */
+const HEADT='translate(50 28.6) scale(.9) translate(-32 -30)';
+function avatarSVG(id,px,full){const sid=String(id),kit=sid.split(':')[1],a=AVM[sid]||AVM[sid.split(':')[0]]||AVM.gaucho,k='av'+(++AVN);
+  const KT=a.id==='hincha'&&KITM[kit||'arg'],p=KT?Object.assign({},a.spec,{kit:KT.id,sleeve:KT.sleeve,k1:KT.c1,k2:KT.c2}):a.spec;
+  const s=p.skin,sd=shade(s,-.2),hc=p.hc||'#2b1b12',fc=p.fc||hc,sl=p.sleeve||p.shirt,fa=p.bare?s:sl;
+  const crop=full===undefined?px<60:!full;const vb=crop?'29 6 42 42':'0 0 100 100';
+  const strokes=p.bg2||shade(p.bg,-.18);
+  let o=`<defs><clipPath id="${k}t"><path d="${TORSO}"/></clipPath><clipPath id="${k}f"><ellipse cx="32" cy="30" rx="11.6" ry="13"/></clipPath></defs><rect x="-5" y="-5" width="110" height="110" fill="${p.bg}"/>`;
+  o+=[[4,22,66,8],[30,34,96,7],[2,70,54,8],[42,84,98,7],[8,56,30,6],[70,46,96,5]].map(([x1,y,x2,w])=>`<path d="M${x1} ${y}Q${(x1+x2)/2} ${y-3} ${x2} ${y+1.5}" stroke="${strokes}" stroke-width="${w}" stroke-linecap="round" fill="none"/>`).join('');
+  o+=`<circle cx="50" cy="66" r="37" fill="${shade(p.bg,.22)}" fill-opacity=".5"/>`;
+  if(p.ring)o+=`<circle cx="50" cy="28" r="21" fill="none" stroke="#fff" stroke-opacity=".9" stroke-width="3.4"/>`;
+  /* pelo largo por detrás */
+  o+=`<g transform="${HEADT}" stroke="${OL}" stroke-width=".9" stroke-linejoin="round">`;
+  if(p.hair==='long'||p.hair==='braids')o+=`<path d="M19 30c0-10 6-15.5 13-15.5S45 20 45 30v20h-6.5V32h-13v18H19z" fill="${hc}"/>`;
+  if(p.hair==='braids')o+=`<ellipse cx="21" cy="53" rx="2.8" ry="6.4" fill="${hc}"/><ellipse cx="43" cy="53" rx="2.8" ry="6.4" fill="${hc}"/>`;
+  o+=`</g>`;
+  /* cuello */
+  o+=`<path d="M44.6 38h10.8v17.6q-5.4 3-10.8 0z" fill="${s}" stroke="${OL}" stroke-width="1"/><path d="M44.8 39.4q5.2 4.6 10.4 0v4.4q-5.2 3.2-10.4 0z" fill="${sd}" fill-opacity=".8"/>`;
+  /* torso y ropa */
+  o+=`<path d="${TORSO}" fill="${p.shirt}" stroke="${OL}" stroke-width="1.2"/>`;
+  o+=`<g transform="translate(50 53.4) scale(1.2 1.075) translate(-50 -55.5)">${outfit2(p,k+'t2',s)}</g>`;
+  o+=`<defs><clipPath id="${k}t2"><path d="M23 100V71Q23 58 36 55.5H64Q77 58 77 71V100Z"/></clipPath></defs>`;
+  o+=`<g clip-path="url(#${k}t)"><path d="M56 53H68Q83 60 83 77V100H59Q62 80 56 53Z" fill="#000" fill-opacity=".16"/><path d="M20 66Q24 58 32 56L30 70Z" fill="#fff" fill-opacity=".07"/>
+    <path d="M30 72q3 4 1 10M70 72q-3 4-1 10M40 92q10 3 20 0" stroke="${OL}" stroke-opacity=".28" stroke-width=".9" fill="none"/></g>`;
+  /* cabeza */
+  o+=`<g transform="${HEADT}">`;
+  o+=`<g stroke="${OL}" stroke-width="1"><path d="M18.8 30.6q-.4-3.4 2.2-3.4q2.2.4 1.8 6.2q-.6 2.6-2.4 2q-1.4-1.6-1.6-4.8z" fill="${s}"/><path d="M45.2 30.6q.4-3.4-2.2-3.4q-2.2.4-1.8 6.2q.6 2.6 2.4 2q1.4-1.6 1.6-4.8z" fill="${s}"/>
+    <path d="M20.4 29.4C20.4 20 25.4 17 32 17S43.6 20 43.6 29.4C43.6 36.6 40.4 42.4 35.6 43.4Q32 44.2 28.4 43.4C23.6 42.4 20.4 36.6 20.4 29.4Z" fill="${s}"/></g>`;
+  o+=`<path d="M20.4 29.4C20.4 20 25.4 17 32 17S43.6 20 43.6 29.4C43.6 36.6 40.4 42.4 35.6 43.4Q32 44.2 28.4 43.4C23.6 42.4 20.4 36.6 20.4 29.4Z" fill="none"/>`;
+  o+=`<path d="M38.8 19.6Q44.6 26 42 36.4Q40 41.6 35.6 43.4Q40.6 37.6 40.2 29.6Q40 23 38.8 19.6Z" fill="${sd}" fill-opacity=".75"/><path d="M21.6 34.6q1.6 4.6 5 7.2q-4.4-.6-5-7.2z" fill="${sd}" fill-opacity=".45"/>`;
+  o+=`<path d="M20.2 30.6q.7 0 1 1.4M43.8 30.6q-.7 0-1 1.4" stroke="${OL}" stroke-opacity=".5" stroke-width=".7" fill="none"/>`;
+  if(p.blush)o+=`<ellipse cx="25.2" cy="35" rx="2.4" ry="1.5" fill="#e46a6a" fill-opacity=".35"/><ellipse cx="38.8" cy="35" rx="2.4" ry="1.5" fill="#e46a6a" fill-opacity=".35"/>`;
+  if(p.earring)o+=`<circle cx="20.2" cy="36.4" r="1.7" fill="none" stroke="#f2c14e" stroke-width="1"/><circle cx="43.8" cy="36.4" r="1.7" fill="none" stroke="#f2c14e" stroke-width="1"/>`;
+  o+=brows3(p,hc)+eyes3(p,s,sd)+nose3(sd)+facial3(p.facial,fc,k)+mouth3(p.mouth,p.facial);
+  o+=`<g stroke="${OL}" stroke-width=".85" stroke-linejoin="round">${hairSVG(p,hc)}</g>`;
+  if(p.hair&&p.hair!=='sides'&&p.hair!=='curly'&&p.hair!=='rulos')o+=`<path d="M25 20.6q4-2.4 9-1.8M27 22.4q3-1.4 6-1" stroke="#fff" stroke-opacity=".22" stroke-width=".8" fill="none" stroke-linecap="round"/>`;
+  o+=`<g stroke="${OL}" stroke-width=".85" stroke-linejoin="round">${hatSVG(p)}</g>`;
+  if(p.hat==='gaucho'||p.hat==='fedora'||p.hat==='cap'||p.hat==='boina')o+=`<path d="M21.6 21.4Q32 24.4 42.4 21.4L42 23.4Q32 26.4 22 23.4Z" fill="#000" fill-opacity=".14"/>`;
+  o+=`</g>`;
+  o+=arms3(p,s,sd,sl,fa);
+  return `<svg class="av" viewBox="${vb}" width="${px}" height="${px}" role="img" aria-label="${a.name}"${crop?'':' style="border-radius:16px"'}>${o}</svg>`}
+function brows3(p,hc){const c=p.brow||shade(hc,.05),lift=p.mouth==='smirk'?-.9:0,heavy=p.eyes==='tired'||p.lid;
+  const L=`<path d="M24.4 ${26.4+(heavy?.6:0)}Q27.4 ${24.4+(heavy?.8:0)} 30.6 ${25.8+(heavy?.4:0)}Q27.4 ${25.6+(heavy?.8:0)} 24.4 ${26.4+(heavy?.6:0)}Z" fill="${c}" stroke="${c}" stroke-width="1.1" stroke-linejoin="round"/>`;
+  const R=`<path d="M39.6 ${26.4+lift}Q36.6 ${24.4+lift} 33.4 ${25.8+lift}Q36.6 ${25.6+lift} 39.6 ${26.4+lift}Z" fill="${c}" stroke="${c}" stroke-width="1.1" stroke-linejoin="round"/>`;
+  return L+R}
+function eye3(cx,iris,lid,s,sd){let o=`<path d="M${cx-3.1} 30.4Q${cx} 27.6 ${cx+3.1} 30.3Q${cx} 32.5 ${cx-3.1} 30.4Z" fill="#fbf6ec"/>`;
+  o+=`<circle cx="${cx+.2}" cy="30.3" r="1.55" fill="${iris}"/><circle cx="${cx+.2}" cy="30.3" r=".75" fill="#140b06"/><circle cx="${cx+.75}" cy="29.7" r=".45" fill="#fff"/>`;
+  if(lid)o+=`<path d="M${cx-3.4} 30.5Q${cx} 27.2 ${cx+3.4} 30.4Q${cx} 29.2 ${cx-3.4} 30.5Z" fill="${shade(s,-.08)}"/>`;
+  o+=`<path d="M${cx-3.3} 30.5Q${cx} ${lid?29.2:27.4} ${cx+3.3} 30.3" stroke="${OL}" stroke-width="1.15" fill="none" stroke-linecap="round"/><path d="M${cx-2.4} 31.7Q${cx} 32.7 ${cx+2.4} 31.6" stroke="${OL}" stroke-opacity=".35" stroke-width=".6" fill="none"/>`;
+  return o}
+function eyes3(p,s,sd){const t=p.eyes,iris=p.iris||'#4a2a14',lid=!!p.lid||t==='tired';
+  if(t==='shades')return `<path d="M22.8 27.6h8.2q.4 4.8-3.6 5.2q-4.4-.2-4.6-5.2zM33 27.6h8.2q-.2 5-4.6 5.2q-4-.4-3.6-5.2z" fill="#151515" stroke="${OL}" stroke-width=".8"/><path d="M31 28.6q1-.8 2 0" stroke="#151515" stroke-width="1.2" fill="none"/><path d="M24.2 28.8l2.4 0M34.4 28.8l2.4 0" stroke="#fff" stroke-opacity=".5" stroke-width=".8"/>`;
+  if(t==='happy')return `<path d="M24.8 30.8q2.8-2.6 5.6 0M33.6 30.8q2.8-2.6 5.6 0" stroke="${OL}" stroke-width="1.3" fill="none" stroke-linecap="round"/>`;
+  if(t==='wink')return `<path d="M24.8 30.6q2.8 1.8 5.6 0" stroke="${OL}" stroke-width="1.3" fill="none" stroke-linecap="round"/>`+eye3(36.4,iris,false,s,sd);
+  let o=eye3(27.6,iris,lid,s,sd)+eye3(36.4,iris,lid,s,sd);
+  if(t==='tired')o+=`<path d="M25 33.3q2.6 1.2 5.2 0M33.8 33.3q2.6 1.2 5.2 0" stroke="#6b3b52" stroke-opacity=".55" stroke-width=".9" fill="none"/>`;
+  if(t==='lashes')o+=`<path d="M24.6 29.6l-1.2-.9M30.6 29.4l1.1-.9M33.4 29.4l-1.1-.9M39.4 29.6l1.2-.9" stroke="${OL}" stroke-width=".8"/>`;
+  if(t==='glasses')o+=`<circle cx="27.6" cy="30.3" r="3.9" fill="#cfe8ff" fill-opacity=".15" stroke="#2a1a12" stroke-width="1.1"/><circle cx="36.4" cy="30.3" r="3.9" fill="#cfe8ff" fill-opacity=".15" stroke="#2a1a12" stroke-width="1.1"/><path d="M31.5 30q.5-.6 1 0" stroke="#2a1a12" stroke-width="1.1" fill="none"/>`;
+  return o}
+function nose3(sd){return `<path d="M33.2 30.6Q34.6 34 34.4 35.6Q33.6 37 31.8 36.8Q30.2 37 29.6 35.8" stroke="${OL}" stroke-width=".85" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M33.4 31.4q1.4 2.6.8 4.2q-.6.8-1.4.8q1.2-1.8.6-5z" fill="${sd}" fill-opacity=".8"/><path d="M30.6 35.6q.5.6 1.1.4M33.2 35.9q-.4.5-1 .4" stroke="${OL}" stroke-width=".6" fill="none"/>`}
+function mouth3(t,fac){const c=OL,y=fac==='mustache'||fac==='beard'?39.2:38.6;
+  switch(t){
+  case 'grin':return `<path d="M28 ${y-.6}h8q-.6 4.4-4 4.4t-4-4.4z" fill="#5a1f15" stroke="${c}" stroke-width=".8"/><path d="M28.5 ${y-.4}h7v1.3h-7z" fill="#fff"/><path d="M30 ${y+2.6}q2 1 4 0" fill="#c4564a"/>`;
+  case 'smirk':return `<path d="M28.6 ${y+.4}Q32 ${y+1.6} 35.6 ${y-1}" stroke="${c}" stroke-width="1.2" fill="none" stroke-linecap="round"/><path d="M30.4 ${y+1.9}q1.8.6 3.4-.2" stroke="${c}" stroke-opacity=".3" stroke-width=".7" fill="none"/>`;
+  case 'flat':return `<path d="M29 ${y+.2}h6" stroke="${c}" stroke-width="1.2" stroke-linecap="round"/>`;
+  case 'lips':return `<path d="M28.4 ${y}q3.6-2 7.2 0q-3.6 3.6-7.2 0z" fill="#c2405a" stroke="${c}" stroke-width=".6"/><path d="M28.6 ${y}h6.8" stroke="${c}" stroke-width=".5"/>`;
+  }return `<path d="M28.4 ${y-.2}Q32 ${y+2.6} 35.6 ${y-.2}" stroke="${c}" stroke-width="1.2" fill="none" stroke-linecap="round"/><path d="M30.4 ${y+2.2}q1.6.7 3.2 0" stroke="${c}" stroke-opacity=".3" stroke-width=".7" fill="none"/>`}
+function facial3(t,fc,k){
+  const stub=(op)=>{let d='';for(let y=34.4;y<43.4;y+=1.25)for(let x=22.6;x<41.6;x+=1.35){const dx=(x-32)/11,dy=(y-30)/13;if(dx*dx+dy*dy>.98)continue;if(y<37&&Math.abs(x-32)<5)continue;d+=`<circle cx="${(x+(y*7%1)*.5).toFixed(2)}" cy="${y.toFixed(2)}" r=".32"/>`}return `<g fill="${fc}" fill-opacity="${op}" clip-path="url(#${k}f)">${d}</g>`};
+  switch(t){
+  case 'mustache':return `<path d="M25.2 38.4C26.4 35.2 29.6 34.8 32 36.4C34.4 34.8 37.6 35.2 38.8 38.4C37.8 40.2 36 39 34.8 38.4C33.8 38.8 33 38.6 32 38.2C31 38.6 30.2 38.8 29.2 38.4C28 39 26.2 40.2 25.2 38.4Z" fill="${fc}" stroke="${OL}" stroke-width=".7"/><path d="M27 37.4l1.6-.8M29.4 37l1.4-.6M34.6 36.6l1.4.6M36.4 37.2l1.4.8" stroke="${shade(fc,.35)}" stroke-width=".5"/>`+stub(.35);
+  case 'thinmust':return `<path d="M27.4 37.2q2.3-1.2 4.6 0q2.3-1.2 4.6 0" stroke="${fc}" stroke-width="1.1" fill="none" stroke-linecap="round"/>`;
+  case 'beard':return `<path d="M20.6 31.4C21 39.6 25.6 44.6 32 44.6S43 39.6 43.4 31.4C42.2 35 41 37 39.4 37.8C37.8 36 35.2 35.2 32 35.2S26.2 36 24.6 37.8C23 37 21.8 35 20.6 31.4Z" fill="${fc}" stroke="${OL}" stroke-width=".8"/><path d="M24 40l1 1.6M27 42l.6 1.4M37 42l-.6 1.4M40 40l-1 1.6M31.4 43.4v1" stroke="${shade(fc,.3)}" stroke-width=".6"/>`+facial3('mustache',fc,k);
+  case 'stubble':return stub(.45);
+  }return ''}
+function hand3fist(cx,cy,s){return `<path d="M${cx-4.6} ${cy-2.6}q0-2.8 2.8-2.9h3.8q2.9.1 2.9 2.8v4.4q0 3-3 3.3h-3.6q-2.9-.3-2.9-3.3z" fill="${s}" stroke="${OL}" stroke-width="1"/><path d="M${cx-4.4} ${cy-.6}h8.4M${cx-4.4} ${cy+1.8}h8.4" stroke="${OL}" stroke-opacity=".45" stroke-width=".65"/><path d="M${cx+1.6} ${cy-3.3}q3.6-1.2 4 1.6q-.6 2.2-3.4 1.6" fill="${s}" stroke="${OL}" stroke-width=".9"/>`}
+function arms3(p,s,sd,sl,fa){let o='';const fold=`stroke="${OL}" stroke-opacity=".35" stroke-width=".8" fill="none"`;
+  /* brazo derecho del dibujo: mano apoyada en la panza, dedos abiertos */
+  o+=limb('M70 57.6Q82 61 84 74',8.8,sl)+`<path d="M78 66q2 2 2.4 4.6M81 70q1 1.4 1 3" ${fold}/>`;
+  o+=limb('M84 74Q81.6 83.4 67 84.6',7.2,fa);
+  if(p.bare)o+=limb('M83.4 72.6Q84.6 74.6 84 76.6',9.4,shade(sl,-.08));
+  o+=[[63,80.6,56.6,79.2],[62.8,83,56,83],[63,85.4,56.4,86.6],[63.6,87.4,58,89.6]].map(([x1,y1,x2,y2])=>limb(`M${x1} ${y1}L${x2} ${y2}`,2.5,s)).join('');
+  o+=`<path d="M70 80q-3.4-3-7.6-1.6q-2 4.6 .4 8.8q4.4 1.6 7.2-1.2z" fill="${s}" stroke="${OL}" stroke-width="1"/><path d="M66 82q1 2 0 4" stroke="${sd}" stroke-width="1.2" fill="none"/>`;
+  if(p.prop==='none'){o+=limb('M30 57.6Q18 61 16 74',10,sl)+limb('M16 74Q18.4 83.4 33 84.6',8,fa);return o}
+  /* brazo izquierdo del dibujo: levantado sosteniendo algo */
+  o+=limb('M30 57.6Q19 61.6 15.6 73.6',8.8,sl)+`<path d="M21 64q-2 2.4-2.6 5M18.4 69q-1 1.6-1 3" ${fold}/>`;
+  o+=limb('M15.6 73.6Q12.6 64.4 18.6 56.6',7.2,fa);
+  if(p.bare)o+=limb('M14.6 72.4Q15 75 16.8 75.6',9.4,shade(sl,-.08));
+  if(p.prop==='wave'){return o+[[16.6,48.6,15.6,42.8],[19,47.6,18.8,41.2],[21.4,47.8,21.8,41.8],[23.6,49.2,24.6,44]].map(([a,b,c,d])=>limb(`M${a} ${b}L${c} ${d}`,2.5,s)).join('')+limb('M15 53.6l-3.4-2.8',2.6,s)+`<ellipse cx="19.8" cy="51.8" rx="5" ry="5.4" fill="${s}" stroke="${OL}" stroke-width="1"/><path d="M17.6 52.6q2.2 1.4 4.6 0" stroke="${OL}" stroke-opacity=".4" stroke-width=".7" fill="none"/>`}
+  o+=`<g transform="translate(-1 -3)">${prop2(p.prop,p)}</g>`;
+  return o+hand3fist(20,53.6,s)}
+
+function prop2(t,P){const L=`stroke="${OL}" stroke-width="1"`;
+  switch(t){
+  case 'mate':return limb('M22.6 41.6L27.6 31',1.4,'#c3c7cc')+`<path d="M15.5 47Q14.5 55 21 56Q27.5 55 26.5 47Q26.5 42.5 23.5 41.5H18.5Q15.5 42.5 15.5 47Z" fill="#7a7f86" ${L}/><path d="M16.6 50q2.4-2 4.4 0t4.6 0M17 53q2 1.4 4 0t4 0" stroke="#3f444a" stroke-width=".9" fill="none"/><ellipse cx="21" cy="41.8" rx="3.4" ry="1.1" fill="#3b2a1a" ${L}/>`;
+  case 'apuntes':return `<g transform="rotate(-12 21 47)"><rect x="13" y="37" width="16" height="20" rx="1" fill="#fbfbf5" ${L}/><path d="M15.5 41h11M15.5 44h11M15.5 47h8M15.5 50h10M15.5 53h7" stroke="#7a8fb3" stroke-width=".8"/></g>`;
+  case 'naipes':return [-22,0,22].map((r,i)=>`<g transform="rotate(${r} 21 56)"><rect x="16.6" y="38" width="8.8" height="13" rx="1" fill="#f8f0dd" ${L}/><path d="M18.4 40.6h5M18.4 48.8h5" stroke="${['#c48a12','#b5302a','#2b5b9c'][i]}" stroke-width="1.2"/><circle cx="21" cy="44.6" r="1.8" fill="${['#c48a12','#b5302a','#2b5b9c'][i]}"/></g>`).join('');
+  case 'bufanda':{const b1=(P&&P.k1)||'#fff',b2=(P&&P.k2)||'#74acdf';let st='';for(let x=6;x<40;x+=7)st+=`<rect x="${x}" y="46" width="3.5" height="8" fill="${b2}"/>`;
+    return `<g transform="rotate(-24 21 50)"><rect x="2" y="46" width="40" height="8" rx="1.4" fill="${b1}" ${L}/>${st}<rect x="2" y="46" width="40" height="8" rx="1.4" fill="none" ${L}/><path d="M2 47v-3M4 47v-3M40 47v-3M42 47v-3" stroke="${b2}" stroke-width="1"/></g>`}
+  case 'chori':return `<ellipse cx="21" cy="50" rx="10.4" ry="4.6" fill="#d9a35a" ${L}/><ellipse cx="21" cy="48.4" rx="9" ry="2.6" fill="#9b3b2b" ${L}/><path d="M15 47.8l1.2 1.2M19 47.6l1.2 1.2M23 47.6l1.2 1.2M27 47.8l1.2 1.2" stroke="#5a1f15" stroke-width=".8"/><path d="M14 46.6q3-1.6 5 0" stroke="#3d8a3a" stroke-width="1.4" fill="none"/>`;
+  case 'tejido':return `<path d="M13 39L29 55M29 39L13 55" stroke="#c9ccd1" stroke-width="1.6" stroke-linecap="round"/><circle cx="21" cy="48" r="6.4" fill="#d96c8a" ${L}/><path d="M16 46q5-3 10 1M15.6 50q5.4 2 10.6-2M18 43q4 4 2 11" stroke="#a8405e" stroke-width=".8" fill="none"/>`;
+  case 'cafe':return `<path d="M18 41q-1.4-2 0-4M22 41q-1.4-2 0-4" stroke="#fff" stroke-opacity=".8" stroke-width="1" fill="none"/><path d="M27 46q3.4 0 3.4 2.8T27 51.6" stroke="${OL}" stroke-width="1.6" fill="none"/><path d="M14.6 43.6h12.8v7q0 4.6-6.4 4.6t-6.4-4.6z" fill="#f4f4f4" ${L}/><path d="M15 46h12" stroke="#c0392b" stroke-width="1.4"/>`;
+  case 'vaso':return limb('M23 41.4L26.4 33',1.4,'#e85a8a')+`<path d="M15.6 41h11l-1.6 15h-7.8z" fill="#c99a6b" fill-opacity=".9" ${L}/><rect x="17.6" y="43" width="3.2" height="3.2" fill="#fff" fill-opacity=".7"/><rect x="21.4" y="45" width="3.2" height="3.2" fill="#fff" fill-opacity=".7"/>`;
+  case 'pizza':return `<path d="M12.6 41.6L29.4 41.6L21 58Z" fill="#f2c14e" ${L}/><path d="M12.6 41.6Q21 37.6 29.4 41.6" stroke="#c9822b" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="18" cy="45" r="1.6" fill="#b5302a"/><circle cx="23.4" cy="46" r="1.6" fill="#b5302a"/><circle cx="20.8" cy="51" r="1.4" fill="#b5302a"/>`;
+  case 'escoba':return limb('M21 30L21 62',2.2,'#b07a3f')+`<path d="M14.6 16L27.4 16L25.4 30.4L16.6 30.4Z" fill="#e8c35a" ${L}/><path d="M17 18v10M19.4 18v11M21.8 18v11M24.2 18v10" stroke="#b98d2e" stroke-width=".7"/><rect x="16.4" y="28.6" width="9.2" height="2.6" fill="#c0392b" ${L}/>`;
+  case 'mapa':return `<path d="M9 42L15.4 40L21.6 42L28 40V54L21.6 56L15.4 54L9 56Z" fill="#f2e6c4" ${L}/><path d="M15.4 40v14M21.6 42v14" stroke="#b9a676" stroke-width=".8"/><path d="M11 52q4-6 8-3t7-6" stroke="#c0392b" stroke-width="1" stroke-dasharray="1.6 1.2" fill="none"/>`;
+  case 'mic':return `<rect x="18.6" y="44" width="4.8" height="12" rx="2" fill="#2a2a2a" ${L}/><circle cx="21" cy="41.4" r="4.4" fill="#9aa1a8" ${L}/><path d="M17.4 41.4h7.2M21 37.4v8" stroke="#5f666d" stroke-width=".7"/>`;
+  case 'girasol':{let pe='';for(let i=0;i<10;i++){const an=i*36;pe+=`<ellipse cx="21" cy="34" rx="2" ry="4" fill="#f6c443" stroke="${OL}" stroke-width=".6" transform="rotate(${an} 21 39.6)"/>`}
+    return limb('M21 56L21 44',1.4,'#3d8a3a')+`<path d="M21 50q4-3 6.4-1q-3 3-6.4 1z" fill="#4c9a48" ${L}/>${pe}<circle cx="21" cy="39.6" r="3.6" fill="#6b3f1e" ${L}/>`}
+  case 'rosa':return limb('M21 57L24 41',1.3,'#3d8a3a')+`<path d="M22.4 49q-4-1-4.6-4q3.6 0 4.6 4z" fill="#4c9a48" ${L}/><circle cx="24.4" cy="37.6" r="4.4" fill="#c0283a" ${L}/><path d="M24.4 37.6q1.6-1.6 0-2.6q-2.4.4-2 2.8q.8 2.2 3.4 1.6" stroke="#7d1220" stroke-width=".8" fill="none"/>`;
+  case 'serpentinas':return ['#e0453a','#ffd23f','#3ec1d3'].map((c,i)=>`<path d="M${19+i*2} 54q-${5+i} -5 0 -10t0 -10q${4+i} -4 1 -9" stroke="${c}" stroke-width="2" fill="none" stroke-linecap="round"/>`).join('');
+  case 'phone':return `<rect x="15.4" y="37" width="11.2" height="19" rx="2.2" fill="#1d1d1d" ${L}/><rect x="16.8" y="39" width="8.4" height="14" rx="1" fill="#8fd3ff"/><circle cx="21" cy="46" r="2.4" fill="#ff5e78"/>`;
+  }return ''}
+function outfit2(p,k,s){const cl=x=>`<g clip-path="url(#${k})">${x}</g>`,L=`stroke="${OL}" stroke-width="1"`;
+  switch(p.outfit){
+  case 'gaucho':return cl(`<rect y="90" width="100" height="10" fill="#3f5f55"/>`)+`<path d="M36 56L45.5 57.4L47.4 88H27V70Q28 59 36 56Z" fill="#3b3b3b" ${L}/><path d="M64 56L54.5 57.4L52.6 88H73V70Q72 59 64 56Z" fill="#3b3b3b" ${L}/>`
+    +`<rect x="25" y="85.6" width="50" height="6" rx="1" fill="#6b3f1e" ${L}/><ellipse cx="50" cy="88.6" rx="4" ry="2.4" fill="#d4a017" ${L}/>`
+    +`<path d="M59.6 55.4Q73 56.6 74 67V100H62V67Q62 59 59.6 55.4Z" fill="#cdbb93" ${L}/><path d="M64.6 62V100M68.4 64V100M71.6 66V100" stroke="#a8946a" stroke-width="1"/><path d="M62.4 76q5.6-2 11.4 0M62.4 82q5.6 2 11.4 0" stroke="#f0e6cc" stroke-width="1" fill="none"/>`
+    +`<path d="M42 54L58 54L50 64Z" fill="#b5302a" ${L}/><path d="M49.6 61.6L45.6 75L51 72.4L53.4 75.6Z" fill="#a52a24" ${L}/><circle cx="50" cy="61.6" r="2" fill="#8e221d" ${L}/>`;
+  case 'hoodie':return `<path d="M37 57.6Q50 49 63 57.6Q57 63 50 63Q43 63 37 57.6Z" fill="#26313f" ${L}/><path d="M46.6 62v9M53.4 62v9" stroke="#e8e8e8" stroke-width="1"/><path d="M37 86h26v14H37z" fill="#26313f" ${L}/>`;
+  case 'sweater':return `<path d="M43.4 55.6L50 65L56.6 55.6Z" fill="#f1ede4" ${L}/><path d="M45 55.6L48 59L50 57M55 55.6L52 59L50 57" fill="#fff" ${L}/>`+cl(`<rect y="94" width="100" height="6" fill="#000" fill-opacity=".18"/>`);
+  case 'cardigan':return `<path d="M43 55.6L50 72L57 55.6Z" fill="#e9e2d0" ${L}/><path d="M50 72V100" stroke="${OL}" stroke-width="1"/>`+[76,83,90,97].map(y=>`<circle cx="52.6" cy="${y}" r="1.1" fill="#d9c9a6" ${L}/>`).join('');
+  case 'albiceleste':if(p.kit)return kitSVG(KITM[p.kit],k,L);{let st='';for(let x=27;x<80;x+=9)st+=`<rect x="${x}" y="50" width="4.6" height="50" fill="#74acdf"/>`;return cl(`<rect y="50" width="100" height="50" fill="#fff"/>${st}<path d="M54 55H64Q77 58 77 71V100H56Z" fill="#000" fill-opacity=".1"/>`)+`<path d="M42.6 55.6Q50 61 57.4 55.6L58.4 58Q50 64.6 41.6 58Z" fill="#1d3f8a" ${L}/>`}
+  case 'delantal':return `<path d="M36.6 66H63.4L65 100H35Z" fill="#f4ecdc" ${L}/><path d="M38 66L45 55.6M62 66L55 55.6" stroke="#f4ecdc" stroke-width="2.4"/><path d="M38 66L45 55.6M62 66L55 55.6" stroke="${OL}" stroke-width=".6" fill="none"/><rect x="44" y="78" width="12" height="8" rx="1" fill="#e6dcc6" ${L}/><path d="M46 74h8" stroke="#c0392b" stroke-width="1.6"/>`;
+  case 'chal':return `<path d="M23 72Q29 56.6 50 58.6Q71 56.6 77 72L50 86Z" fill="${p.shawl}" ${L}/><path d="M30 76l-2 4M36 79l-1.6 4.4M64 79l1.6 4.4M70 76l2 4M44 84l-1 4M56 84l1 4" stroke="#b89a6e" stroke-width="1"/><circle cx="50" cy="63" r="2.4" fill="#d4a017" ${L}/>`;
+  case 'traje':return `<path d="M43.8 55.6L50 80L56.2 55.6Z" fill="#f6f6f6" ${L}/><path d="M48.6 58h2.8l1.4 4.4-2.8 16.6-2.8-16.6z" fill="${p.tie}" ${L}/><path d="M43.8 55.6L40.4 61.6L45.6 64.4L50 80M56.2 55.6L59.6 61.6L54.4 64.4L50 80" fill="none" stroke="#141820" stroke-width="1.4"/>`;
+  case 'cheto':return `<path d="M44 55.6L50 61L56 55.6L54.6 61.4L50 64.4L45.4 61.4Z" fill="#fff" ${L}/><path d="M50 64v12" stroke="${OL}" stroke-width=".8"/><circle cx="50" cy="68" r=".9" fill="#fff" ${L}/><circle cx="50" cy="72.4" r=".9" fill="#fff" ${L}/>`
+    +`<path d="M22 70Q34 59 50 66Q66 59 78 70L76 75.6Q64 66 50 72Q36 66 24 75.6Z" fill="${p.sweater}" ${L}/><path d="M46 68Q50 74 54 68Q52 80 50 82Q48 80 46 68Z" fill="${p.sweater}" ${L}/>`;
+  case 'campera':return `<path d="M44.6 55.6Q50 60 55.4 55.6V100H44.6Z" fill="${p.shirt}" ${L}/><path d="M23 100V71Q23 58 36 55.5L44.6 56L46 100Z" fill="${p.jacket}" ${L}/><path d="M77 100V71Q77 58 64 55.5L55.4 56L54 100Z" fill="${p.jacket}" ${L}/><path d="M44 58L40 66L45 70M56 58L60 66L55 70" stroke="#444" stroke-width="1" fill="none"/>`;
+  case 'bata':{let d='';[[30,68],[40,62],[36,80],[46,90],[58,66],[64,78],[70,92],[30,94],[54,96],[60,86]].forEach(([x,y])=>d+=`<circle cx="${x}" cy="${y}" r="2.2" fill="#ffe08a"/><circle cx="${x}" cy="${y}" r=".9" fill="#c0392b"/>`);
+    return cl(d)+`<path d="M43 55.6L50 66L57 55.6" fill="none" stroke="#f7c7d3" stroke-width="2"/><path d="M50 66V100" stroke="${OL}" stroke-width=".8"/>`}
+  case 'mochila':return `<path d="M34.6 56.4L31.6 100M65.4 56.4L68.4 100" stroke="${OL}" stroke-width="6"/><path d="M34.6 56.4L31.6 100M65.4 56.4L68.4 100" stroke="#c0392b" stroke-width="4.6"/><rect x="30.4" y="74" width="5.4" height="3.6" fill="#d9d9d9" ${L}/><rect x="64.2" y="74" width="5.4" height="3.6" fill="#d9d9d9" ${L}/><path d="M43.4 55.6Q50 62 56.6 55.6" fill="none" stroke="#2f4426" stroke-width="1.8"/>`;
+  case 'panuelo':return `<path d="M41.6 55Q50 61.6 58.4 55L57 61Q50 65 43 61Z" fill="${p.scarf}" ${L}/><path d="M54 60.6L59.6 72L54.6 70.2L52.4 74Z" fill="${p.scarf}" ${L}/>`;
+  case 'poncho2':{const zz=(y,c)=>{let pts='';for(let x=0;x<=100;x+=5)pts+=`${x},${y+((x/5)%2?-4:0)} `;return `<polyline points="${pts}" fill="none" stroke="${c}" stroke-width="2"/>`};
+    return cl(`${zz(70,'#f6d55c')}${zz(80,'#2e7d6b')}${zz(90,'#f6d55c')}`)+`<path d="M50 56v10" stroke="${OL}" stroke-width="1.2"/>`}
+  case 'tango':return `<path d="M44 55.6L50 76L56 55.6Z" fill="#f6f6f6" ${L}/><path d="M42.6 55.8Q36.6 72 38.6 100H43.6Q42.6 74 46 58Z" fill="#fafafa" ${L}/><path d="M57.4 55.8Q63.4 72 61.4 100H56.4Q57.4 74 54 58Z" fill="#fafafa" ${L}/><circle cx="50" cy="61" r="1.2" fill="#151515"/>`;
+  case 'levita':{let q='';for(let i=0;i<7;i++)q+=`<circle cx="${i%2?41:42}" cy="${64+i*5}" r="1.3" fill="#ffd23f"/><circle cx="${i%2?59:58}" cy="${64+i*5}" r="1.3" fill="#ffd23f"/>`;
+    return `<path d="M44 55.6L50 68L56 55.6V100H44Z" fill="#f6f6f6" ${L}/><path d="M44 55.6L38 100H45.6L48 70ZM56 55.6L62 100H54.4L52 70Z" fill="#e0453a" ${L}/>${q}`}
+  case 'top':return `<path d="M42.6 55.6Q50 64 57.4 55.6" fill="${s}" stroke="${OL}" stroke-width="1"/><path d="M43.4 57.6Q50 66 56.6 57.6" fill="none" stroke="#e8c06a" stroke-width="1.1"/><circle cx="50" cy="62.4" r="1.4" fill="#e8c06a"/>`;
+  }return ''}
+
+function eyesSVG(t){const d=x=>`<circle cx="${x}" cy="30" r="1.4" fill="#2a1a12"/>`;
+  switch(t){
+  case 'shades':return `<rect x="23.2" y="27.2" width="8" height="5.2" rx="2.2" fill="#121212"/><rect x="32.8" y="27.2" width="8" height="5.2" rx="2.2" fill="#121212"/><path d="M31.2 28.6h1.6" stroke="#121212" stroke-width="1.2"/><path d="M24.6 28.6h2.4M34.2 28.6h2.4" stroke="#fff" stroke-opacity=".5" stroke-width=".8"/>`;
+  case 'glasses':return d(27.6)+d(36.4)+`<circle cx="27.6" cy="30" r="3.4" fill="none" stroke="#3a2a20" stroke-width="1"/><circle cx="36.4" cy="30" r="3.4" fill="none" stroke="#3a2a20" stroke-width="1"/><path d="M31 30h2" stroke="#3a2a20" stroke-width="1"/>`;
+  case 'tired':return d(27.6)+d(36.4)+`<path d="M25.4 29h4.4M34.2 29h4.4" stroke="#2a1a12" stroke-width="1"/><path d="M25.8 32.6q1.8 1.1 3.6 0M34.6 32.6q1.8 1.1 3.6 0" stroke="#6b3b52" stroke-opacity=".6" stroke-width="1" fill="none"/>`;
+  case 'happy':return `<path d="M25.8 30.6q1.8-2 3.6 0M34.6 30.6q1.8-2 3.6 0" stroke="#2a1a12" stroke-width="1.3" fill="none" stroke-linecap="round"/>`;
+  case 'wink':return `<path d="M25.8 30.4q1.8 1.4 3.6 0" stroke="#2a1a12" stroke-width="1.3" fill="none" stroke-linecap="round"/>`+d(36.4);
+  case 'lashes':return d(27.6)+d(36.4)+`<path d="M25.8 28.8l-1-1M29.4 28.8l1-1M34.6 28.8l-1-1M38.2 28.8l1-1" stroke="#2a1a12" stroke-width=".8"/>`;
+  }return d(27.6)+d(36.4)}
+function hairSVG(p,hc){
+  switch(p.hair){
+  case 'short':return `<path d="M20.4 29c-.4-8.6 4.8-13.4 11.6-13.4S44 20.4 43.6 29c-1.6-3.6-3.4-5.8-5.4-6.6-3.6 1.6-8.8 1.8-14 .4-1.8 1.2-3 3.2-3.8 6.2z" fill="${hc}"/>`;
+  case 'slick':return `<path d="M20.2 28.6c-.6-9 5-14 12.4-14 6.8 0 11.6 4.4 11.2 13.4-1-3.8-3-6-5.6-7-4.6 1.4-11 1.4-15.4-.6-1.4 2-2.2 4.6-2.6 8.2z" fill="${hc}"/><path d="M27 15.8c3 2.2 7.8 3.4 13.4 3.2" stroke="#fff" stroke-opacity=".35" stroke-width="1.2" fill="none"/>`;
+  case 'messy':return `<path d="M20 29.5l.4-7.5 2.6 1.4.6-5.4 3.6 2.6 2.6-4.8 2.8 4.4 3.4-3.6 1.4 5.4 3.2-1.4.2 4.6 1.4 1.2-.2 3.1c-2.6-3.4-6.6-5.8-11.8-5.8s-9.6 2.4-12.2 5.8z" fill="${hc}"/>`;
+  case 'bun':return `<circle cx="32" cy="14.6" r="5" fill="${hc}"/><path d="M20.4 29c-.4-8.6 4.8-13.4 11.6-13.4S44 20.4 43.6 29c-2.2-4.6-6.4-7.4-11.6-7.4S22.6 24.4 20.4 29z" fill="${hc}"/>`;
+  case 'curly':return [[22,23,4],[26,18.6,4.4],[32,17,4.6],[38,18.6,4.4],[42,23,4],[20.6,27.4,3],[43.4,27.4,3]].map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${hc}"/>`).join('');
+  case 'long':case 'braids':return `<path d="M20.4 30c-.4-9 4.8-14 11.6-14S44 21 43.6 30c-3-5-7-6.8-11.6-6.8-4.4 0-8.6 1.8-11.6 6.8z" fill="${hc}"/>`+(p.fringe?`<path d="M21.4 25.6c3-6.4 8-8.4 13-8 4 .4 7 2.6 8.6 6.6-3-1.4-5-1.4-6.4.2-1.6-2-4-2.6-6.6-1.4-2.4-1-5.4-.2-8.6 2.6z" fill="${hc}"/>`:'')+(p.hair==='braids'?`<path d="M32 16.4v6" stroke="#000" stroke-opacity=".25" stroke-width="1"/>`:'');
+  case 'rulos':return `<path d="M20.4 29c-.4-8.6 4.8-13.4 11.6-13.4S44 20.4 43.6 29c-2.2-4.6-6.4-7.4-11.6-7.4S22.6 24.4 20.4 29z" fill="${hc}"/>`+[22,27,32,37,42].map((x,i)=>`<rect x="${x-2.2}" y="${i%2?14.4:16.4}" width="4.4" height="6" rx="2.2" fill="${i%2?'#8ec5f2':'#f28fb1'}"/>`).join('');
+  case 'sides':return `<path d="M20.4 31.4c-.8-4.2 0-7.4 1.8-9v9zM43.6 31.4c.8-4.2 0-7.4-1.8-9v9z" fill="${hc}"/>`;
+  }return ''}
+function faceHairSVG(t,fc){switch(t){
+  case 'mustache':return `<path d="M26.4 34.8c2-1.8 4.2-1.8 5.6-.3 1.4-1.5 3.6-1.5 5.6.3-1.8 1.8-3.8 1.8-5.6.8-1.8 1-3.8 1-5.6-.8z" fill="${fc}"/>`;
+  case 'thinmust':return `<path d="M27.4 34.8q2.3-1.1 4.6 0q2.3-1.1 4.6 0" stroke="${fc}" stroke-width="1" fill="none"/>`;
+  case 'beard':return `<path d="M20.6 31c.4 8.2 5 13.6 11.4 13.6S43 39.2 43.4 31c-1.2 3.6-2.4 5.6-4 6.4-1.6-1.8-4.2-2.6-7.4-2.6s-5.8.8-7.4 2.6c-1.6-.8-2.8-2.8-4-6.4z" fill="${fc}"/>`+faceHairSVG('mustache',fc);
+  case 'stubble':return `<path d="M21.6 32.4c1 6.6 5 10.6 10.4 10.6s9.4-4 10.4-10.6c-2.2 3.8-5.8 5.4-10.4 5.4s-8.2-1.6-10.4-5.4z" fill="${fc}" fill-opacity=".25"/>`;
+  }return ''}
+function mouthSVG(t){const c='#5a2a1c';switch(t){
+  case 'grin':return `<path d="M28 35.6h8q-.4 4.2-4 4.2t-4-4.2z" fill="${c}"/><path d="M28.6 35.8h6.8v1.1h-6.8z" fill="#fff"/>`;
+  case 'smirk':return `<path d="M28.8 37.4q3.4 1.2 6.6-1.4" stroke="${c}" stroke-width="1.4" fill="none" stroke-linecap="round"/>`;
+  case 'flat':return `<path d="M29.2 37.2h5.6" stroke="${c}" stroke-width="1.4" stroke-linecap="round"/>`;
+  case 'lips':return `<path d="M28.6 36.6q3.4-1.8 6.8 0q-3.4 3.2-6.8 0z" fill="#c2405a"/>`;
+  }return `<path d="M28.6 36.4q3.4 2.8 6.8 0" stroke="${c}" stroke-width="1.4" fill="none" stroke-linecap="round"/>`}
+function hatSVG(p){const c=p.hatc||'#222',c2=p.hatc2||'#eee',b=p.band||'#c0392b';
+  switch(p.hat){
+  case 'gaucho':return `<path d="M22.6 19.6c0-5.4.8-9.4 1.8-10.2h15.2c1 .8 1.8 4.8 1.8 10.2z" fill="${c}"/><rect x="22.8" y="15.8" width="18.4" height="2.4" fill="${b}"/><ellipse cx="32" cy="19.8" rx="16.4" ry="3.4" fill="${c}"/>`;
+  case 'cap':{let k='';for(let i=0;i<8;i++)k+=`<rect x="${(21+i*2.8).toFixed(1)}" y="${i%2?21.2:22.4}" width="2.8" height="1.2" fill="#111"/>`;
+    return `<path d="M20.6 24c0-6.4 5-10.6 11.4-10.6S43.4 17.6 43.4 24z" fill="${c}"/><rect x="21" y="21.2" width="22.4" height="2.4" fill="#f2c94c"/>${k}<path d="M31 23.4h15.6q1.4 1.2 0 2.4H31z" fill="${c}"/>`}
+  case 'boina':return `<ellipse cx="31" cy="18.8" rx="13.6" ry="5.2" fill="${c}" transform="rotate(-8 31 18.8)"/><rect x="31.4" y="11.6" width="1.8" height="2.8" rx=".9" fill="${c}"/>`;
+  case 'galera':{let q='';const cols=['#ffd23f','#3ec1d3','#ff5e78','#fff'];for(let i=0;i<10;i++)q+=`<circle cx="${(25.6+(i%5)*3.2).toFixed(1)}" cy="${8+Math.floor(i/5)*4}" r="1" fill="${cols[i%4]}"/>`;
+    return `<rect x="23.6" y="4.4" width="16.8" height="14" rx="1.4" fill="${c}"/>${q}<rect x="23.6" y="15" width="16.8" height="2.6" fill="#ffd23f"/><ellipse cx="32" cy="18.6" rx="13.4" ry="2.8" fill="${c}"/>`}
+  case 'fedora':return `<path d="M23.4 19.2c0-5.4 2.6-9 8.6-9s8.6 3.6 8.6 9z" fill="${c}"/><path d="M28 11.8q4 2.6 8 0" stroke="#000" stroke-opacity=".35" stroke-width="1" fill="none"/><rect x="23.5" y="16.4" width="17" height="2.2" fill="${b}"/><ellipse cx="32" cy="19.4" rx="14.6" ry="2.6" fill="${c}"/>`;
+  case 'vincha':{let f='';for(let i=0;i<5;i++){const an=i*72*Math.PI/180;f+=`<circle cx="${(24+Math.cos(an)*1.8).toFixed(2)}" cy="${(22.6+Math.sin(an)*1.8).toFixed(2)}" r="1.3" fill="#f6d55c"/>`}
+    return `<path d="M20.6 24.6q11.4-4.4 22.8 0v2.2q-11.4-4.4-22.8 0z" fill="${b}"/>${f}<circle cx="24" cy="22.6" r="1" fill="#e07a5f"/>`}
+  case 'gorro':return `<path d="M20.4 25c0-7.6 5-12.6 11.6-12.6S43.6 17.4 43.6 25z" fill="${c}"/><path d="M24 16.6h16M22 20.2h20" stroke="${c2}" stroke-width="1.2"/><rect x="20" y="22.6" width="24" height="4" rx="1.8" fill="${c2}"/><circle cx="32" cy="11.4" r="3.2" fill="${c2}"/>`;
+  case 'shadesHead':return `<rect x="22.6" y="16.6" width="8" height="4.4" rx="2" fill="#1a1a1a"/><rect x="33.4" y="16.6" width="8" height="4.4" rx="2" fill="#1a1a1a"/><path d="M30.6 18h2.8" stroke="#1a1a1a" stroke-width="1.2"/>`;
+  }return ''}
+const backBg=id=>(DM[id]||DM.bordo).bg;
+
+/* ---------- frases de cada personaje ---------- */
+const LINES={
+ gaucho:{truco:['Truco, paisano','Truco, y que lo diga el viento'],envido:['Envido, compadre','Tengo tanto, aparcero'],quiero:['Quiero, nomás','Venga, que acá lo espero'],noquiero:['No quiero, paisano','Hoy no, compadre'],win:['Como pial en la tranquera','Así se juega en el campo'],lose:['Se me escapó el ternero','Ya vendrá la otra'],greet:['Buenas, paisano. ¿Un mate?'],reply:['Tranquilo, que el mate se enfría']},
+ estudiante:{truco:['Truco, esto lo estudié','Truco, entra en el final'],envido:['Envido, hice la cuenta'],quiero:['Quiero, total mañana rindo'],noquiero:['Paso, no llego con el tema'],win:['¡Aprobado!','Diez, felicitado'],lose:['Me fui a marzo'],greet:['Una y me voy a estudiar'],reply:['Shh, que me concentro']},
+ tachero:{truco:['Truco, ¿por dónde lo llevo?','Truco, jefe'],envido:['Envido, y bajo la bandera'],quiero:['Quiero, suba nomás'],noquiero:['No quiero, hay mucho tránsito'],win:['Viaje terminado, jefe','Eso era por Libertador'],lose:['Me agarró el semáforo'],greet:['¿Adónde lo llevo, jefe?'],reply:['Yo le digo una cosa…']},
+ veterano:{truco:['Truco. Cuarenta años, pibe','Truco, y no me mires las cartas'],envido:['Envido, como en el 78'],quiero:['Quiero. Ya lo vi venir'],noquiero:['No quiero. Me la veía'],win:['Escuela de bar, pibe','Para esto hay que tener calle'],lose:['Es la vista, que ya no es la misma'],greet:['Sentate, pibe, que repartís vos'],reply:['Te leí la seña, pibe']},
+ hincha:{truco:['¡Truuuco, vamos todavía!','Truco, ¡dale campeón!'],envido:['¡Envido, vamos!'],quiero:['¡Quiero, dale que va!'],noquiero:['No quiero, me guardo'],win:['¡Gooool!','¡Dale campeón!'],lose:['Hay revancha, ¡aguante!'],greet:['¡Vamos que arranca!'],reply:['¡Olé, olé, olé!']},
+ asador:{truco:['Truco, y el fuego está listo','Truco, ¿quién quiere vacío?'],envido:['Envido, a punto'],quiero:['Quiero, servite'],noquiero:['No quiero, se me pasa la carne'],win:['¡Un aplauso para el asador!'],lose:['Se me quemó el chori'],greet:['Agarren pan, que ya sale'],reply:['¿Jugoso o a punto?']},
+ abuela:{truco:['Truco, querido','Truco, y comete todo'],envido:['Envido, nene'],quiero:['Quiero, mi amor'],noquiero:['No, tesoro, no'],win:['Te lo dije, nene','La abuela sabe'],lose:['Ay, estas cartas…'],greet:['¿Comiste? Sentate'],reply:['No me mientas, que me doy cuenta']},
+ godin:{truco:['Truco, lo dejo en copia','Truco, para el viernes'],envido:['Envido, según el informe'],quiero:['Quiero, lo agendo'],noquiero:['No quiero, tengo reunión'],win:['Objetivo cumplido','Lo subo al reporte'],lose:['Esto lo vemos el lunes'],greet:['Tengo una hora de almuerzo'],reply:['Te respondo por mail']},
+ cheto:{truco:['Truco, obvio','Truco, re fácil'],envido:['Envido, una banda'],quiero:['Quiero, mal'],noquiero:['Nah, cero ganas'],win:['Obvio, amigo','Te re gané'],lose:['Ni da'],greet:['Buenas, ¿todo bien?'],reply:['Qué bajón lo tuyo']},
+ fisura:{truco:['¡Truco! No dormí nada','Truco, y que siga la noche'],envido:['Envido, creo'],quiero:['Quiero, ¿qué hora es?'],noquiero:['No quiero, me agarra el sueño'],win:['¡Esto no termina más!'],lose:['Ya fue, otra'],greet:['¿Recién empieza esto?'],reply:['Estoy re despierto, eh']},
+ dona:{truco:['Truco, y que se entere la cuadra','Truco, querida'],envido:['Envido, y no se lo cuentes a nadie'],quiero:['Quiero, ¿y vos qué mirás?'],noquiero:['No quiero, tengo la novela'],win:['¡Ya lo sabe todo el barrio!'],lose:['Ya me voy a enterar quién fue'],greet:['¿Viste lo de la de al lado?'],reply:['Ay, qué atrevido']},
+ mochilero:{truco:['Truco, lo aprendí en Jujuy','Truco, de mochila al hombro'],envido:['Envido, a dedo'],quiero:['Quiero, total voy de paso'],noquiero:['No quiero, sigo viaje'],win:['¡Otro destino conquistado!'],lose:['Me equivoqué de ruta'],greet:['Llegué recién de Salta'],reply:['Tranqui, todo fluye']},
+ rolinga:{truco:['Truco, ¡y que suene fuerte!','Truco, ¡rock and roll!'],envido:['Envido, flaco'],quiero:['Quiero, ¡dale que suena!'],noquiero:['No quiero, flaco'],win:['¡Esto es un recital!'],lose:['Se cortó el sonido'],greet:['¡Buenas, banda!'],reply:['¡Aguante el rock!']},
+ hippie:{truco:['Truco, con buena energía','Truco, los astros me acompañan'],envido:['Envido, lo siento en el aura'],quiero:['Quiero, fluyo'],noquiero:['No es mi energía hoy'],win:['El universo es sabio'],lose:['Era mi karma'],greet:['Paz y truco'],reply:['Respirá, todo pasa']},
+ tanguero:{truco:['Truco, con corte y quebrada','Truco, en dos por cuatro'],envido:['Envido, como un bandoneón'],quiero:['Quiero, compadre'],noquiero:['No quiero, esta noche no'],win:['¡La mano se va con el tango!'],lose:['Fue un tango arrabalero'],greet:['Buenas noches, señores'],reply:['Qué milonga la suya']},
+ murguera:{truco:['¡Truco, que arranca el corso!','Truco con platillo'],envido:['Envido, ¡a bailar!'],quiero:['¡Quiero, que suene el bombo!'],noquiero:['No quiero, me guardo para el carnaval'],win:['¡Fiesta en el barrio!'],lose:['Se terminó el corso'],greet:['¡Que empiece la murga!'],reply:['¡Saltá, saltá!']},
+ influencer:{truco:['¡Truco! Esto va a historia','Truco, dale like'],envido:['Envido, ¿me seguís?'],quiero:['Quiero, estoy grabando'],noquiero:['No, se me cae el wifi'],win:['¡Se vino el viral!'],lose:['Esto no lo subo'],greet:['¡Hola, mis amores!'],reply:['Te etiqueto']},
+};
+const pickLine=(av,cat)=>{const b=(LINES[av]||LINES[String(av).split(':')[0]]||LINES.gaucho)[cat];return b&&b.length?b[Math.floor(Math.random()*b.length)]:null};
+function lineCat(t){if(/Truco|Retruco|Vale cuatro/.test(t))return'truco';if(/nvido/.test(t))return'envido';if(t==='¡Quiero!')return'quiero';if(t==='No quiero')return'noquiero';return null}
+
+/* ---------- camisetas para La Hincha (solo colores y diseño; sin escudos, nombres ni marcas) ---------- */
+const KITS=[
+ {id:'arg',name:'Albiceleste',bio:'Celeste y blanca a bastones, la de toda la vida.',price:0,pat:'v',c1:'#ffffff',c2:'#74acdf',collar:'#1d3f8a',sleeve:'#ffffff'},
+ {id:'azuloro',name:'Azul y oro',bio:'Azul con la franja amarilla cruzando el pecho.',price:150,pat:'h',c1:'#1f3f8f',c2:'#f2c230',collar:'#f2c230',sleeve:'#1f3f8f'},
+ {id:'banda',name:'Banda roja',bio:'Blanca con la banda roja en diagonal.',price:150,pat:'d',c1:'#ffffff',c2:'#d32030',collar:'#d32030',sleeve:'#ffffff'},
+ {id:'roja',name:'Roja entera',bio:'Toda roja, con cuello blanco.',price:150,pat:'s',c1:'#c8102e',c2:'#ffffff',collar:'#ffffff',sleeve:'#c8102e'},
+ {id:'azulgrana',name:'Azul y grana',bio:'Bastones azules y granates.',price:150,pat:'v',c1:'#1d2f6b',c2:'#a4162f',collar:'#1d2f6b',sleeve:'#1d2f6b'},
+ {id:'rojinegra',name:'Rojinegra partida',bio:'Mitad roja, mitad negra.',price:150,pat:'p',c1:'#d32030',c2:'#151515',collar:'#151515',sleeve:'#151515'},
+ {id:'azulamarilla',name:'Azul y amarilla',bio:'Bastones azules y amarillos.',price:150,pat:'v',c1:'#1f3f8f',c2:'#f2c230',collar:'#1f3f8f',sleeve:'#1f3f8f'},
+ {id:'albirroja',name:'Albirroja',bio:'Bastones blancos y rojos.',price:150,pat:'v',c1:'#ffffff',c2:'#d32030',collar:'#d32030',sleeve:'#d32030'},
+ {id:'franjaazul',name:'Blanca con franja azul',bio:'Blanca con una franja azul horizontal.',price:150,pat:'h',c1:'#ffffff',c2:'#1d2f6b',collar:'#1d2f6b',sleeve:'#ffffff'},
+ {id:'vazul',name:'La V azul',bio:'Blanca con la V azul en el pecho.',price:150,pat:'w',c1:'#ffffff',c2:'#1d3f8a',collar:'#1d3f8a',sleeve:'#ffffff'},
+ {id:'verdiblanca',name:'Verdiblanca',bio:'Bastones verdes y blancos.',price:150,pat:'v',c1:'#ffffff',c2:'#1f7a3a',collar:'#1f7a3a',sleeve:'#1f7a3a'},
+ {id:'tatengue',name:'Rojiblanca a rayas',bio:'Rayas horizontales rojas y blancas.',price:150,pat:'r',c1:'#ffffff',c2:'#d32030',collar:'#d32030',sleeve:'#d32030'},
+];
+const KITM=Object.fromEntries(KITS.map(k=>[k.id,k]));
+KITS.forEach(k=>{if(k.id!=='arg')AVM['hincha:'+k.id]=AVM.hincha});
+const kitAv=id=>id&&id!=='arg'&&KITM[id]?'hincha:'+id:'hincha';
+function kitSVG(K,clip,L){if(!K)K=KITM.arg;let pat='';const c2=K.c2;
+  if(K.pat==='v')for(let x=27;x<80;x+=9)pat+=`<rect x="${x}" y="50" width="4.6" height="50" fill="${c2}"/>`;
+  else if(K.pat==='h')pat=`<rect x="0" y="69" width="100" height="10" fill="${c2}"/>`;
+  else if(K.pat==='d')pat=`<path d="M20 58L32 54L82 92L82 104L70 104Z" fill="${c2}"/>`;
+  else if(K.pat==='p')pat=`<rect x="50" y="50" width="50" height="50" fill="${c2}"/>`;
+  else if(K.pat==='w')pat=`<path d="M33 55L41.5 55L50 72L58.5 55L67 55L50 84Z" fill="${c2}"/>`;
+  else if(K.pat==='r')for(let y=60;y<100;y+=8)pat+=`<rect x="0" y="${y}" width="100" height="4" fill="${c2}"/>`;
+  return `<g clip-path="url(#${clip})"><rect y="50" width="100" height="50" fill="${K.c1}"/>${pat}<path d="M54 55H64Q77 58 77 71V100H56Z" fill="#000" fill-opacity=".12"/></g><path d="M42.6 55.6Q50 61 57.4 55.6L58.4 58Q50 64.6 41.6 58Z" fill="${K.collar}" ${L}/>`}

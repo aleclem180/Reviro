@@ -6,18 +6,36 @@ Truco argentino con flor, en el navegador.
 
 ## Qué tiene
 
-- **Contra la máquina:** 1 contra 1 o 2 contra 2, en Fácil, Medio o Difícil, a 15 o a 30, con flor o sin flor.
-- **La Huella:** el mapa de la Argentina dividido en zonas, con rivales que juegan mejor cuanto más porotos tienen. Cada jefe da un premio exclusivo.
+- **Cuentas:** registro e inicio de sesión con mail, nombre de usuario y contraseña. Dos roles: jugador y admin.
+- **Salas en tiempo real:**
+  - **1vIA:** vos contra la IA, en Fácil, Medio o Difícil (también 2 contra 2 con un compañero IA).
+  - **1v1:** jugador contra jugador.
+  - **2v2:** dos equipos de dos. Si la sala se lanza con lugares vacíos (por ejemplo, con 3 personas), la IA juega en esos asientos.
+- **Estadísticas por jugador:** partidas jugadas, win rate, racha actual (positiva de victorias o negativa de derrotas) y mejor racha. Se actualizan solas al terminar cada partida.
+- **Administración:** ver y cerrar salas activas, nombrar o quitar admins, dar premium.
 - **Reglas completas:** envido, real envido y falta envido (malas y buenas), flor, contraflor y contraflor al resto, truco, retruco y vale cuatro, pardas y mazo.
-- **Extra:** anotador con fósforos para jugar en persona, tienda de personajes, dorsos y paños, misiones, logros, tutorial y reglamento.
-- **Música:** zamba, milonga, tango, chamamé y chacarera, compuestas y sintetizadas para el juego.
+- **La Huella:** el mapa de la Argentina por zonas, con rivales que juegan mejor cuanto más porotos tienen.
+- **Extra:** anotador con fósforos para jugar en persona, tienda, misiones, logros, tutorial y reglamento.
+- **Música:** zamba, milonga, tango, chamamé y chacarera.
 
-## Versión web y versión de claude.ai
+## Puesta en marcha
 
-Esta página es la versión independiente. Corre entera en el navegador y guarda el progreso en ese dispositivo.
+Las cuentas y el online funcionan con **Firebase** (Authentication + Firestore), en el plan gratis. Hay que crear el proyecto y pegar la configuración en `js/firebase-config.js`. Mientras ese archivo esté vacío, la web funciona en modo local (contra la IA, La Huella y el anotador, guardando en el dispositivo).
 
-Las mesas online de 2 y 4 jugadores, los amigos, el ranking y el premium necesitan un servidor y funcionan solo en la versión de Reviro publicada en claude.ai.
+- [Paso a paso de integración](docs/INTEGRACION.md)
+- [Estructura de la base de datos](docs/BASE_DE_DATOS.md)
+- [Código clave: salas, sincronización y estadísticas](docs/CODIGO_CLAVE.md)
 
-## Cómo está hecho
+## Archivos
 
-Es un solo archivo, `index.html`, sin dependencias: el motor del truco, la IA, los dibujos y la música están escritos a mano en HTML, CSS y JavaScript. Las fichas y las monedas no tienen valor en dinero.
+| Archivo | Para qué |
+|---|---|
+| `index.html` | La web (se genera con `tools/build.py`) |
+| `js/net.js` | Capa de red: cuentas, roles, salas, sincronización, estadísticas, admin |
+| `js/firebase-config.js` | La configuración de tu proyecto de Firebase |
+| `firestore.rules` | Reglas de seguridad de la base de datos |
+| `src/` | Código fuente del juego: motor, IA, dibujos, música e interfaz |
+| `tools/build.py` | Arma `index.html` y `dist/claude.html` a partir de `src/` |
+| `dist/claude.html` | La versión para publicar como página en claude.ai |
+
+Las fichas y las monedas no tienen valor en dinero.
