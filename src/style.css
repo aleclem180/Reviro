@@ -974,3 +974,9 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
 .pg-menu .filete.logo img{height:1.6em}
 .brand img{display:block;height:34px;width:auto}
 @media (max-width:420px){.brand img{height:30px}}
+
+/* apodo interno de los admins */
+.anick{display:inline-block;margin-left:4px;padding:0 7px;border-radius:999px;font-size:.78em;font-weight:600;background:rgba(116,172,223,.18);color:#9cc6ec;border:1px dashed rgba(116,172,223,.55);vertical-align:1px}
+#admq{width:100%;margin-bottom:8px}
+.anick.blk{display:block;width:fit-content;max-width:100%;margin:3px 0 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.flist li:has(>.anick.row2){flex-wrap:wrap;row-gap:4px}.anick.row2{flex:0 1 auto;max-width:calc(100% - 46px);margin-left:46px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

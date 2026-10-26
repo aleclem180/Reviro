@@ -1256,5 +1256,12 @@
 "Ganamos contra {0}": "Ganhamos de {0}",
 "Le gané contra {0}": "Ganhei de {0}",
 "Perdimos contra {0}": "Perdemos para {0}",
-"Perdí contra {0}": "Perdi para {0}"
+"Perdí contra {0}": "Perdi para {0}",
+"Apodo interno": "Apelido interno",
+"Apodo interno (solo admins)": "Apelido interno (só admins)",
+"Ej.: el primo de Juan": "Ex.: o primo do Juan",
+"Solo lo ven los admins, para reconocerlo. El jugador no se entera. Vacío lo borra.": "Só os admins veem, para reconhecer o jogador. O jogador não fica sabendo. Vazio apaga.",
+"Buscar por usuario o apodo interno": "Buscar por usuário ou apelido interno",
+"Apodo interno guardado": "Apelido interno salvo",
+"Apodo interno borrado": "Apelido interno apagado"
 }

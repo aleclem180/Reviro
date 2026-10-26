@@ -306,6 +306,15 @@ service cloud.firestore {
     }
 
     // ---------- registro de acciones del admin: no se edita ni se borra ----------
+    // ---------- apodos internos de los admins (los jugadores no los pueden leer) ----------
+    match /adminNotes/{uid} {
+      allow read, delete: if isAdmin();
+      allow create, update: if isAdmin()
+        && request.resource.data.keys().hasOnly(['nick', 'by', 'at'])
+        && request.resource.data.nick is string && request.resource.data.nick.size() > 0 && request.resource.data.nick.size() <= 30
+        && request.resource.data.by == request.auth.uid && request.resource.data.at is number;
+    }
+
     match /auditLog/{id} {
       allow read: if isAdmin();
       allow create: if isAdmin() && request.resource.data.by == request.auth.uid;

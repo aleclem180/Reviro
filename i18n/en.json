@@ -1364,5 +1364,12 @@
 "Ganamos contra {0}": "We beat {0}",
 "Le gané contra {0}": "I beat {0}",
 "Perdimos contra {0}": "We lost to {0}",
-"Perdí contra {0}": "I lost to {0}"
+"Perdí contra {0}": "I lost to {0}",
+"Apodo interno": "Internal nickname",
+"Apodo interno (solo admins)": "Internal nickname (admins only)",
+"Ej.: el primo de Juan": "E.g.: Juan's cousin",
+"Solo lo ven los admins, para reconocerlo. El jugador no se entera. Vacío lo borra.": "Only admins see it, to recognize the player. The player never knows. Leave it empty to delete it.",
+"Buscar por usuario o apodo interno": "Search by username or internal nickname",
+"Apodo interno guardado": "Internal nickname saved",
+"Apodo interno borrado": "Internal nickname deleted"
 }

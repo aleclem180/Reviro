@@ -953,7 +953,7 @@ const admin = {
   setBanned: (uid, banned, reason) => updateDoc(doc(fs, 'users', uid), { banned: !!banned, bannedReason: banned ? String(reason || '').slice(0, 120) : null })
     .then(() => audit(banned ? 'suspender cuenta' : 'reactivar cuenta', uid, reason || null)),
   setRefBonus: (uid, chips) => updateDoc(doc(fs, 'users', uid), { refBonus: Math.max(0, Math.min(100000, Math.round(+chips || 0))) })
-    .then(() => audit('premio por referido', uid, +coins)),
+    .then(() => audit('premio por referido', uid, +chips)),
   async grant(uid, { chips = 0, coins = 0, reason = '' }) {
     chips = Math.round(+chips || 0); coins = Math.round(+coins || 0);
     if (!chips && !coins) return;
@@ -975,6 +975,14 @@ const admin = {
       referredBy: r && r.exists() ? r.data() : null,
       referred: rr ? rr.docs.map((d) => ({ id: d.id, ...d.data() })) : [],
     };
+  },
+  /** Apodos internos: solo los ven y los editan los admins (colección adminNotes, cerrada para los jugadores). */
+  watchNotes: (cb) => onSnapshot(collection(fs, 'adminNotes'), (s) => { const m = {}; s.docs.forEach((d) => { m[d.id] = d.data(); }); cb(m); }, () => cb({})),
+  async setNote(uid, nick) {
+    nick = String(nick || '').replace(/\s+/g, ' ').trim().slice(0, 30);
+    if (nick) await setDoc(doc(fs, 'adminNotes', uid), { nick, by: me().uid, at: Date.now() });
+    else await deleteDoc(doc(fs, 'adminNotes', uid));
+    await audit(nick ? 'poner apodo interno' : 'borrar apodo interno', uid, nick || null);
   },
   watchAudit: (cb) => onSnapshot(query(collection(fs, 'auditLog'), orderBy('at', 'desc'), limit(40)), (s) => cb(s.docs.map((d) => d.data())), () => cb([])),
   audit,
