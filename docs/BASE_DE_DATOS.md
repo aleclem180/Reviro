@@ -212,7 +212,7 @@ Las monedas son solo para la tienda: no se cambian por fichas ni por plata. Para
 
 ## Referidos
 
-`referrals/{uid del invitado}` `{ referrer, username, at, played, paidReferrer }`. El invitado recibe 300 monedas al registrarse con el link de un amigo. Cuando juega su primera partida online (`played`), el que lo invitó cobra su premio: 500 monedas, o lo que el admin le haya puesto en `users/{uid}.refBonus`.
+`referrals/{uid del invitado}` `{ referrer, username, at, played, paidReferrer }`. El invitado recibe 1.500 fichas al registrarse con el link de un amigo. Cuando juega su primera partida online (`played`), el que lo invitó cobra su premio: 2.500 fichas, o lo que el admin le haya puesto en `users/{uid}.refBonus`.
 
 ## Moderación, ajustes de saldo y registro de acciones
 

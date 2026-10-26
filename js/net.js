@@ -892,11 +892,11 @@ const pay = {
 /* ------------------------------------------------------------------ */
 /*
   referrals/{uid del invitado}  { referrer, username, at, played, paidReferrer }
-  Quien se registra con el link de un amigo recibe monedas de bienvenida. Cuando juega su primera partida
-  online, el que lo invitó cobra su premio (por defecto 500 monedas; el admin puede subirlo por persona con
+  Quien se registra con el link de un amigo recibe 1.500 fichas de bienvenida. Cuando juega su primera partida
+  online, el que lo invitó cobra su premio (por defecto 2.500 fichas; el admin puede subirlo por persona con
   users/{uid}.refBonus, para los que traen más gente).
 */
-export const REF_NEW = 300, REF_DEFAULT = 500;
+export const REF_NEW = 1500, REF_DEFAULT = 2500;   // en fichas
 const ref = {
   async byCode(code) {
     const s = await getDocs(query(collection(fs, 'profiles'), where('code', '==', String(code).toUpperCase()), limit(1)));
@@ -952,7 +952,7 @@ const admin = {
   setRole: (uid, role) => updateDoc(doc(fs, 'users', uid), { role: role === 'admin' ? 'admin' : 'player' }).then(() => audit('cambiar rol', uid, role)),
   setBanned: (uid, banned, reason) => updateDoc(doc(fs, 'users', uid), { banned: !!banned, bannedReason: banned ? String(reason || '').slice(0, 120) : null })
     .then(() => audit(banned ? 'suspender cuenta' : 'reactivar cuenta', uid, reason || null)),
-  setRefBonus: (uid, coins) => updateDoc(doc(fs, 'users', uid), { refBonus: Math.max(0, Math.min(100000, Math.round(+coins || 0))) })
+  setRefBonus: (uid, chips) => updateDoc(doc(fs, 'users', uid), { refBonus: Math.max(0, Math.min(100000, Math.round(+chips || 0))) })
     .then(() => audit('premio por referido', uid, +coins)),
   async grant(uid, { chips = 0, coins = 0, reason = '' }) {
     chips = Math.round(+chips || 0); coins = Math.round(+coins || 0);

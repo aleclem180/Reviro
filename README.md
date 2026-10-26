@@ -14,7 +14,7 @@ Truco argentino con flor, en el navegador.
 - **Estadísticas por jugador:** partidas jugadas, win rate, racha actual (positiva de victorias o negativa de derrotas) y mejor racha. Se actualizan solas al terminar cada partida. Abandonar una partida en juego cuenta como derrota.
 - **Torneos:** los crea el admin (nombre, temática, fecha, reglas, cupo de hasta 128 jugadores o parejas en eliminación directa y hasta 12 en liga, 1v1 o parejas). En parejas podés anotarte con un amigo elegido: le llega la invitación y el lugar queda reservado. La entrada se paga en fichas y el pozo es el 90% de lo que se junta: crece con cada inscripto y se reparte 60/30/10 entre los tres primeros.
 - **Mesas con entrada en fichas:** desde 1.000 por jugador; el premio es el 90% del pozo. Si alguien se va en los primeros 30 segundos se cancela y se devuelve todo; si se desconecta después, tiene 60 segundos para volver o pierde su entrada.
-- **Referidos:** el invitado arranca con 300 monedas y el que invita gana 500 cuando su amigo juega su primera partida online.
+- **Referidos:** el invitado arranca con 1.500 fichas y el que invita gana 2.500 fichas cuando su amigo juega su primera partida online.
 - **Moderación:** suspender cuentas, ajustar fichas y monedas, ver la ficha completa de cada jugador, y un registro de acciones del admin que no se puede borrar.
 - **Términos y condiciones** que se aceptan al registrarse, con fecha y hora guardadas.
 - **Compartir por WhatsApp:** invitación a Reviro, código de mesa y torneos, con un toque.
