@@ -1265,7 +1265,6 @@ function tourHTML(){const back=`<div class="backx"><button type="button" class="
       <button class="btn warn" data-a="tourcancel" ${tourBusy?'disabled':''}>${tourConfirm==='cancel'?'Confirmar cancelación':'Cancelar torneo'}</button></div>
       <p class="note">Al empezar se sortean los cruces${t.mode==='2v2'?' y se arman las parejas que falten (si sobra uno, juega con la IA)':''}. Si lo cancelás, a todos se les devuelve la entrada.</p></section>`}
   else if(t.status==='cancelled')o+=`<section class="box"><p>Este torneo se canceló. A cada inscripto se le devolvió la entrada.</p></section>`;
-  if(isOwnerV)o+=tourBooksHTML(t);
   else{
     const pending=M.filter(m=>!m.winner&&m.a&&m.b&&(tMine(m.a)||tMine(m.b)));
     if(t.status==='running'&&pending.length)o+=`<section class="box tnext"><h2>Te toca</h2>${pending.map(m=>`<div class="trow"><div><b>${esc(m.label)}</b> <span>vs ${tTeamName(tMine(m.a)?m.b:m.a)}</span></div><button class="btn prim" data-a="tourplay" data-mid="${esc(m.id)}">Jugar mi partida</button></div>`).join('')}<p class="note">Si tu rival no llega en 5 minutos, podés empezar igual: la IA juega en su lugar. Abandonar una partida es perderla.</p></section>`;
@@ -1277,6 +1276,7 @@ function tourHTML(){const back=`<div class="backx"><button type="button" class="
       o+=`<section class="box"><h2>Partidos</h2>${rounds.map(r=>`<h3>Fecha ${r}</h3><div class="tms">${M.filter(m=>m.round===r).map(m=>tourMatchHTML(t,m)).join('')}</div>`).join('')}</section>`}
     else{const rounds=[...new Set(M.filter(m=>!m.third).map(m=>m.round))];
       o+=`<section class="box"><h2>Llave</h2><div class="bracket">${rounds.map(r=>{const ms=M.filter(m=>m.round===r&&!m.third);return `<div class="bcol"><h3>${esc(ms[0].label)}</h3><div class="tms">${ms.map(m=>tourMatchHTML(t,m)).join('')}</div>${M.filter(m=>m.third&&m.round===r).map(m=>`<h3 style="margin-top:10px">${esc(m.label)}</h3><div class="tms">${tourMatchHTML(t,m)}</div>`).join('')}</div>`}).join('')}</div></section>`}}
+  if(isOwnerV)o+=tourBooksHTML(t);
   return o+'</div>'}
 async function tourJoin(team){const t=TV&&TV.t;if(!t||tourBusy)return;if(t.buyIn>WAL.chips){toast('No te alcanzan las fichas');return}
   tourBusy=true;render();try{const r=await NET.tour.register(t.id,{name:myDisp(),av:WAL.eq.av,team:team||null});tourBusy=false;
