@@ -181,7 +181,7 @@ details.rules summary{font-family:var(--f-display);font-size:1.2rem;cursor:point
 .played .card:last-child{margin-right:0}
 .felt.n4 .pos-left .played .card,.felt.n4 .pos-right .played .card{margin-right:calc(var(--pc) * -0.58)}.felt.n4 .pos-left .played .card:last-child,.felt.n4 .pos-right .played .card:last-child{margin-right:0}
 .played .card.lost{filter:saturate(.35) brightness(.72)}
-.played .card.win svg{filter:drop-shadow(0 0 5px rgba(220,170,72,.95))}
+.played .card.win .cart{filter:drop-shadow(0 0 5px rgba(220,170,72,.95))}
 .land{animation:land .34s cubic-bezier(.2,.8,.3,1.15)}
 .pos-top .land{--fy:-30px}.pos-left .land{--fx:-30px;--fy:0px}.pos-right .land{--fx:30px;--fy:0px}
 @keyframes land{from{transform:translate(var(--fx,0px),var(--fy,30px)) scale(1.2) rotate(-8deg);opacity:0}to{transform:none;opacity:1}}
@@ -236,6 +236,7 @@ details.rules summary{font-family:var(--f-display);font-size:1.2rem;cursor:point
 .chips button:hover{border-color:var(--brass)}
 .card{display:block;aspect-ratio:2/3;max-width:100%;border-radius:7%/4.7%}
 .card svg{display:block;width:100%;height:100%;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
+.card{position:relative}.card .cart{position:absolute;inset:0;width:100%;height:100%;display:block;-webkit-user-drag:none;user-select:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}.card svg.cidx{position:absolute;inset:0;filter:none;pointer-events:none}
 .cnum{font-family:var(--f-display);font-size:12.5px;paint-order:stroke;stroke:#f7efdc;stroke-width:2.4px;stroke-linejoin:round}
 .cfig{font-family:var(--f-body);font-size:7px;font-weight:700;letter-spacing:.12em}
 .av{border-radius:50%;display:block}
@@ -509,6 +510,23 @@ body[data-view=menu] .brand,body[data-view=register] .brand,body[data-view=welco
     <linearGradient id="gHoja" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e9eef5"/><stop offset=".5" stop-color="#b9c6d6"/><stop offset="1" stop-color="#7f93ad"/></linearGradient>
     <linearGradient id="gCopa" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#d9473c"/><stop offset=".6" stop-color="#b3271f"/><stop offset="1" stop-color="#7f1a14"/></linearGradient>
     <linearGradient id="gBasto" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7fae4f"/><stop offset=".5" stop-color="#4f8a35"/><stop offset="1" stop-color="#2f5e22"/></linearGradient>
+    <!-- lápiz de color: trazo tembloroso, relleno con rayado de lápiz y un contorno suelto de grafito -->
+    <filter id="fLapiz" x="-8%" y="-8%" width="116%" height="116%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency=".07" numOctaves="2" seed="4" result="w"/>
+      <feDisplacementMap in="SourceGraphic" in2="w" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="d"/>
+      <feTurbulence type="fractalNoise" baseFrequency="1.5 .07" numOctaves="2" seed="9" result="s"/>
+      <feColorMatrix in="s" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -3.2 2.1" result="sa"/>
+      <feComposite in="d" in2="sa" operator="in" result="t"/>
+      <feColorMatrix in="d" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 .38 0" result="soft"/>
+      <feMorphology in="SourceAlpha" operator="dilate" radius=".4" result="dl"/>
+      <feComposite in="dl" in2="SourceAlpha" operator="out" result="ed"/>
+      <feTurbulence type="fractalNoise" baseFrequency=".16" numOctaves="1" seed="21" result="w2"/>
+      <feDisplacementMap in="ed" in2="w2" scale="1.9" xChannelSelector="R" yChannelSelector="G" result="ed2"/>
+      <feFlood flood-color="#3b2d22" flood-opacity=".55"/><feComposite in2="ed2" operator="in" result="gr"/>
+      <feMerge><feMergeNode in="soft"/><feMergeNode in="t"/><feMergeNode in="gr"/></feMerge>
+    </filter>
+    <!-- grano del papel de la carta -->
+    <filter id="fGrano" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="2"/><feColorMatrix type="matrix" values="0 0 0 0 .45  0 0 0 0 .36  0 0 0 0 .25  0 0 0 -1.1 .62"/><feComposite in2="SourceGraphic" operator="in"/></filter>
     <symbol id="sO" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.8" fill="url(#gOro)" stroke="#8a5d0c" stroke-width=".7"/><circle cx="12" cy="12" r="8.4" fill="none" stroke="#8a5d0c" stroke-width=".45"/>
       <g stroke="#a8760f" stroke-width=".55" stroke-linecap="round"><path d="M12 4.6v2.2M12 17.2v2.2M4.6 12h2.2M17.2 12h2.2M6.8 6.8l1.5 1.5M15.7 15.7l1.5 1.5M17.2 6.8l-1.5 1.5M8.3 15.7l-1.5 1.5"/></g>
       <circle cx="12" cy="12" r="4.2" fill="#f2cc5c" stroke="#8a5d0c" stroke-width=".5"/><circle cx="10.6" cy="11.3" r=".55" fill="#8a5d0c"/><circle cx="13.4" cy="11.3" r=".55" fill="#8a5d0c"/><path d="M10.4 13.4q1.6 1.2 3.2 0" stroke="#8a5d0c" stroke-width=".5" fill="none" stroke-linecap="round"/>

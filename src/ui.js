@@ -10,97 +10,39 @@ const PIPS={2:[[30,28],[30,62]],3:[[30,24],[30,45],[30,66]],4:[[20,28],[40,28],[
 /* Baraja española: papel crema, pintas arriba y abajo (oros sin corte, copas 1, espadas 2, bastos 3),
    números en las esquinas, palos con detalle y figuras de sota, caballo y rey de cuerpo entero
    (dibujadas en 120x180 y encajadas en el marco de la carta). */
-const FIGPAL={O:['#2b5b9c','#b5302a'],C:['#b5302a','#2b5b9c'],E:['#2f6b3a','#b5302a'],B:['#2b5b9c','#c99a2e']};
-function figSVG(n,s){const [R,A]=FIGPAL[s];const L='stroke="#2a1d14" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round"',l='stroke="#2a1d14" stroke-width=".7" stroke-linejoin="round" stroke-linecap="round"';
-  const SK='#f3d3b1',SKD='#d8a57d',GO='#e3b341',GD='#9a6a12',W='#fbf6ea',HAIR='#6b4226';
-  const U=(x,y,z,r)=>`<use href="#s${s}" x="${x-z/2}" y="${y-z/2}" width="${z}" height="${z}"${r?` transform="rotate(${r} ${x} ${y})"`:''}/>`;
-  const fold=d=>`<path d="${d}" fill="url(#gFold)"/>`;
-  const erm=(pts)=>pts.map(([x,y])=>`<path d="M${x} ${y}l-.9 2.6h1.8z" fill="#1d1510"/>`).join('');
-  let o=`<rect x="0" y="0" width="120" height="180" fill="#f6eedb"/><ellipse cx="60" cy="175" rx="38" ry="3.6" fill="#000" opacity=".12"/>`;
-  if(n===12){/* rey */
-    const item={O:()=>U(32,97,30),C:()=>U(33,90,28),E:()=>U(31,80,66,-5),B:()=>U(30,75,64,-8)}[s];
-    o+=`<path d="M31 64Q17 104 15 172H105Q103 104 89 64Z" fill="${A}" ${L}/>${fold('M31 64Q17 104 15 172H105Q103 104 89 64Z')}
-    <path d="M43 60Q35 112 31 168H89Q85 112 77 60Z" fill="${R}" ${L}/>${fold('M43 60Q35 112 31 168H89Q85 112 77 60Z')}
-    <path d="M46 118Q44 142 42 164M74 118Q76 142 78 164M60 116V164" stroke="#000" stroke-opacity=".28" stroke-width=".9" fill="none"/>
-    <path d="M55.5 62H64.5L65.5 168H54.5Z" fill="${GO}" ${l}/><path d="M60 70l2.4 4-2.4 4-2.4-4zM60 92l2.4 4-2.4 4-2.4-4zM60 126l2.4 4-2.4 4-2.4-4zM60 148l2.4 4-2.4 4-2.4-4z" fill="#b5302a" ${l}/>
-    <path d="M30 160H90L91 170H29Z" fill="${W}" ${l}/>${erm([[36,163],[46,165],[56,163],[66,165],[76,163],[85,165]])}
-    <path d="M37 104Q60 111 83 104L84 112Q60 119 36 112Z" fill="${GO}" ${l}/><circle cx="60" cy="110.5" r="2.6" fill="#b5302a" ${l}/>
-    <ellipse cx="50" cy="172" rx="6" ry="2.6" fill="#3b2418" ${l}/><ellipse cx="70" cy="172" rx="6" ry="2.6" fill="#3b2418" ${l}/>
-    <path d="M38 66Q27 82 28 99L39 101Q39 86 46 74Z" fill="${R}" ${L}/><path d="M27.6 95.5L39.4 97.4L39 102L27.4 100.4Z" fill="${W}" ${l}/>
-    <path d="M82 66Q93 82 92 99L81 101Q81 86 74 74Z" fill="${R}" ${L}/><path d="M92.4 95.5L80.6 97.4L81 102L92.6 100.4Z" fill="${W}" ${l}/>
-    ${s==='O'||s==='C'?`<ellipse cx="34" cy="104" rx="4.6" ry="4" fill="${SK}" ${l}/>`+item():item()+`<ellipse cx="34" cy="104" rx="4.6" ry="4" fill="${SK}" ${l}/>`}
-    <path d="M87 106L95 44" stroke="${GD}" stroke-width="3.2" stroke-linecap="round"/><path d="M87 106L95 44" stroke="${GO}" stroke-width="1.8" stroke-linecap="round"/><circle cx="95.4" cy="41" r="3.6" fill="${GO}" ${l}/><path d="M95.4 35.6v-3.4M93.7 33.9h3.4" stroke="${GD}" stroke-width="1"/>
-    <ellipse cx="86.5" cy="104" rx="4.6" ry="4" fill="${SK}" ${l}/>
-    <path d="M33 68Q60 88 87 68Q86 58 75 54H45Q34 58 33 68Z" fill="${W}" ${L}/>${erm([[42,62],[50,68],[60,71],[70,68],[78,62],[60,61]])}
-    <path d="M47 33Q45 50 49 58L71 58Q75 50 73 33Q67 27 60 27Q53 27 47 33Z" fill="#d7d1c4" ${L}/>
-    <ellipse cx="60" cy="40" rx="11" ry="12.6" fill="${SK}" ${L}/><path d="M50 43q1 8 4 9" stroke="${SKD}" stroke-width=".9" fill="none"/>
-    <path d="M52.6 35.4q3-1.8 6-.4M61.4 35q3-1.4 6 .4" stroke="#8d8578" stroke-width="1.2" fill="none" stroke-linecap="round"/>
-    <path d="M53.4 39q2.4-1.6 4.6 0M62 39q2.4-1.6 4.6 0" stroke="#2a1d14" stroke-width=".8" fill="none"/><circle cx="55.8" cy="39.4" r="1" fill="#2a1d14"/><circle cx="64.2" cy="39.4" r="1" fill="#2a1d14"/>
-    <path d="M60 39.6L58.4 45.6Q60 46.8 61.6 45.6" stroke="${SKD}" stroke-width="1" fill="none"/>
-    <path d="M48.6 44Q49.6 62 60 74Q70.4 62 71.4 44Q66.4 52.4 60 52.4Q53.6 52.4 48.6 44Z" fill="#ede8dd" ${L}/><path d="M55 56q2 8 5 13M65 56q-2 8-5 13M60 54v15" stroke="#b9b1a2" stroke-width=".7" fill="none"/>
-    <path d="M52.4 47.6Q56.6 45 60 47.4Q63.4 45 67.6 47.6Q63.6 51 60 49Q56.4 51 52.4 47.6Z" fill="#d7d1c4" ${l}/>
-    <path d="M47 30.6H73L72.4 24H47.6Z" fill="${GO}" ${L}/><path d="M47.6 24L45.6 12L52 19.4L56 8.6L60 18L64 8.6L68 19.4L74.4 12L72.4 24Z" fill="${GO}" ${L}/>
-    <circle cx="45.6" cy="11.6" r="1.6" fill="${GO}" ${l}/><circle cx="56" cy="8.2" r="1.6" fill="${GO}" ${l}/><circle cx="64" cy="8.2" r="1.6" fill="${GO}" ${l}/><circle cx="74.4" cy="11.6" r="1.6" fill="${GO}" ${l}/>
-    <circle cx="60" cy="27.3" r="2.1" fill="#b5302a" ${l}/><circle cx="52.4" cy="27.3" r="1.4" fill="#2b5b9c" ${l}/><circle cx="67.6" cy="27.3" r="1.4" fill="#2b5b9c" ${l}/><path d="M48 25.4H72" stroke="${GD}" stroke-width=".6"/>`;
-  }else if(n===11){/* caballo */
-    const item={O:()=>U(98,40,26),C:()=>U(99,44,24),E:()=>U(100,34,60,22),B:()=>U(98,40,58,24)}[s];
-    o+=`<path d="M100 100Q118 118 112 156Q104 136 98 112Z" fill="#4a2f1c" ${L}/>
-    <path d="M86 128Q93 146 89 160L90 173H97L97 160Q101 146 99 126Z" fill="#c8a173" ${L}/><path d="M89.6 170h7.8v4h-8.2z" fill="#3b2418" ${l}/>
-    <path d="M44 128L40 150L41 172H48L48.6 150L52 130Z" fill="#c8a173" ${L}/><path d="M40.6 170h7.8v4h-8.2z" fill="#3b2418" ${l}/>
-    <path d="M34 128Q25 112 31 97Q29 86 24 79Q20 78 15 84Q9 86 7 80Q5 76 9 71L20 54L24 45L28.6 52Q40 58 49 82Q68 90 90 91Q107 92 106 110Q107 125 99 132L86 132Q70 136 52 134Q40 136 34 128Z" fill="#e3c08f" ${L}/>
-    ${fold('M34 128Q25 112 31 97Q29 86 24 79Q20 78 15 84Q9 86 7 80Q5 76 9 71L20 54L24 45L28.6 52Q40 58 49 82Q68 90 90 91Q107 92 106 110Q107 125 99 132L86 132Q70 136 52 134Q40 136 34 128Z')}
-    <path d="M36 126L30 144L20 150L19 157H26L36 151L46 132Z" fill="#d6b07e" ${L}/><path d="M18.4 153.4l7.6.6-.2 4.2-7.6-.4z" fill="#3b2418" ${l}/>
-    <path d="M94 126Q102 142 98 156L101 170H108L107 156Q111 140 105 122Z" fill="#d6b07e" ${L}/><path d="M100.6 167.6h7.6v4.2h-7.8z" fill="#3b2418" ${l}/>
-    <path d="M24 45Q31 50 37 58Q45 68 50 82L44 84Q39 70 32 63Q26 58 22 54Z" fill="#4a2f1c" ${l}/><path d="M28 56l-4 4M33 62l-4 4M38 68l-4.4 3.6M42 75l-4.4 3" stroke="#4a2f1c" stroke-width="1.6"/>
-    <circle cx="19.6" cy="60.4" r="1.4" fill="#2a1d14"/><path d="M9.4 77.4q1.4.6 2.4-.6" stroke="#2a1d14" stroke-width=".8" fill="none"/>
-    <path d="M8 75.6L21 63L27 76.4M21 63L18 54" stroke="${A}" stroke-width="1.4" fill="none"/><path d="M14 80Q34 78 58 86" stroke="#5a3a22" stroke-width=".9" fill="none"/>
-    <path d="M56 86Q72 91 88 91L86 118Q70 121 57 117Z" fill="${A}" ${L}/><path d="M57 117Q70 121 86 118" stroke="${GO}" stroke-width="2.4" fill="none" stroke-dasharray="1.4 1.4"/><path d="M58 90l27 1.6" stroke="${GO}" stroke-width="1.2"/>
-    <path d="M66 94Q58 103 58 112L60 126L66 127L66 114Q68 106 76 100Z" fill="${R}" ${L}/><path d="M58 124.6h9l1 5.2h-11z" fill="#3b2418" ${l}/><path d="M61 128v6h5v-6" stroke="${GD}" stroke-width="1.2" fill="none"/>
-    <path d="M62 96Q58 74 65 62Q72 57 79 62Q86 76 82 97Z" fill="${R}" ${L}/>${fold('M62 96Q58 74 65 62Q72 57 79 62Q86 76 82 97Z')}<path d="M62 86Q72 90 83 86" stroke="${GO}" stroke-width="2.2"/>
-    <path d="M65 64Q72 70 79 64L78 60Q72 64 66 60Z" fill="${W}" ${l}/>
-    <path d="M67 70Q58 78 50 80" stroke="${R}" stroke-width="6.4" fill="none" stroke-linecap="round"/><path d="M67 70Q58 78 50 80" stroke="#2a1d14" stroke-width="7.6" fill="none" stroke-linecap="round" opacity=".0"/>
-    <ellipse cx="49" cy="80.4" rx="3.6" ry="3.2" fill="${SK}" ${l}/>
-    ${s==='O'||s==='C'?`<path d="M78 66Q88 60 96 50" stroke="${R}" stroke-width="6.2" fill="none" stroke-linecap="round"/><ellipse cx="96.6" cy="49" rx="3.6" ry="3.2" fill="${SK}" ${l}/>`+item():`<path d="M78 66Q88 62 94 54" stroke="${R}" stroke-width="6.2" fill="none" stroke-linecap="round"/>`+item()+`<ellipse cx="94.4" cy="53.6" rx="3.6" ry="3.2" fill="${SK}" ${l}/>`}
-    <path d="M66 46Q65 58 70 61L76 61Q80 56 79 46Z" fill="${HAIR}" ${l}/>
-    <ellipse cx="72" cy="48" rx="7.2" ry="8.4" fill="${SK}" ${L}/><circle cx="69.4" cy="47.4" r=".9" fill="#2a1d14"/><circle cx="75" cy="47.4" r=".9" fill="#2a1d14"/><path d="M68 44.4q1.6-1 3 0M73.4 44.4q1.6-1 3 0" stroke="${HAIR}" stroke-width=".9" fill="none"/><path d="M72 48.4l-1 3.4h2" stroke="${SKD}" stroke-width=".8" fill="none"/><path d="M70 53.6q2 1.2 4 0" stroke="#a2513e" stroke-width=".8" fill="none"/>
-    <ellipse cx="72" cy="40.6" rx="13.6" ry="3" fill="${A}" ${L}/><path d="M63 40Q63 30 72 29.4Q81 30 81 40Z" fill="${A}" ${L}/><path d="M63.4 38.6H80.6" stroke="${GO}" stroke-width="1.6"/>
-    <path d="M78 33Q90 26 92 14Q84 22 77 30Z" fill="${W}" ${l}/><path d="M80 31q6-5 9-12" stroke="#c9bfae" stroke-width=".6" fill="none"/>`;
-  }else{/* sota */
-    const item={O:()=>U(60,80,30),C:()=>U(60,76,26),E:()=>U(88,116,64,180),B:()=>U(90,118,64,184)}[s];
-    const two=s==='O'||s==='C';
-    o+=`<path d="M49 116L48 166H57L59 116Z" fill="${A}" ${L}/><path d="M61 116L63 166H72L71 116Z" fill="${A}" ${L}/>
-    <path d="M45 164H58L59 172H42Q42 166 45 164Z" fill="#2a1d14" ${l}/><path d="M62 164H75Q78 166 78 172H61Z" fill="#2a1d14" ${l}/>
-    <path d="M44 56Q38 90 36 118L84 118Q82 90 76 56Q68 50 60 50Q52 50 44 56Z" fill="${R}" ${L}/>${fold('M44 56Q38 90 36 118L84 118Q82 90 76 56Q68 50 60 50Q52 50 44 56Z')}
-    <path d="M36 118Q48 113 60 118Q72 113 84 118L84 112Q72 107 60 112Q48 107 36 112Z" fill="${GO}" ${l}/><path d="M60 54V112" stroke="${GO}" stroke-width="2.4"/><path d="M60 54V112" stroke="${GD}" stroke-width=".6" stroke-dasharray="2 3"/>
-    <path d="M40 88Q60 94 80 88L80.6 94Q60 100 39.4 94Z" fill="${GO}" ${l}/>
-    <path d="M47 98Q45 106 44 114M73 98Q75 106 76 114" stroke="#000" stroke-opacity=".25" stroke-width=".9" fill="none"/>
-    ${two?`<path d="M45 60Q36 70 42 82L52 80Q49 72 52 64Z" fill="${A}" ${L}/><path d="M75 60Q84 70 78 82L68 80Q71 72 68 64Z" fill="${A}" ${L}/><path d="M42 80L51.6 78.6L52.6 84L44 85.4Z" fill="${W}" ${l}/><path d="M78 80L68.4 78.6L67.4 84L76 85.4Z" fill="${W}" ${l}/>`+item()+`<ellipse cx="49" cy="85" rx="4.4" ry="3.8" fill="${SK}" ${l}/><ellipse cx="71" cy="85" rx="4.4" ry="3.8" fill="${SK}" ${l}/>`
-      :`<path d="M45 60Q36 74 40 90L49 89Q47 78 52 66Z" fill="${A}" ${L}/><path d="M39.6 87L49.4 86.4L49.6 91.6L40.4 92.2Z" fill="${W}" ${l}/><ellipse cx="45" cy="94" rx="4.4" ry="3.8" fill="${SK}" ${l}/>
-        <path d="M75 60Q86 68 87 82L79 84Q77 74 69 66Z" fill="${A}" ${L}/><path d="M87.6 80L79 82.4L80.4 87.4L88.6 85.2Z" fill="${W}" ${l}/>`+item()+`<ellipse cx="86" cy="87" rx="4.4" ry="3.8" fill="${SK}" ${l}/>`}
-    <path d="M47 55Q60 64 73 55L72 50Q60 57 48 50Z" fill="${W}" ${L}/><path d="M51 53.6l2 2.6M56 55.6l1.4 3M64 55.6l-1.4 3M69 53.6l-2 2.6" stroke="#b9b1a2" stroke-width=".7"/>
-    <path d="M49 30Q48 20 60 19Q72 20 71 30L72 46Q67 44 65 36L55 36Q53 44 48 46Z" fill="${HAIR}" ${L}/>
-    <ellipse cx="60" cy="37" rx="9.2" ry="10.8" fill="${SK}" ${L}/><path d="M51.4 40q1 6 3.6 7.4" stroke="${SKD}" stroke-width=".8" fill="none"/>
-    <path d="M54.6 33.6q2-1.2 4 0M61.4 33.6q2-1.2 4 0" stroke="${HAIR}" stroke-width="1" fill="none"/><circle cx="56.6" cy="36.6" r=".95" fill="#2a1d14"/><circle cx="63.4" cy="36.6" r=".95" fill="#2a1d14"/>
-    <path d="M60 37L58.8 41.6Q60 42.4 61.2 41.6" stroke="${SKD}" stroke-width=".9" fill="none"/><path d="M57.4 44.4q2.6 1.4 5.2 0" stroke="#a2513e" stroke-width=".9" fill="none"/>
-    <path d="M55 30.4Q60 27 65 30.4" stroke="${HAIR}" stroke-width="2.2" fill="none"/>
-    <path d="M44 27Q48 18 62 18Q76 19 76 26Q66 30 44 27Z" fill="${A}" ${L}/><path d="M45 26.4Q60 29.6 75.6 25.6" stroke="${GO}" stroke-width="1.6" fill="none"/>
-    <path d="M70 22Q84 14 86 2Q78 10 68 19Z" fill="${W}" ${l}/><path d="M72 20q7-6 11-15" stroke="#c9bfae" stroke-width=".6" fill="none"/><circle cx="69" cy="22.6" r="1.8" fill="${GO}" ${l}/>`;
-  }
-  return `<rect x="9" y="16" width="42" height="63" rx="1.6" fill="none"/><g transform="translate(9 16) scale(.35)">${o}</g><rect x="9" y="16" width="42" height="63" rx="1.6" fill="none" stroke="${R}" stroke-width=".7"/>`}
 
 const PIPS2={2:[[30,24],[30,66]],3:[[30,22],[30,45],[30,68]],4:[[20,25],[40,25],[20,65],[40,65]],5:[[20,24],[40,24],[30,45],[20,66],[40,66]],
   6:[[20,22],[40,22],[20,45],[40,45],[20,68],[40,68]],7:[[20,20],[40,20],[30,33],[20,46],[40,46],[20,70],[40,70]]};
-function cardHTML(c,cls='',style=''){const n=cn(c),s=cs(c),col=SUITCOL[s],g=GAPS[s];let fr='';const x0=9,x1=51,gw=3.6,sw=(x1-x0-g*gw)/(g+1);
-  for(const y of [4.4,85.6])for(let i=0;i<=g;i++){const a=x0+i*(sw+gw);fr+=`<line x1="${a.toFixed(2)}" x2="${(a+sw).toFixed(2)}" y1="${y}" y2="${y}" stroke="${col}" stroke-width="1.5" stroke-linecap="round"/>`}
+/* espadas y bastos van cruzados de a pares, como en la baraja, en filas fáciles de contar: [x, y, largo, ángulo] */
+const XP=(y,L,a=L<40?32:24)=>[[30,y,L,-a],[30,y,L,a]];
+const CRUCE={2:XP(45,66),3:[...XP(45,66,26),[30,45,66,0]],4:[...XP(26,34),...XP(64,34)],5:[...XP(24,30),...XP(66,30),[30,45,32,90]],
+  6:[...XP(21,24),...XP(45,24),...XP(69,24)],7:[...XP(21,24),...XP(45,24),[30,45,24,0],...XP(69,24)]};
+const SUITHEX={O:'#c48a12',C:'#b5302a',E:'#2b5b9c',B:'#3d7a38'};
+function cardHTML(c,cls='',style=''){const n=cn(c),s=cs(c),col=SUITCOL[s],hx=SUITHEX[s],g=GAPS[s];let fr='';const x0=9,x1=51,gw=3.6,sw=(x1-x0-g*gw)/(g+1);
+  for(const y of [4.4,85.6])for(let i=0;i<=g;i++){const a=x0+i*(sw+gw);fr+=`<line x1="${a.toFixed(2)}" x2="${(a+sw).toFixed(2)}" y1="${y}" y2="${y}" stroke="${hx}" stroke-width="1.5" stroke-linecap="round"/>`}
   const long=s==='E'||s==='B';
-  const u=(x,y,z,r)=>`<use href="#s${s}" x="${x-z/2}" y="${y-z/2}" width="${z}" height="${z}"${r?` transform="rotate(${r} ${x} ${y})"`:''}/>`;
-  let mid='';
-  if(n===1){const big=long?50:34;mid=(c==='1E'||c==='1B')?`<ellipse cx="30" cy="45" rx="19" ry="27" fill="none" stroke="${col}" stroke-opacity=".35" stroke-width=".6" stroke-dasharray="1.2 1.4"/>`:'';mid+=u(30,45,big,0)}
-  else if(n<=7)mid=PIPS2[n].map(([x,y],i)=>u(x,y,long?15:13,long?(i%2?14:-14):0)).join('');
-  else mid=figSVG(n,s);
+  /* cada palo es un dibujo; se coloca encajado en una caja de z de alto, con su proporción */
+  const A=CARDART['sym'+s],WX={E:1.7,B:1.25}[s]||1;const u=(x,y,z,r)=>{const hh=z,ww=z*A.w/A.h*(n>1?WX:1.25);return `<use href="#p${s}" x="${(x-ww/2).toFixed(2)}" y="${(y-hh/2).toFixed(2)}" width="${ww.toFixed(2)}" height="${hh.toFixed(2)}"${r?` transform="rotate(${r} ${x} ${y})"`:''}/>`};
+  let mid='',fig='';
+  if(n===1){const big=long?66:s==='O'?36:44;mid=(c==='1E'||c==='1B')?`<ellipse cx="30" cy="45" rx="19" ry="27" fill="none" stroke="${hx}" stroke-opacity=".35" stroke-width=".6" stroke-dasharray="1.2 1.4"/>`:'';mid+=u(30,45,big,0)}
+  else if(n<=7&&long)mid=CRUCE[n].map(([x,y,L,a])=>u(x,y,L,a)).join('');
+  else if(n<=7)mid=PIPS2[n].map(([x,y])=>u(x,y,s==='O'?(n>=6?14:15):(n>=6?15:16.5),0)).join('');
+  else{/* sota, caballo y rey: el dibujo de cuerpo entero dentro del marco */const F=CARDART[n+s],bw=40,bh=61,sc=Math.min(bw/F.w,bh/F.h),fw=F.w*sc,fh=F.h*sc;
+    fig=`<image href="${F.src}" x="${(30-fw/2).toFixed(2)}" y="${(78.4-fh).toFixed(2)}" width="${fw.toFixed(2)}" height="${fh.toFixed(2)}"/>`;
+    fr+=`<rect x="9" y="16" width="42" height="63.4" rx="1.6" fill="none" stroke="${hx}" stroke-width=".7"/>`}
   const label=`${n} de ${({O:'oro',C:'copa',E:'espada',B:'basto'})[s]}`;
-  return `<span class="card ${cls}" ${style?`style="${style}"`:''} role="img" aria-label="${label}"><svg viewBox="0 0 60 90"><rect x=".5" y=".5" width="59" height="89" rx="4.6" fill="url(#gPapel)" stroke="#b9a27a" stroke-width=".7"/>${fr}
-${mid}<text x="4.6" y="14.6" class="cnum" fill="${col}">${n}</text><text x="4.6" y="14.6" class="cnum" fill="${col}" transform="rotate(180 30 45)">${n}</text></svg></span>`}
+  return `<span class="card ${cls}" ${style?`style="${style}"`:''} role="img" aria-label="${label}"><img class="cart" data-c="${c}" src="${cardArt(c,fr,mid+fig)}" alt="" draggable="false"><svg class="cidx" viewBox="0 0 60 90" aria-hidden="true"><text x="4.6" y="14.6" class="cnum" fill="${col}">${n}</text><text x="4.6" y="14.6" class="cnum" fill="${col}" transform="rotate(180 30 45)">${n}</text></svg></span>`}
+/* El dibujo de cada carta (papel, pintas, palos y figuras) va con un filtro de lápiz de color, que es caro de calcular.
+   Por eso se arma una sola vez por carta como imagen SVG y queda guardado: al moverla o rotarla, el navegador no recalcula el filtro.
+   El rayado sale en diagonal porque el filtro trabaja en un espacio girado. Los números van aparte, nítidos, con la letra de la página. */
+const CARDIMG={};let CARDDEFS=null;
+function cardArt(c,fr,mid){/* mid trae los palos o la figura */if(CARDIMG[c])return CARDIMG[c];
+  if(CARDDEFS===null)CARDDEFS=['gPapel','fLapiz','fGrano'].map(id=>{const el=document.getElementById(id);return el?el.outerHTML:''}).join('')+['O','C','E','B'].map(s=>{const A=CARDART['sym'+s];return `<symbol id="p${s}" viewBox="0 0 ${A.w} ${A.h}" preserveAspectRatio="none"><image href="${A.src}" width="${A.w}" height="${A.h}"/></symbol>`}).join('');
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 60 90" width="360" height="540"><defs>${CARDDEFS}</defs><rect x=".5" y=".5" width="59" height="89" rx="4.6" fill="url(#gPapel)" stroke="#b9a27a" stroke-width=".7"/><rect x=".5" y=".5" width="59" height="89" rx="4.6" fill="#fff" filter="url(#fGrano)" opacity=".28"/><g transform="rotate(32 30 45)" filter="url(#fLapiz)"><g transform="rotate(-32 30 45)">${fr}</g></g>${mid}</svg>`;
+  const uri='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);CARDIMG[c]=uri;rasterCard(c,uri);return uri}
+/* y después se pasa a mapa de bits, que es lo más liviano para mover en pantalla */
+function rasterCard(c,uri){try{const im=new Image();im.onload=()=>{try{const cv=document.createElement('canvas');cv.width=360;cv.height=540;cv.getContext('2d').drawImage(im,0,0,360,540);
+    cv.toBlob(b=>{if(!b)return;const url=URL.createObjectURL(b);CARDIMG[c]=url;document.querySelectorAll('img.cart[data-c="'+c+'"]').forEach(el=>{el.src=url})},'image/png')}catch(e){}};im.src=uri}catch(e){}}
 function fosforos(score,target){const groups=target/5,pitch=17,sz=12;let o='';
   for(let gi=0;gi<groups;gi++){const v=Math.max(0,Math.min(5,score-gi*5));const x=gi*pitch+(target===30&&gi>=3?6:0)+2,y=3;
     const L=[[x,y,x+sz,y],[x+sz,y,x+sz,y+sz],[x+sz,y+sz,x,y+sz],[x,y+sz,x,y],[x,y,x+sz,y+sz]];
