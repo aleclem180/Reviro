@@ -63,6 +63,10 @@ def web(base=""):
 
 # para que el navegador no se quede con una versión vieja de la capa de red ni de la configuración
 FIREBASE = FIREBASE.replace("NETV", hashlib.sha1((ROOT / "js" / "net.js").read_bytes()).hexdigest()[:8]).replace("CFGV", hashlib.sha1((ROOT / "js" / "firebase-config.js").read_bytes()).hexdigest()[:8])
+# versión de esta compilación: la página la compara con version.json para avisarse sola cuando hay una nueva
+BUILD = hashlib.sha1("".join(ver(f) for f in JS + ["style.css"]).encode() + (ROOT / "js" / "net.js").read_bytes()).hexdigest()[:10]
+FIREBASE = f"<script>window.REVIRO_BUILD = '{BUILD}';</script>\n" + FIREBASE
+(ROOT / "version.json").write_text('{"v": "%s"}\n' % BUILD, encoding="utf-8")
 (ROOT / "index.html").write_text(web(), encoding="utf-8")
 for r in ROUTES:
     d = ROOT / r

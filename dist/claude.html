@@ -2116,6 +2116,15 @@ function shareHTML(){const s=SHARE||{},enc=encodeURIComponent;
       <p class="note" style="margin:0">${canShareFile()?'Con el primer botón se comparte la imagen directo. ':'Para Instagram, guardá la imagen y subila a tu historia. '}WhatsApp y Facebook mandan el link con tu resultado.</p>`:''}
     <button class="btn ghost" data-a="sharex">Volver</button></div></div>`}
 
+/* ---------- siempre la última versión ----------
+   El navegador a veces se queda con la página vieja guardada. Cada tanto se pregunta qué versión hay publicada:
+   si es otra, se recarga sola (si estás en una partida, espera a que termines y te avisa). */
+let UPDATE_PENDING=false;
+async function checkUpdate(){if(!window.REVIRO_BUILD||!/^https?:$/.test(location.protocol))return;
+  try{const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;const j=await r.json();if(!j.v||j.v===window.REVIRO_BUILD)return;
+    if(view==='game'||view==='room'){if(!UPDATE_PENDING){UPDATE_PENDING=true;toast('Hay una versión nueva de Reviro: se actualiza cuando termines la partida')}return}
+    location.reload()}catch(e){}}
+
 /* ---------- la mesa se actualiza en el lugar ----------
    En vez de borrar y volver a armar todo en cada jugada (lo que hacía parpadear las cartas y daba tirones en el celular),
    se compara lo nuevo con lo que hay y se cambia solo lo distinto. Las cartas se reconocen por su valor, así no se recargan. */
@@ -2544,7 +2553,7 @@ function abandonCurrent(){if(!inProgress())return;const g=G;
   if(FB&&mode==='online'&&T){const code=T.code,tt=T.tour;abandonP=NET.stats.recordAbandon(code).then(r=>{if(r&&r.stats)MYUSER=Object.assign({},MYUSER,{stats:r.stats})})
     .then(()=>tt?NET.tour.forfeit(code).then(()=>NET.tour.reportResult(tt.tid,tt.mid)):null).catch(()=>{})}
   toast(FB&&mode==='online'&&T&&T.tour?'Abandonaste: perdés este partido del torneo':countsOnline(g)?'Abandonaste la partida: cuenta como derrota':CAMP?'Abandonaste: perdés los porotos de esta partida':'Saliste de la partida')}
-function toMenu(){TUT=null;mySena=null;const wasCamp=!!CAMP;CAMP=null;if(mode==='online')leaveTable(true);else{G=null;mode=null;view=wasCamp?'gira':'menu';panel=null;clearTimeout(driveT);render()}}
+function toMenu(){if(UPDATE_PENDING&&!(view==='game'&&inProgress())){location.reload();return}TUT=null;mySena=null;const wasCamp=!!CAMP;CAMP=null;if(mode==='online')leaveTable(true);else{G=null;mode=null;view=wasCamp?'gira':'menu';panel=null;clearTimeout(driveT);render()}}
 
 /* ---------- presencia online: quién está y quién maneja la mesa ---------- */
 let PEERS=null,roomJoinedAt=0;const goneSince={};
@@ -3557,6 +3566,7 @@ async function start(data){
   try{const m=/^#a-([A-Z0-9]{6})$/i.exec(location.hash||'');if(m)localStorage.setItem('reviro.ref',m[1].toUpperCase())}catch(e){}
   if(data&&data.G&&data.mode==='offline'){mode='offline';mySeat=0;view='game';cfg=data.cfg;botLooks=data.botLooks||pickBotLooks(data.G.n);G=data.G}
   renderSnd();renderWallet();render();drive();setTimeout(warmArt,1500);
+  setTimeout(checkUpdate,4000);setInterval(checkUpdate,5*60e3);document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});
   setInterval(presenceTick,3000);setInterval(turnTick,500);setInterval(()=>{if(view==='room'&&T&&T.tour&&T.status==='waiting')render()},15000);setInterval(tourTick,1000);
   try{CL=window.claude;if(CL&&CL.use){[db,usr,roomCap]=await Promise.all([CL.use('db'),CL.use('user'),CL.use('room')]);uid=usr?await usr.id():null;if(usr){try{const me=await usr.me();myName=me.name||'';myEmail=me.email||null}catch(e){}try{isOwnerV=!!(await usr.isOwner())}catch(e){}}}}catch(e){db=null}
   if(FB){await waitNET();if(!window.NET){$('#view').innerHTML=`<div class="gate">${fileteHTML('gtitle')}<section class="box"><h2>No se pudo conectar</h2><p>No pudimos llegar al servidor del juego. Revisá tu conexión y recargá la página.</p></section></div>`;return}
