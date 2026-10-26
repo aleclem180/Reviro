@@ -21,7 +21,9 @@ Truco argentino con flor, en el navegador.
 - **Monedas con Mercado Pago:** el jugador paga con el link del paquete y el admin lo acredita desde Ajustes.
 - **Administración:** ver y cerrar salas activas, nombrar o quitar admins, dar premium, crear y manejar torneos.
 - **Reglas completas:** envido, real envido y falta envido (malas y buenas), flor, contraflor y contraflor al resto, truco, retruco y vale cuatro, pardas y mazo.
-- **La Huella:** el mapa de la Argentina por zonas, con rivales que juegan mejor cuanto más porotos tienen.
+- **La Huella:** el mapa de la Argentina por zonas, con rivales que juegan mejor cuanto más porotos tienen. La última zona son las Islas del Pingüino (Malvinas), con su jefe y el dorso Cruz del Sur de premio.
+- **Cada hoja con su dirección:** `/Reviro/online`, `/Reviro/torneos`, `/Reviro/huella`, `/Reviro/perfil`… Se pueden recargar, compartir y usar con el botón Atrás.
+- **Todo entra en la pantalla:** ninguna hoja necesita bajar; las listas largas se paginan solas según el alto del celular.
 - **Extra:** anotador con fósforos para jugar en persona, tienda, misiones, logros, tutorial y reglamento.
 - **Música:** zamba, milonga, tango, chamamé y chacarera.
 
@@ -37,12 +39,17 @@ Las cuentas y el online funcionan con **Firebase** (Authentication + Firestore),
 
 | Archivo | Para qué |
 |---|---|
-| `index.html` | La web (se genera con `tools/build.py`) |
+| `index.html` y `<hoja>/index.html` | La web y una copia chiquita por cada dirección (se generan con `tools/build.py`) |
 | `js/net.js` | Capa de red: cuentas, roles, salas, sincronización, estadísticas, admin |
 | `js/firebase-config.js` | La configuración de tu proyecto de Firebase |
 | `firestore.rules` | Reglas de seguridad de la base de datos |
-| `src/` | Código fuente del juego: motor, IA, dibujos, música e interfaz |
-| `tools/build.py` | Arma `index.html` y `dist/claude.html` a partir de `src/` |
+| `src/engine.js` | El motor del truco: mazo, envido, flor, truco y la IA |
+| `src/cat.js` | Catálogo: personajes, dorsos, paños, cartas ilustradas y paquetes |
+| `src/art.js` | Dorsos y paños dibujados a lápiz de color |
+| `src/ui.js` | Interfaz: hojas, direcciones, paginado, música y partidas |
+| `src/style.css`, `src/head.html`, `src/body.html` | Estilo y esqueleto de la página |
+| `tools/build.py` | Arma la web y `dist/claude.html` a partir de `src/` |
+| `tests/` | Pruebas en Python: motor, que ninguna hoja necesite scroll y direcciones. `python3 tests/run_all.py` |
 | `dist/claude.html` | La versión para publicar como página en claude.ai |
 
 Las fichas y las monedas no tienen valor en dinero.

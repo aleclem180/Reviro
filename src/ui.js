@@ -36,9 +36,9 @@ function cardHTML(c,cls='',style=''){const n=cn(c),s=cs(c),col=SUITCOL[s],hx=SUI
    Por eso se arma una sola vez por carta como imagen SVG y queda guardado: al moverla o rotarla, el navegador no recalcula el filtro.
    El rayado sale en diagonal porque el filtro trabaja en un espacio girado. Los números van aparte, nítidos, con la letra de la página. */
 const CARDIMG={};let CARDDEFS=null;
+function cardDefs(){if(CARDDEFS===null)CARDDEFS=['gPapel','fLapiz','fGrano'].map(id=>{const el=document.getElementById(id);return el?el.outerHTML:''}).join('')+['O','C','E','B'].map(s=>{const A=CARDART['sym'+s];return `<symbol id="p${s}" viewBox="0 0 ${A.w} ${A.h}" preserveAspectRatio="none"><image href="${A.src}" width="${A.w}" height="${A.h}"/></symbol>`}).join('');return CARDDEFS}
 function cardArt(c,fr,mid){/* mid trae los palos o la figura */if(CARDIMG[c])return CARDIMG[c];
-  if(CARDDEFS===null)CARDDEFS=['gPapel','fLapiz','fGrano'].map(id=>{const el=document.getElementById(id);return el?el.outerHTML:''}).join('')+['O','C','E','B'].map(s=>{const A=CARDART['sym'+s];return `<symbol id="p${s}" viewBox="0 0 ${A.w} ${A.h}" preserveAspectRatio="none"><image href="${A.src}" width="${A.w}" height="${A.h}"/></symbol>`}).join('');
-  const svg=`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 60 90" width="360" height="540"><defs>${CARDDEFS}</defs><rect x=".5" y=".5" width="59" height="89" rx="4.6" fill="url(#gPapel)" stroke="#b9a27a" stroke-width=".7"/><rect x=".5" y=".5" width="59" height="89" rx="4.6" fill="#fff" filter="url(#fGrano)" opacity=".28"/><g transform="rotate(32 30 45)" filter="url(#fLapiz)"><g transform="rotate(-32 30 45)">${fr}</g></g>${mid}</svg>`;
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 60 90" width="360" height="540"><defs>${cardDefs()}</defs><rect x=".5" y=".5" width="59" height="89" rx="4.6" fill="url(#gPapel)" stroke="#b9a27a" stroke-width=".7"/><rect x=".5" y=".5" width="59" height="89" rx="4.6" fill="#fff" filter="url(#fGrano)" opacity=".28"/><g transform="rotate(32 30 45)" filter="url(#fLapiz)"><g transform="rotate(-32 30 45)">${fr}</g></g>${mid}</svg>`;
   const uri='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);CARDIMG[c]=uri;rasterCard(c,uri);return uri}
 /* y después se pasa a mapa de bits, que es lo más liviano para mover en pantalla */
 /* y después se pasa a mapa de bits, que es lo más liviano para mover en pantalla.
@@ -200,39 +200,69 @@ function computeSena(g){partnerSena=null;if(mode!=='offline'||g.n!==4||Math.rand
   partnerSena={handNo:g.handNo,t:ks.map(k=>SENAS[k]).join(' · ')}}
 
 /* ---------- vistas ---------- */
-function render(){const v=$('#view');document.body.dataset.view=view;
-  if(view==='boot')v.innerHTML=bootHTML();
-  else if(view==='auth')v.innerHTML=authHTML();
-  else if(view==='login')v.innerHTML=loginHTML();
-  else if(view==='register')v.innerHTML=registerHTML();
-  else if(view==='welcome')v.innerHTML=welcomeHTML();
-  else if(view==='banned')v.innerHTML=bannedHTML();
-  else if(view==='anotador')v.innerHTML=tabsHTML()+backX()+anotHTML();
-  else if(view==='gira')v.innerHTML=tabsHTML()+giraHTML();
-  else if(view==='extra')v.innerHTML=tabsHTML()+extraHTML();
-  else if(view==='settings')v.innerHTML=tabsHTML()+settingsHTML();
-  else if(view==='rules')v.innerHTML=tabsHTML()+backX()+rulesHTML().replace('<details class="rules">','<details class="rules" open>');
-  else if(view==='tutorial')v.innerHTML=tabsHTML()+backX()+`<div class="grid">${tutorialBoxHTML()}</div>`;
-  else if(view==='menu')v.innerHTML=tabsHTML()+playHTML();
-  else if(view==='torneos')v.innerHTML=tabsHTML()+toursPageHTML();
-  else if(view==='tour')v.innerHTML=tabsHTML()+tourHTML();
-  else if(view==='tournew')v.innerHTML=tabsHTML()+tourNewHTML();
-  else if(view==='shop')v.innerHTML=tabsHTML()+backX()+shopHTML();
-  else if(view==='profile')v.innerHTML=tabsHTML()+profileHTML();
-  else if(view==='missions')v.innerHTML=tabsHTML()+backX()+missionsHTML();
-  else if(view==='ranking')v.innerHTML=tabsHTML()+backX()+rankingHTML();
-  else if(view==='room')v.innerHTML=roomHTML();
-  else if(view==='game')v.innerHTML=gameHTML();
+/* cada hoja ocupa la pantalla justa: arriba su encabezado, al medio el contenido (las listas largas se paginan solas
+   según el alto que haya) y abajo la navegación. Nada empuja para que haya que bajar. */
+const GATES=['boot','auth','login','register','welcome','banned'];
+function pageBody(){switch(view){
+  case 'boot':return bootHTML();case 'auth':return authHTML();case 'login':return loginHTML();case 'register':return registerHTML();case 'welcome':return welcomeHTML();case 'banned':return bannedHTML();
+  case 'anotador':return anotHTML();case 'gira':return giraHTML();case 'extra':return extraHTML();case 'settings':return settingsHTML();
+  case 'rules':return rulesPageHTML();case 'tutorial':return tutorialPageHTML();case 'menu':return playHTML();case 'online':return onlinePageHTML();
+  case 'torneos':return toursPageHTML();case 'tour':return tourHTML();case 'tournew':return tourNewHTML();case 'shop':return shopHTML();
+  case 'profile':return profileHTML();case 'missions':return missionsHTML();case 'ranking':return rankingHTML();case 'room':return roomHTML()}return''}
+function render(){const v=$('#view');routeSync();document.body.dataset.view=view;
+  if(view==='game')v.innerHTML=gameHTML();
+  else v.innerHTML=(GATES.includes(view)||view==='room'?'':tabsHTML())+`<div class="page pg-${view}">${pageBody()}</div>`;
   if(view==='torneos'||view==='tour')requestAnimationFrame(animatePots);
-  const dealt=view==='game'&&FX.deal;$('#overlay').innerHTML=overlayHTML();FX={};musicUpdate();
-  /* al repartir, si la mano queda fuera de la pantalla, se acomoda la vista para ver la mesa y las cartas juntas */
-  if(dealt)requestAnimationFrame(()=>{const f=document.querySelector('.felt'),hd=document.querySelector('.hand');if(!f||!hd)return;const r=hd.getBoundingClientRect();if(r.bottom>innerHeight)window.scrollTo({top:Math.max(0,f.getBoundingClientRect().top+scrollY-8),behavior:'smooth'})});
+  $('#overlay').innerHTML=overlayHTML();FX={};musicUpdate();
+  if(view!=='game'){requestAnimationFrame(fitPass);clearTimeout(FITT);FITT=setTimeout(()=>{FITPASS=0;fitPass()},350)}
   {const pl=document.querySelector('.pills');if(pl)pl.style.visibility=(view==='auth'||view==='boot'||view==='login')?'hidden':'visible'}
   if(view==='room'&&T){const ids=T.seats.filter(s=>s.id).map(s=>s.id);ensureNames(ids);fetchLooks(ids)}
   if(view==='game'&&mode==='online'&&G){const ids=G.seats.filter(s=>s.id).map(s=>s.id);ensureNames(ids);fetchLooks(ids)}
-  if(view==='menu'&&lobby.length)ensureNames(lobby.map(t=>t.host))}
+  if(view==='online'&&lobby.length)ensureNames(lobby.map(t=>t.host))}
+
+/* ---------- listas que se paginan solas: se mide cuántas entran en el lugar que queda ---------- */
+const FITN={},FITP={};let FITPASS=0,FITT=null;
+function fitList(key,arr,fn,cls='',empty=''){const n=arr.length;if(!n)return empty;const per=Math.max(1,Math.min(n,FITN[key]||4));const pages=Math.ceil(n/per);const p=Math.min(FITP[key]||0,pages-1);FITP[key]=p;
+  const tg=/\b(flist|rvl)\b/.test(cls)?'ul':/\blb\b/.test(cls)?'ol':'div';
+  return `<div class="fitw"><${tg} class="fit ${cls}" data-fit="${key}" data-n="${n}">${arr.slice(p*per,p*per+per).map(fn).join('')}</${tg}>${pages>1?`<div class="pager" role="group" aria-label="Páginas"><button type="button" class="pgb" data-a="pg" data-k="${key}" data-d="-1" ${p?'':'disabled'} aria-label="Página anterior">‹</button><span>${p+1} de ${pages}</span><button type="button" class="pgb" data-a="pg" data-k="${key}" data-d="1" ${p<pages-1?'':'disabled'} aria-label="Página siguiente">›</button></div>`:''}</div>`}
+function fitPass(){let ch=false;const nw={};document.querySelectorAll('[data-fit]').forEach(box=>{const k=box.dataset.fit,n=+box.dataset.n,kids=[...box.children];if(!kids.length)return;
+    const H=box.clientHeight;if(H<8)return;const cs=getComputedStyle(box),rg=parseFloat(cs.rowGap)||0;
+    let cols=1;if(cs.display.includes('grid'))cols=Math.max(1,cs.gridTemplateColumns.split(' ').filter(Boolean).length);
+    /* filas que ya se ven enteras */
+    const rows=[];kids.forEach(x=>{const t=x.offsetTop,b=t+x.offsetHeight;const r=rows.find(r=>Math.abs(r.t-t)<2);if(r)r.b=Math.max(r.b,b);else rows.push({t,b})});
+    const fitRows=rows.filter(r=>r.b<=H+1).length,cur=kids.length;let per;
+    if(fitRows<rows.length)per=Math.max(1,fitRows*cols);
+    else{const last=rows[rows.length-1].b,maxH=Math.max(...rows.map(r=>r.b-r.t));let more=Math.max(0,Math.floor((H-last)/(maxH+rg)));
+      const pg=box.parentElement.querySelector('.pager');if(pg&&cur+more*cols<n){/* sin el paginador, ¿entran todos? */const extra=pg.offsetHeight+(parseFloat(getComputedStyle(box.parentElement).rowGap)||0);if(cur+Math.floor((H+extra-last)/(maxH+rg))*cols>=n)more=Math.ceil((n-cur)/cols)}
+      per=cur<(FITN[k]||4)&&cur<n?(FITN[k]||4):cur+more*cols}
+    per=Math.max(1,Math.min(n,per));if((FITN[k]||Math.min(n,4))!==per){nw[k]=per;ch=true}});
+  if(ch&&FITPASS++<6){Object.assign(FITN,nw);render()}else if(!ch)FITPASS=0}
+try{document.fonts&&document.fonts.ready.then(()=>{FITPASS=0;if(view!=='game')fitPass()})}catch(e){}
+let RSZ=null;window.addEventListener('resize',()=>{clearTimeout(RSZ);RSZ=setTimeout(()=>{if(view!=='game'){FITPASS=0;render()}},150)});
+
+/* pestañas dentro de una hoja */
+const PT={};
+function ptabs(k,opts,def){const cur=opts.some(o=>o[0]===PT[k])?PT[k]:def;PT[k]=cur;
+  return [cur,`<div class="subtabs ptabs" role="tablist">${opts.map(([v,l])=>`<button type="button" role="tab" data-a="ptab" data-k="${k}" data-v="${v}" aria-selected="${cur===v}" aria-pressed="${cur===v}">${l}</button>`).join('')}</div>`]}
+/* encabezado de hoja: volver, título y lo que va a la derecha */
+const BACKL={menu:'Jugar',extra:'Extra',torneos:'Torneos',profile:'Perfil'};
+function phd(title,right='',back=null){return `<header class="phd">${back?`<button type="button" class="pback" data-a="nav" data-v="${back}" aria-label="Volver a ${BACKL[back]||back}">‹</button>`:''}<h2>${title}</h2>${right?`<div class="phr">${right}</div>`:''}</header>`}
+
+/* ---------- direcciones propias para cada hoja en la web: /Reviro/torneos, /Reviro/online… ---------- */
+const ROUTES={menu:'',online:'online',torneos:'torneos',tour:'torneo',tournew:'nuevo-torneo',gira:'huella',extra:'extra',profile:'perfil',settings:'ajustes',shop:'tienda',missions:'misiones',ranking:'ranking',rules:'reglamento',tutorial:'tutorial',anotador:'anotador'};
+const ROUTEV=Object.fromEntries(Object.entries(ROUTES).map(([v,r])=>[r,v]));
+const ROUTING=!!window.REVIRO_WEB&&/^https?:$/.test(location.protocol);
+const BASEP=(()=>{try{const b=document.querySelector('base');return b?new URL(b.href).pathname:location.pathname.replace(/[^/]*$/,'')}catch(e){return '/'}})();
+let PENDROUTE=null,PENDTOUR=null,ROUTED=null,FROMPOP=false;
+if(ROUTING){const rest=location.pathname.slice(BASEP.length).replace(/\/+$/,'').split('/').pop()||'';const v=ROUTEV[rest];
+  if(v&&v!=='menu')PENDROUTE=v;if(v==='tour'){const id=new URLSearchParams(location.search).get('id');if(id&&/^[A-Z0-9]{8}$/i.test(id))PENDTOUR=id.toUpperCase();PENDROUTE=PENDTOUR?null:'torneos'}}
+function routeSync(){if(view==='menu'&&PENDROUTE&&!GATES.includes(view)){const r=PENDROUTE;PENDROUTE=null;if(!['tour','tournew'].includes(r)||FB)view=r}
+  if(!ROUTING||!(view in ROUTES))return;const r=ROUTES[view];const url=BASEP+r+(view==='tour'&&TV?'?id='+TV.tid:'');if(ROUTED===url)return;
+  try{if(FROMPOP||ROUTED===null)history.replaceState({v:view},'',url+location.hash);else history.pushState({v:view},'',url)}catch(e){}ROUTED=url;FROMPOP=false}
+window.addEventListener('popstate',e=>{if(!ROUTING)return;const v=(e.state&&e.state.v)||ROUTEV[location.pathname.slice(BASEP.length).replace(/\/+$/,'')]||'menu';
+  if(view==='game'||view==='room'||GATES.includes(view))return;FROMPOP=true;ROUTED=null;if(v==='tour'){const id=new URLSearchParams(location.search).get('id');if(id&&FB){openTour(id);return}}view=ROUTES[v]!==undefined?v:'menu';render()});
 const TABICO={"menu": "<path d=\"M5 6.5l6.5-2.2 3.2 12.4-6.5 2.2z\"/><path d=\"M12.6 4.6l6.6 1.6-2.9 12.6\"/>", "torneos": "<path d=\"M7 4h10v4a5 5 0 0 1-10 0z\"/><path d=\"M7 6H4.5a2.5 2.5 0 0 0 2.6 3.4M17 6h2.5a2.5 2.5 0 0 1-2.6 3.4\"/><path d=\"M12 13v4M8.5 20h7M10 17h4\"/>", "gira": "<path d=\"M9 4.5 4 6.5v13l5-2 6 2 5-2v-13l-5 2z\"/><path d=\"M9 4.5v13M15 6.5v13\"/>", "extra": "<path d=\"M7.5 10.5h9c0 5-1.8 9-4.5 9s-4.5-4-4.5-9z\"/><path d=\"M9 10.5c.4-2 1.5-3 3-3s2.6 1 3 3\"/><path d=\"M13.5 7.6 16.8 2.8\"/>", "profile": "<circle cx=\"12\" cy=\"8.5\" r=\"3.6\"/><path d=\"M5 20c.8-3.8 3.6-5.6 7-5.6s6.2 1.8 7 5.6\"/>"};
-function tabsHTML(){const t=[['menu','Jugar'],['torneos','Torneos'],['gira','La Huella'],['extra','Extra'],['profile','Perfil']];const cur=EXTRA_SUB.includes(view)?'extra':(view==='tour'||view==='tournew')?'torneos':view;
+function tabsHTML(){const t=[['menu','Jugar'],['gira','La Huella'],['extra','Extra'],['profile','Perfil']];const cur=EXTRA_SUB.includes(view)?'extra':['tour','tournew','torneos','online'].includes(view)?'menu':view;
   return `<nav class="tabs" aria-label="Secciones">${t.map(([v,l])=>`<button type="button" data-a="nav" data-v="${v}" ${(cur===v||(v==='profile'&&cur==='settings'))?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${TABICO[v]}</svg><span>${l}</span></button>`).join('')}</nav>`}
 function seg(key,opts,cur,dis){return `<div class="seg" role="group">${opts.map(([v,l])=>`<button type="button" data-set="${key}" data-v="${v}" aria-pressed="${String(cur)===String(v)}" ${dis&&dis(v)?'disabled':''}>${l}</button>`).join('')}</div>`}
 const STAKES=[0,50,100,250,500,1000];
@@ -244,66 +274,62 @@ const stakeTable=g=>!!(g&&mode==='online'&&g.stake>0&&humansIn(g)>=2&&!(T&&T.tou
 const VOLUTA=`<svg class="vol" viewBox="0 0 64 40" aria-hidden="true"><path d="M62 31C46 31 33 26 30 16C28 9 33 4 39 5.6C44 7 44.6 13.6 40 15C37 15.8 35 13.4 36.4 11.4" fill="none" stroke="#74acdf" stroke-width="2.6" stroke-linecap="round"/><path d="M62 31C46 31 33 26 30 16" fill="none" stroke="#fff" stroke-width=".9" stroke-linecap="round" opacity=".7"/><path d="M33 23Q20 31 4 27Q15 19 33 23Z" fill="#74acdf"/><path d="M31 23.6Q19 27.4 8 26.4" fill="none" stroke="#fff" stroke-width=".8" opacity=".75"/><path d="M41 28Q34 38 22 38.4Q28 30 41 28Z" fill="#3d7fc4"/><circle cx="48" cy="24" r="1.9" fill="#e9b830"/><circle cx="53.4" cy="26.6" r="1.3" fill="#e9b830"/><circle cx="26" cy="12" r="1.5" fill="#c8361f"/></svg>`;
 const fileteHTML=(cls='')=>`<h1 class="filete ${cls}">${VOLUTA}<span>Reviro</span>${VOLUTA.replace('class="vol"','class="vol r"')}</h1>`;
 let SOLOOPTS=false,ONOPTS=false;
-function playHTML(){const on=SET.on;if(!ONSTAKES.includes(+on.stake))on.stake=0;const remembered=(()=>{try{return localStorage.getItem('reviro.table')}catch(e){return null}})();
-  const onlineOk=!!(db&&uid);const open=lobby.filter(t=>!t.tour&&Date.now()-(t.created||0)<3*3600e3);const me=AVM[WAL.eq.av]||AVM.gaucho;
-  const dz={facil:'fácil',medio:'medio',dificil:'difícil'}[SET.diff];
-  const sum=`${SET.n==4?'2 contra 2':'Mano a mano'} contra la máquina, nivel ${dz}, a ${SET.target} ${SET.flor===false||SET.flor==='false'?'sin flor':'con flor'}${+SET.stake?`, apostando ${fmt(SET.stake)} fichas`:''}`;
-  const openT=(TOURS||[]).filter(t=>t.status==='open'&&!tClosed(t)).length;
+function playHTML(){const remembered=(()=>{try{return localStorage.getItem('reviro.table')}catch(e){return null}})();
+  const onlineOk=!!(db&&uid);const dz={facil:'fácil',medio:'medio',dificil:'difícil'}[SET.diff];
+  const sum=`${SET.n==4?'2 contra 2':'Mano a mano'} · ${dz} · a ${SET.target} · ${SET.flor===false||SET.flor==='false'?'sin flor':'con flor'}${+SET.stake?` · ${fmt(SET.stake)} fichas`:''}`;
+  const openT=(TOURS||[]).filter(t=>t.status==='open'&&!tClosed(t)).length,nOpen=lobby.filter(t=>!t.tour&&Date.now()-(t.created||0)<3*3600e3).length;
   const st=(FB&&MYUSER&&MYUSER.stats)||null,cz=[...ZONES].reverse().find(zoneOpen)||ZONES[0];
-  const tile=(attrs,art,t,d)=>`<button type="button" class="mode" ${attrs}><img src="${CARDART[art].src}" alt="" aria-hidden="true"><span><b>${t}</b><small>${d}</small></span></button>`;
   return `<section class="phead"><button type="button" class="pav" data-a="nav" data-v="shop" aria-label="Cambiar personaje">${avatarSVG(myAv(),54)}</button><div><b>${esc(myDisp())}</b><small>${esc(titleOf(WAL.copas||0))}${st&&st.played?` · ${st.played} partidas online · ${Math.round(st.winRate*100)}% ganadas`:''}</small></div><button type="button" class="btn sm ghost" data-a="nav" data-v="profile">Perfil</button></section>
+  ${remembered&&onlineOk?`<button type="button" class="rowb hot slim" data-a="rejoin" data-code="${esc(remembered)}"><b>Volver a la mesa ${esc(remembered)}</b><small>Tu partida sigue ahí</small></button>`:''}
   <section class="deal">${fileteHTML()}
     <p class="lema">Truco de campo, como en la pulpería.</p>
     <div class="fan" aria-hidden="true">${['7O','1E','1B'].map(c=>cardHTML(c)).join('')}</div>
     <button class="btn prim xl" data-a="solo" ${SET.stake>WAL.chips?'disabled':''}>Repartir</button>
-    <button type="button" class="optline" data-a="soloopts" aria-expanded="${SOLOOPTS}">${esc(sum)}. <u>${SOLOOPTS?'Listo':'Cambiar'}</u></button>
-    ${SOLOOPTS?`<div class="opts">
-      <div class="field"><span>Dificultad</span>${seg('diff',[['facil','Fácil'],['medio','Medio'],['dificil','Difícil']],SET.diff)}</div>
-      <div class="field"><span>Jugadores</span>${seg('n',[[2,'1 contra 1'],[4,'2 contra 2']],SET.n)}</div>
-      <div class="field"><span>Partida a</span>${seg('target',[[15,'15 puntos'],[30,'30 puntos']],SET.target)}</div>
-      <div class="field"><span>Flor</span>${seg('flor',[['true','Con flor'],['false','Sin flor']],SET.flor)}</div>
-      <div class="field"><span>Apuesta en fichas</span>${seg('stake',STAKES.map(v=>[v,v?fmt(v):'Sin apuesta']),SET.stake,v=>+v>WAL.chips)}</div>
-      <p class="note">Ganando sumás ${({facil:20,medio:40,dificil:80})[SET.diff]} monedas para la tienda. Contra la máquina es práctica: no cuenta en tu historial.</p></div>`:''}
+    <button type="button" class="optline" data-a="soloopts">${esc(sum)} · <u>Cambiar</u></button>
   </section>
   <div class="modes">
-    ${tile('data-a="nav" data-v="torneos"','12O','Torneos',FB?(openT?(openT===1?'Hay uno abierto':`Hay ${openT} abiertos`):'Mirá los que vienen'):'Con tu cuenta en la web')}
-    ${tile('data-a="nav" data-v="gira"','11E','La Huella',`${esc(cz.short||cz.name)} · ${fmt(WAL.copas||0)} porotos`)}
-    ${tile(onlineOk?'data-a="quick"':'data-a="nav" data-v="profile"','10C','Jugar online',onlineOk?'Te sienta en una mesa con gente':'Con tu cuenta en la web')}
-    ${tile('data-a="nav" data-v="anotador"','12B','Anotador','Para jugar en persona, con fósforos')}
+    ${modeTile('data-a="nav" data-v="torneos"','12O','Torneos',FB?(openT?(openT===1?'Hay uno abierto':`Hay ${openT} abiertos`):'Mirá los que vienen'):'Con tu cuenta en la web')}
+    ${modeTile('data-a="nav" data-v="gira"','11E','La Huella',`${esc(cz.short||cz.name)} · ${fmt(WAL.copas||0)} porotos`)}
+    ${modeTile('data-a="nav" data-v="online"','10C','Jugar online',onlineOk?(nOpen?`${nOpen} mesa${nOpen>1?'s':''} esperando gente`:'Rápido, con código o armá tu mesa'):'Con tu cuenta en la web')}
+    ${modeTile('data-a="nav" data-v="anotador"','12B','Anotador','Para jugar en persona, con fósforos')}
   </div>
-  <section class="rows" aria-label="Con otras personas"><h2>Con otras personas</h2>
-    ${onlineOk?`
+  <a class="waline" href="${waHref(waInviteText())}" target="_blank" rel="noopener">${WAICO} Invitar amigos por WhatsApp</a>`}
+const modeTile=(attrs,art,t,d)=>`<button type="button" class="mode" ${attrs}><img src="${CARDART[art].src}" alt="" aria-hidden="true"><span><b>${t}</b><small>${d}</small></span></button>`;
+function soloOptsHTML(){return `<div class="over" data-a="close"><div class="panel opanel" data-stop><h2>Contra la máquina</h2>
+    <div class="field"><span>Dificultad</span>${seg('diff',[['facil','Fácil'],['medio','Medio'],['dificil','Difícil']],SET.diff)}</div>
+    <div class="field"><span>Jugadores</span>${seg('n',[[2,'1 contra 1'],[4,'2 contra 2']],SET.n)}</div>
+    <div class="field"><span>Partida a</span>${seg('target',[[15,'15 puntos'],[30,'30 puntos']],SET.target)}</div>
+    <div class="field"><span>Flor</span>${seg('flor',[['true','Con flor'],['false','Sin flor']],SET.flor)}</div>
+    <div class="field"><span>Apuesta en fichas</span>${seg('stake',STAKES.map(v=>[v,v?fmt(v):'Sin apuesta']),SET.stake,v=>+v>WAL.chips)}</div>
+    <p class="note">Ganando sumás ${({facil:20,medio:40,dificil:80})[SET.diff]} monedas para la tienda. Contra la máquina es práctica: no cuenta en tu historial.</p>
+    <div class="btns"><button class="btn prim" data-a="solo" ${SET.stake>WAL.chips?'disabled':''}>Repartir</button><button class="btn ghost" data-a="close">Listo</button></div></div></div>`}
+/* jugar online: su propia hoja (/online) */
+function onlinePageHTML(){const on=SET.on;if(!ONSTAKES.includes(+on.stake))on.stake=0;const remembered=(()=>{try{return localStorage.getItem('reviro.table')}catch(e){return null}})();
+  const onlineOk=!!(db&&uid);const open=lobby.filter(t=>!t.tour&&Date.now()-(t.created||0)<3*3600e3);const wa=`<a class="rowb wa" href="${waHref(waInviteText())}" target="_blank" rel="noopener"><b>${WAICO} Invitar por WhatsApp</b><small>Mandales el link para jugar juntos</small></a>`;
+  if(!onlineOk)return phd('Jugar online','','menu')+`<div class="ocol">${wa}<section class="box"><p class="note" style="margin:0">${LOCAL?'Las mesas online, los amigos y el ranking funcionan con tu cuenta en la web.':'El juego online necesita que abras Reviro con tu cuenta de claude.ai. Mientras tanto podés jugar contra la máquina.'}</p></section></div>`;
+  return phd('Jugar online','','menu')+`<div class="olay"><div class="ocol">
     ${remembered?`<button type="button" class="rowb hot" data-a="rejoin" data-code="${esc(remembered)}"><b>Volver a la mesa ${esc(remembered)}</b><small>Tu partida sigue ahí</small></button>`:''}
-    <button type="button" class="rowb" data-a="quick"><b>Jugar rápido</b><small>Te sienta en una mesa abierta o te arma una nueva</small></button>
-    <button type="button" class="rowb" data-a="onopts" aria-expanded="${ONOPTS}"><b>Armar una mesa</b><small>${on.n==4?'Cuatro jugadores':'Dos jugadores'}, a ${on.target}${on.stake?', '+fmt(on.stake)+' fichas cada uno':', amistosa'}. Pasale el código a tus amigos</small></button>
-    ${ONOPTS?`<div class="opts">
-      <div class="field"><span>Jugadores</span>${seg('on.n',[[2,'2 jugadores'],[4,'4 jugadores']],on.n)}</div>
-      <div class="field"><span>Partida a</span>${seg('on.target',[[15,'15'],[30,'30']],on.target)}</div>
-      <div class="field"><span>Flor</span>${seg('on.flor',[['true','Con flor'],['false','Sin flor']],on.flor)}</div>
-      <div class="field"><span>Entrada por jugador</span>${seg('on.stake',ONSTAKES.map(v=>[v,v?fmt(v):'Amistosa']),on.stake,v=>+v>WAL.chips)}</div>${+on.stake?`<p class="note" style="margin:0">Premio: <b>${fmt(tablePrize(+on.stake,+on.n))}</b> fichas ${+on.n===4?'para cada ganador':'para el ganador'}.</p>`:''}
-      <button class="btn prim" data-a="create" ${on.stake>WAL.chips?'disabled':''}>Crear la mesa</button></div>`:''}
-    <a class="rowb wa" href="${waHref(waInviteText())}" target="_blank" rel="noopener"><b>${WAICO} Invitar por WhatsApp</b><small>Mandales el link a tus amigos para jugar juntos</small></a>
+    <button type="button" class="rowb prim" data-a="quick"><b>Jugar rápido</b><small>Te sienta en una mesa abierta o te arma una nueva</small></button>
+    <button type="button" class="rowb" data-a="onopts"><b>Armar una mesa</b><small>${on.n==4?'Cuatro jugadores':'Dos jugadores'}, a ${on.target}${+on.stake?', entrada '+fmt(on.stake)+' fichas':', amistosa'}. Pasale el código a tus amigos</small></button>
     <form class="rowb rowf" data-form="join"><label for="joincode"><b>Entrar con código</b><small>Las cuatro letras que te pasaron</small></label><input type="text" id="joincode" maxlength="4" placeholder="ABCD" autocomplete="off"><button class="btn" type="submit">Entrar</button></form>
-    ${FB?`<button type="button" class="rowb" data-a="nav" data-v="torneos"><b>Torneos</b><small>${openT?`${openT===1?'Hay uno abierto':'Hay '+openT+' abiertos'}: anotate y jugá por el premio`:'Mirá los que vienen y los que ya se jugaron'}</small></button>`:''}
-    ${open.length?`<h3>Mesas esperando gente</h3><div class="tables">${open.map(t=>{const f=t.seats.filter(s=>s.id||s.bot).length;return `<div class="trow"><div><b>${esc(t.code)}</b> <span>${t.n} jugadores, a ${t.target}${t.flor===false?' sin flor':''}, ${t.stake?`entrada ${fmt(t.stake)}, premio ${fmt(tablePrize(t.stake,t.n))}`:'amistosa'}. Hay ${f} de ${t.n}</span></div><button class="btn" data-a="join" data-code="${esc(t.code)}" ${t.stake>WAL.chips?'disabled':''}>Sentarme</button></div>`}).join('')}</div>`:''}
-    ${FB?'':'<p class="note">Para que tus amigos puedan sentarse, compartí esta página con ellos desde el botón Compartir, con permiso para editar.</p>'}`
-    :LOCAL?`<a class="rowb wa" href="${waHref(waInviteText())}" target="_blank" rel="noopener"><b>${WAICO} Invitar por WhatsApp</b><small>Mandales el link de Reviro a tus amigos</small></a><p class="note">Las mesas online, los amigos y el ranking funcionan con tu cuenta en la web.</p>`:`<p class="note">El juego online necesita que abras Reviro con tu cuenta de claude.ai. Mientras tanto podés jugar contra la máquina.</p>`}
-  </section>
-  `}
-function rulesHTML(){const order=['1E','1B','7E','7O','3E','2E','1C','12E','11E','10E','7C','6E','5E','4E'];
-  return `<details class="rules"><summary>Reglamento</summary><ul>
-  <li>Mazo de 40 cartas españolas, sin ochos ni nueves. Tres cartas por jugador, gana la mano quien gana dos bazas.</li>
-  <li>Orden de las cartas, de mayor a menor:<div class="rank">${order.map(c=>cardHTML(c)).join('')}</div></li>
-  <li><b>Pardas:</b> si se empata la primera, define la segunda; si se empata la segunda o la tercera, gana quien ganó la primera; si se empatan todas, gana el mano.</li>
-  <li><b>Envido</b> (2), <b>real envido</b> (3) y <b>falta envido</b>. Se canta solo en la primera baza, antes de tirar tu primera carta. El envido va primero: se puede cantar como respuesta a un truco todavía no querido. No querido vale 1, o lo acumulado hasta el canto anterior.</li>
-  <li>El tanto suma 20 más las dos cartas del mismo palo; las figuras valen 0. Si empatan, gana el mano.</li>
-  <li><b>Falta envido:</b> en las malas (a 30, cuando nadie llegó a 15) gana el partido; en las buenas da lo que le falta al que va ganando.</li>
-  <li><b>Flor</b> (tres cartas del mismo palo) vale 3 y anula el envido. Si el otro equipo también tiene: con flor me achico (4 para el primero), contraflor (6) o contraflor al resto (la falta). Con flor activada, quien la tiene debe cantarla antes de tirar.</li>
-  <li><b>Truco</b> (2), <b>retruco</b> (3) y <b>vale cuatro</b> (4). Solo sube el equipo que tiene el quiero. No querido da lo que valía antes del canto.</li>
-  <li><b>Irse al mazo</b> regala la mano; en la primera baza, sin envido cantado, el rival suma un punto más.</li>
-  <li><b>Señas:</b> en 2 contra 2 tu compañero puede avisarte qué tiene con un gesto, y online vos también le podés hacer señas. Solo las ve tu equipo.</li>
-  <li><b>Fichas</b> para apostar y <b>monedas</b> para la tienda son cosas distintas. Las fichas son de práctica y no tienen valor en dinero.</li></ul></details>`}
-
+    ${wa}${FB?'':'<p class="note">Para que tus amigos puedan sentarse, compartí esta página con ellos desde el botón Compartir, con permiso para editar.</p>'}</div>
+    <section class="box grow"><h3>Mesas esperando gente</h3>${fitList('lobby',open,t=>{const f=t.seats.filter(s=>s.id||s.bot).length;return `<div class="trow"><div><b>${esc(t.code)}</b> <span>${t.n} jugadores, a ${t.target}${t.flor===false?' sin flor':''}, ${t.stake?`entrada ${fmt(t.stake)}, premio ${fmt(tablePrize(t.stake,t.n))}`:'amistosa'}. Hay ${f} de ${t.n}</span></div><button class="btn" data-a="join" data-code="${esc(t.code)}" ${t.stake>WAL.chips?'disabled':''}>Sentarme</button></div>`},'tables','<p class="note" style="margin:0">Ahora no hay mesas esperando. Armá una o entrá con Jugar rápido.</p>')}</section></div>`}
+function onOptsHTML(){const on=SET.on;return `<div class="over" data-a="close"><div class="panel opanel" data-stop><h2>Armar una mesa</h2>
+    <div class="field"><span>Jugadores</span>${seg('on.n',[[2,'2 jugadores'],[4,'4 jugadores']],on.n)}</div>
+    <div class="field"><span>Partida a</span>${seg('on.target',[[15,'15'],[30,'30']],on.target)}</div>
+    <div class="field"><span>Flor</span>${seg('on.flor',[['true','Con flor'],['false','Sin flor']],on.flor)}</div>
+    <div class="field"><span>Entrada por jugador</span>${seg('on.stake',ONSTAKES.map(v=>[v,v?fmt(v):'Amistosa']),on.stake,v=>+v>WAL.chips)}</div>${+on.stake?`<p class="note" style="margin:0">Premio: <b>${fmt(tablePrize(+on.stake,+on.n))}</b> fichas ${+on.n===4?'para cada ganador':'para el ganador'}.</p>`:''}
+    <div class="btns"><button class="btn prim" data-a="create" ${on.stake>WAL.chips?'disabled':''}>Crear la mesa</button><button class="btn ghost" data-a="close">Cancelar</button></div></div></div>`}
+const RULES_ORDER=['1E','1B','7E','7O','3E','2E','1C','12E','11E','10E','7C','6E','5E','4E'];
+const RULES={cartas:()=>`<p>Mazo de 40 cartas españolas, sin ochos ni nueves. Tres cartas por jugador: gana la mano quien gana dos bazas.</p><p><b>Orden de las cartas</b>, de mayor a menor:</p><div class="rank">${RULES_ORDER.map(c=>cardHTML(c)).join('')}</div><p><b>Pardas:</b> si se empata la primera, define la segunda; si se empata la segunda o la tercera, gana quien ganó la primera; si se empatan todas, gana el mano.</p>`,
+  envido:()=>`<p><b>Envido</b> (2), <b>real envido</b> (3) y <b>falta envido</b>. Se canta solo en la primera baza, antes de tirar tu primera carta. El envido va primero: se puede cantar como respuesta a un truco todavía no querido.</p><p>No querido vale 1, o lo acumulado hasta el canto anterior.</p><p><b>El tanto</b> suma 20 más las dos cartas del mismo palo; las figuras valen 0. Si empatan, gana el mano.</p><p><b>Falta envido:</b> en las malas (a 30, cuando nadie llegó a 15) gana el partido; en las buenas da lo que le falta al que va ganando.</p>`,
+  flor:()=>`<p><b>Flor</b> (tres cartas del mismo palo) vale 3 y anula el envido.</p><p>Si el otro equipo también tiene: <b>con flor me achico</b> (4 para el primero), <b>contraflor</b> (6) o <b>contraflor al resto</b> (la falta).</p><p>Con flor activada, quien la tiene debe cantarla antes de tirar.</p>`,
+  truco:()=>`<p><b>Truco</b> (2), <b>retruco</b> (3) y <b>vale cuatro</b> (4). Solo sube el equipo que tiene el quiero. No querido da lo que valía antes del canto.</p><p><b>Irse al mazo</b> regala la mano; en la primera baza, sin envido cantado, el rival suma un punto más.</p>`,
+  mas:()=>`<p><b>Señas:</b> en 2 contra 2 tu compañero puede avisarte qué tiene con un gesto, y online vos también le podés hacer señas. Solo las ve tu equipo.</p><p><b>Fichas</b> para apostar y <b>monedas</b> para la tienda son cosas distintas. Las fichas son de práctica y no tienen valor en dinero.</p>`};
+function rulesHTML(){return `<details class="rules"><summary>Reglamento</summary>${Object.values(RULES).map(f=>f()).join('')}</details>`}
+function rulesPageHTML(){const [tab,tabs]=ptabs('rules',[['cartas','Cartas'],['envido','Envido'],['flor','Flor'],['truco','Truco'],['mas','Más']],'cartas');
+  return phd('Reglamento','','extra')+tabs+`<section class="box rbody">${RULES[tab]()}</section>`}
+function tutorialPageHTML(){return phd('Tutorial','','extra')+tutorialBoxHTML()}
 /* ---------- tienda ---------- */
 function buyBtn(type,id,price,name){const own=owns(type,id,price),on=WAL.eq[type]===id;const it=itemOf(type,id);
   if(it&&it.boss&&!own)return `<button class="btn" disabled>Ganale al jefe de ${esc(ZM[it.boss].name)}</button>`;
@@ -322,42 +348,38 @@ function hinchaItemHTML(a){const hasH=owns('av','hincha',a.price);const sel=KITM
     <p class="kitname"><b>${esc(k.name)}</b>. ${esc(k.bio)}</p>
     ${!hasH?buyBtn('av','hincha',a.price,a.name):using?'<button class="btn" disabled>Usando</button>':owns('kit',sel,k.price)?`<button class="btn ink" data-a="equip" data-t="kit" data-id="${sel}">Usar esta camiseta</button>`:buyBtn('kit',sel,k.price,k.name)}</div>`}
 const kitSwatch=k=>({v:`background:repeating-linear-gradient(90deg,${k.c1} 0 25%,${k.c2} 25% 50%)`,h:`background:linear-gradient(${k.c1} 0 38%,${k.c2} 38% 62%,${k.c1} 62%)`,d:`background:linear-gradient(135deg,${k.c1} 0 38%,${k.c2} 38% 62%,${k.c1} 62%)`,s:`background:${k.c1};box-shadow:inset 0 3px 0 ${k.c2}`,p:`background:linear-gradient(90deg,${k.c1} 50%,${k.c2} 50%)`,w:`background:linear-gradient(135deg,${k.c1} 40%,transparent 40%),linear-gradient(225deg,${k.c1} 40%,${k.c2} 40%)`,r:`background:repeating-linear-gradient(0deg,${k.c1} 0 20%,${k.c2} 20% 40%)`})[k.pat]||`background:${k.c1}`;
+function shopItem(type,x,prev){return `<div class="item ${WAL.eq[type]===x.id?'on':''}"><div class="prev">${prev}</div><b>${esc(x.name)}</b><p>${esc(x.bio)}</p>${buyBtn(type,x.id,x.price,x.name)}</div>`}
 function shopHTML(){const sub=[['av','Personajes'],['dorso','Dorsos'],['pano','Paños'],['coins','Monedas']];if(shopTab==='kit')shopTab='av';
   let body='';
-  if(shopTab==='av')body=`<div class="items">${AVS.map(a=>a.id==='hincha'?hinchaItemHTML(a):`<div class="item ${WAL.eq.av===a.id?'on':''}"><div class="prev" style="height:124px">${avatarSVG(a.id,120,true)}</div><b>${esc(a.name)}</b><p>${esc(a.bio)}</p>${buyBtn('av',a.id,a.price,a.name)}</div>`).join('')}</div>`;
-  if(shopTab==='dorso')body=`<div class="items">${DORSOS.map(d=>`<div class="item ${WAL.eq.dorso===d.id?'on':''}"><div class="prev"><div class="bigback" style="background:${d.bg}"></div></div><b>${esc(d.name)}</b><p>${esc(d.bio)}</p>${buyBtn('dorso',d.id,d.price,d.name)}</div>`).join('')}</div>`;
-  if(shopTab==='pano')body=`<div class="items">${PANOS.map(p=>`<div class="item ${WAL.eq.pano===p.id?'on':''}"><div class="prev"><div class="swatch" style="background:${p.bg};border-color:${p.edge}">${cardHTML('1E')}${cardHTML('7O')}</div></div><b>${esc(p.name)}</b><p>${esc(p.bio)}</p>${buyBtn('pano',p.id,p.price,p.name)}</div>`).join('')}</div>`;
+  if(shopTab==='av')body=fitList('shop-av',AVS,a=>{if(a.id!=='hincha')return shopItem('av',a,avatarSVG(a.id,96,true));const has=owns('av','hincha',a.price);
+      return `<div class="item ${WAL.eq.av==='hincha'?'on':''}"><div class="prev">${avatarSVG(kitAv(KITM[WAL.eq.kit]?WAL.eq.kit:'arg'),96,true)}</div><b>${esc(a.name)}</b><p>${KITS.length} camisetas para elegir.</p>${has?`<button class="btn ink" data-a="ov" data-v="kits">Camisetas</button>`:buyBtn('av','hincha',a.price,a.name)}</div>`},'items');
+  if(shopTab==='dorso')body=fitList('shop-dorso',DORSOS,d=>shopItem('dorso',d,`<div class="bigback" style="background:${backBg(d.id)}"></div>`),'items');
+  if(shopTab==='pano')body=fitList('shop-pano',PANOS,p=>shopItem('pano',p,`<div class="swatch" style="background:${panoBg(p.id)};border-color:${p.edge}">${cardHTML('1E')}${cardHTML('7O')}</div>`),'items');
+  const earn='Ganás monedas jugando: 20, 40 u 80 por partida ganada según la dificultad, 60 por partida online ganada, 5 por jugar aunque pierdas, 30 cada día y las misiones.';
   if(shopTab==='coins'&&FB)body=mpShopHTML();
-  else if(shopTab==='coins'&&!PREMIUM)body=premLock()+`<p class="note" style="margin-top:12px">Ganás monedas jugando: 20, 40 u 80 por partida ganada según la dificultad, 60 por partida online ganada, 5 por jugar aunque pierdas, 30 de premio cada día y las misiones.</p>`;
-  else if(shopTab==='coins')body=`<div class="demo"><b>Modo prueba.</b> Acá no se cobra nada: los paquetes se acreditan gratis para que veas cómo funciona la tienda. El cobro real se conecta cuando Reviro tenga su propia app con medio de pago.</div>
-    <div class="items">${PACKS.map((p,i)=>`<div class="item pack"><div class="prev">${coinI.replace('class="coin"','class="coin" style="width:26px;height:26px"')}${fmt(p.coins)}</div><b>${fmt(p.coins)} monedas</b><p>${p.tag?`<span class="tag">${p.tag}</span><br>`:''}<span class="ars">$ ${fmt(p.ars)}</span></p>
-      ${pendingBuy==='pack:'+i?`<button class="btn prim" data-a="pack" data-i="${i}">Confirmar prueba</button>`:`<button class="btn brass" data-a="prepack" data-i="${i}">Simular compra</button>`}</div>`).join('')}</div>
-    <p class="note" style="margin-top:12px">También ganás monedas jugando: 20, 40 u 80 por partida ganada según la dificultad, 60 por partida online ganada, 5 por jugar aunque pierdas y 30 de premio cada día.</p>`;
-  return `<div class="shophead"><h2>Tienda</h2><span class="pill">${coinI}${fmt(WAL.coins)} monedas</span></div>
-    <div class="subtabs" role="group">${sub.map(([k,l])=>`<button type="button" data-a="shoptab" data-v="${k}" aria-pressed="${shopTab===k}">${l}</button>`).join('')}</div>${body}`}
-
+  else if(shopTab==='coins'&&!PREMIUM)body=premLock()+`<p class="note">${earn}</p>`;
+  else if(shopTab==='coins')body=`<div class="demo"><b>Modo prueba.</b> Acá no se cobra nada: los paquetes se acreditan gratis para que veas cómo funciona la tienda.</div>
+    ${fitList('shop-pk',PACKS.map((p,i)=>Object.assign({i},p)),p=>`<div class="item pack"><div class="prev">${coinI.replace('class="coin"','class="coin" style="width:26px;height:26px"')}${fmt(p.coins)}</div><b>${fmt(p.coins)} monedas</b><p>${p.tag?`<span class="tag">${p.tag}</span> `:''}<span class="ars">$ ${fmt(p.ars)}</span></p>
+      ${pendingBuy==='pack:'+p.i?`<button class="btn prim" data-a="pack" data-i="${p.i}">Confirmar prueba</button>`:`<button class="btn brass" data-a="prepack" data-i="${p.i}">Simular compra</button>`}</div>`,'items')}<p class="note">${earn}</p>`;
+  return phd('Tienda',`<span class="pill">${coinI}${fmt(WAL.coins)}</span>`,'extra')+`<div class="subtabs" role="group">${sub.map(([k,l])=>`<button type="button" data-a="shoptab" data-v="${k}" aria-pressed="${shopTab===k}">${l}</button>`).join('')}</div><div class="pbody">${body}</div>`}
+function kitsHTML(){const a=AVM.hincha;return `<div class="over" data-a="close"><div class="panel kpanel" data-stop>${hinchaItemHTML(a)}<button class="btn ghost" data-a="close">Cerrar</button></div></div>`}
 /* ---------- perfil ---------- */
 function profileHTML(){const a=AVM[WAL.eq.av]||AVM.gaucho,st=WAL.stats,pct=st.played?Math.round(st.won*100/st.played):0;
-  const ownedCount=WAL.owned.length+AVS.filter(x=>!x.price).length+1+1;
-  const tg=(k,l,sub)=>`<div class="toggle"><span>${l}<small>${sub}</small></span><button type="button" class="sw" data-a="toggle" data-k="${k}" aria-pressed="${!!SET[k]}" aria-label="${l}"></button></div>`;
-  return `<div class="profbar"><button type="button" class="btn sm ghost" data-a="nav" data-v="settings">Ajustes</button></div><div class="prof">${avatarSVG(myAv(),132,true)}<div style="flex:1;min-width:0"><h2>${esc(myDisp())}${PREMIUM?' <span class="prem">Premium</span>':''}</h2><p>${esc(a.name)} · ${esc(a.bio)}</p>${myEmail?`<p class="note">Cuenta: ${esc(myEmail)}</p>`:''}
-    <form class="row" data-form="nick" style="margin-top:10px"><input type="text" id="nickin" class="plain" maxlength="20" placeholder="Tu apodo" value="${esc(WAL.nick||'')}" aria-label="Apodo" autocomplete="off"><button class="btn sm" type="submit">Guardar apodo</button></form></div></div>
-  ${FB?fbStatsHTML():`<div class="stats">
-    <div class="stat-b"><small>Partidas</small><b>${fmt(st.played)}</b></div>
-    <div class="stat-b"><small>Ganadas</small><b>${fmt(st.won)}</b></div>
-    <div class="stat-b"><small>Efectividad</small><b>${pct}%</b></div>
-    <div class="stat-b"><small>Racha</small><b>${st.streak}</b></div>
-    <div class="stat-b"><small>Mejor racha</small><b>${st.best}</b></div>
-    <div class="stat-b"><small>Monedas ganadas</small><b>${fmt(st.earned)}</b></div>
-  </div><p class="note" style="margin-top:6px">${LOCAL?'Las partidas, ganadas y rachas cuentan solo online contra otras personas. Contra la IA es práctica: no suma ni resta.':'Cuentan solo las partidas online contra otras personas. Contra la IA es práctica: no suma ni resta.'}</p>`}
-  <div class="grid">
-    <section class="box"><h2>Tu mesa</h2>
-      <div class="row" style="gap:14px">${avatarSVG(myAv(),56)}<div class="bigback" style="background:${backBg(WAL.eq.dorso)}"></div><div class="swatch" style="width:110px;height:72px;background:${PM[WAL.eq.pano].bg};border-color:${PM[WAL.eq.pano].edge}">${cardHTML('3O')}</div></div>
-      <p class="note">${esc(a.name)} · dorso ${esc(DM[WAL.eq.dorso].name)} · ${esc(PM[WAL.eq.pano].name)}</p>
-      <button class="btn" data-a="nav" data-v="shop">Ir a la tienda</button></section>
-    ${refBoxHTML()}${friendsBoxHTML()}
-  </div>`}
-
+  const sb=(l,v,c='')=>`<div class="stat-b"><small>${l}</small><b class="${c}">${v}</b></div>`;
+  let stats;if(FB){const s=(MYUSER&&MYUSER.stats)||NET.EMPTY_STATS,cs=s.currentStreak||0;stats=sb('Jugadas',fmt(s.played))+sb('Ganadas',fmt(s.wins))+sb('Ganás',(s.played?Math.round(s.winRate*100):0)+'%')+sb('Racha',cs>0?'+'+cs:cs,cs>0?'pos':cs<0?'neg':'')+sb('Récord',fmt(s.bestStreak))}
+  else stats=sb('Jugadas',fmt(st.played))+sb('Ganadas',fmt(st.won))+sb('Ganás',pct+'%')+sb('Racha',st.streak)+sb('Récord',st.best)+sb('Monedas',fmt(st.earned));
+  const opts=[['mesa','Tu mesa'],['amigos','Amigos']];if(FB)opts.push(['invitar','Invitá y ganá']);const [tab,tabs]=ptabs('prof',opts,'mesa');
+  const D=DM[WAL.eq.dorso]||DM.pampa,Pn=PM[WAL.eq.pano]||PM.quincho;
+  const mesa=`<section class="box grow mesa"><div class="mesa3">
+      <button type="button" class="mz" data-a="shopgo" data-v="av">${avatarSVG(myAv(),84,true)}<b>${esc(a.name)}</b><small>Personaje</small></button>
+      <button type="button" class="mz" data-a="shopgo" data-v="dorso"><span class="bigback" style="background:${backBg(D.id)}"></span><b>${esc(D.name)}</b><small>Dorso</small></button>
+      <button type="button" class="mz" data-a="shopgo" data-v="pano"><span class="swatch" style="background:${panoBg(Pn.id)};border-color:${Pn.edge}">${cardHTML('3O')}</span><b>${esc(Pn.name)}</b><small>Paño</small></button></div>
+    <button class="btn" data-a="nav" data-v="shop">Ir a la tienda</button></section>`;
+  return phd('Perfil','<button type="button" class="btn sm ghost" data-a="nav" data-v="settings">Ajustes</button>')+`
+  <section class="prof">${avatarSVG(myAv(),84,true)}<div><h2>${esc(myDisp())}${PREMIUM?' <span class="prem">Premium</span>':''}</h2><p>${esc(a.name)}${myEmail?' · '+esc(myEmail):''}</p>
+    <form class="row" data-form="nick"><input type="text" id="nickin" class="plain" maxlength="20" placeholder="Tu apodo" value="${esc(WAL.nick||'')}" aria-label="Apodo" autocomplete="off"><button class="btn sm" type="submit">Guardar</button></form></div></section>
+  <div class="stats">${stats}</div><p class="note snote">Cuentan solo las partidas online contra otras personas. Contra la máquina es práctica.</p>
+  ${tabs}<div class="pbody">${tab==='mesa'?mesa:tab==='amigos'?friendsBoxHTML():refBoxHTML()}</div>`}
 /* ---------- sala online ---------- */
 function roomHTML(){if(!T)return `<div class="room"><p class="note">Cargando mesa…</p></div>`;if(T.tour)return tourRoomHTML();
   const mine=T.seats.findIndex(s=>s.id===uid);const full=T.seats.every(s=>s.id||s.bot);
@@ -414,7 +436,7 @@ function gameHTML(){if(!G)return'';const h=G.hand,me=mySeat,mt=myTeam(),a=actor(
     <div class="score"><div class="sc us"><span class="lbl">Nosotros</span><b class="${b0}">${sc[mt]}</b>${fosforos(sc[mt],G.target)}</div>
       <div class="mid"><b>a ${G.target}</b>${G.flor?'con flor':'sin flor'}<br>${G.stake?fmt(G.stake)+' fichas':'amistosa'}</div>
       <div class="sc them"><span class="lbl">Ellos</span><b class="${b1}">${sc[1-mt]}</b>${fosforos(sc[1-mt],G.target)}</div></div>
-    <div class="felt n${G.n}" style="background:${pano.bg};border-color:${pano.edge}">${seatsHTML.join('')}<div class="center">${center}</div></div>
+    <div class="felt n${G.n}" style="background:${panoBg(pano.id)};border-color:${pano.edge}">${seatsHTML.join('')}<div class="center">${center}</div></div>
     ${G.n!==2&&info?`<div class="handinfo">${info}</div>`:''}${turnBarHTML()}${coachBox}
     ${hand}
     <div class="actions">${actionsHTML(L)}${TUT?'':socialHTML()}${absentNote}</div></section>`}
@@ -454,6 +476,9 @@ function overlayHTML(){
   if(overlayView==='terms')return `<div class="over" data-a="close"><div class="panel tpanel" data-stop><h2>Términos y condiciones</h2>${termsHTML()}<button class="btn prim" data-a="close">Cerrar</button></div></div>`;
   if(overlayView==='termsAccept')return `<div class="over"><div class="panel tpanel"><h2>Términos y condiciones</h2><p>Para seguir jugando, leé y aceptá los términos.</p>${termsHTML()}<button class="btn prim" data-a="tosaccept">Acepto los términos</button><button class="btn ghost" data-a="logout">Salir de mi cuenta</button></div></div>`;
   if(overlayView==='admuser')return admUserHTML();
+  {const OV={soloopts:soloOptsHTML,onopts:onOptsHTML,tourhow:tourHowHTML,tourfriend:tourFriendHTML,tabla:tablaHTML,kits:kitsHTML,compras:comprasHTML,
+      tourrules:()=>`<div class="over" data-a="close"><div class="panel lpanel" data-stop><h2>Reglas del torneo</h2><p style="white-space:pre-wrap;text-align:left">${esc((TV&&TV.t&&TV.t.rules)||'')}</p><button class="btn ghost" data-a="close">Cerrar</button></div></div>`};
+    if(OV[overlayView]&&view!=='game')return OV[overlayView]()}
   if(INV&&INV.kind==='tour'&&view!=='game'&&view!=='room'&&view!=='register'&&view!=='welcome'){const l=LOOKS[INV.from]||{};return `<div class="over"><div class="panel">${avatarSVG(AVM[l.av]?l.av:'gaucho',72,true)}<h2>¡Te invitan!</h2><p><b>${esc(dispName(INV.from)||'Un amigo')}</b> quiere jugar con vos en pareja el torneo <b>${esc(INV.name||'')}</b>.</p><div class="btns"><button class="btn prim" data-a="invgo">Ver el torneo</button><button class="btn ghost" data-a="invno">Ahora no</button></div></div></div>`}
   if(INV&&view!=='game'&&view!=='room'&&view!=='register'&&view!=='welcome'){const l=LOOKS[INV.from]||{};return `<div class="over"><div class="panel">${avatarSVG(AVM[l.av]?l.av:'gaucho',72,true)}<h2>¡Te invitan!</h2><p><b>${esc(dispName(INV.from)||'Un amigo')}</b> te invita a su mesa <b>${esc(INV.code)}</b>.</p><div class="btns"><button class="btn prim" data-a="invgo">Ir a la mesa</button><button class="btn ghost" data-a="invno">Ahora no</button></div></div></div>`}
   if(overlayView==='load'&&!PREMIUM)return `<div class="over" data-a="close"><div class="panel" data-stop><h2>Cargar fichas</h2><p>Tenés ${fmt(WAL.chips)} fichas.</p>${premLock()}<button class="btn ghost" data-a="close">Cerrar</button></div></div>`;
@@ -714,18 +739,18 @@ function subRank(){if(!db||unsubRank)return;try{unsubRank=db.collection('looks')
 
 /* ---------- vistas nuevas ---------- */
 function missionsHTML(){ensureMissions();const now=new Date(),mid=new Date(now);mid.setHours(24,0,0,0);const hrs=Math.max(1,Math.round((mid-now)/3600e3));
-  const mis=WAL.mis.ids.map(id=>MISSIONS.find(m=>m.id===id)).filter(Boolean);
-  return `<div class="shophead"><h2>Misiones</h2><span class="note">Se renuevan en ${hrs} h</span></div>
-  <div class="mislist">${mis.map(m=>{const p=WAL.mis.prog[m.id]||0,done=WAL.mis.done.includes(m.id);
-    return `<div class="mis ${done?'ok':''}"><div class="mtop"><b>${esc(m.t)}</b><span class="rw">${coinI}+${m.r}</span></div><div class="bar"><i style="width:${Math.round(p*100/m.goal)}%"></i></div><small>${done?'Cumplida':p+' de '+m.goal}</small></div>`}).join('')}</div>
-  <h2 class="sech">Logros</h2>
-  <div class="achs">${ACHS.map(a=>{const v=Math.min(a.goal,achValue(a)),done=WAL.ach.done.includes(a.id);
-    return `<div class="ach ${done?'ok':''}"><span class="medal" aria-hidden="true">${done?'★':'☆'}</span><div><b>${esc(a.t)}</b><small>${esc(a.d)}</small><div class="bar"><i style="width:${Math.round(v*100/a.goal)}%"></i></div><small>${done?'Conseguido':v+' de '+a.goal} · ${coinI.replace('class="coin"','class="coin" style="display:inline-block;width:11px;height:11px;vertical-align:-1px"')} ${a.r}</small></div></div>`}).join('')}</div>`}
-function rankingHTML(){if(!db||!uid)return `<div class="shophead"><h2>Ranking</h2></div><p class="note" style="margin-top:12px">El ranking necesita que abras Reviro con tu cuenta de claude.ai.</p>`;
+  const mis=WAL.mis.ids.map(id=>MISSIONS.find(m=>m.id===id)).filter(Boolean);const got=ACHS.filter(a=>WAL.ach.done.includes(a.id)).length;
+  const [tab,tabs]=ptabs('mis',[['hoy','Misiones de hoy'],['logros',`Logros (${got} de ${ACHS.length})`]],'hoy');
+  const body=tab==='hoy'?`<p class="note snote">Se renuevan en ${hrs} h.</p><div class="mislist">${mis.map(m=>{const p=WAL.mis.prog[m.id]||0,done=WAL.mis.done.includes(m.id);
+      return `<div class="mis ${done?'ok':''}"><div class="mtop"><b>${esc(m.t)}</b><span class="rw">${coinI}+${m.r}</span></div><div class="bar"><i style="width:${Math.round(p*100/m.goal)}%"></i></div><small>${done?'Cumplida':p+' de '+m.goal}</small></div>`}).join('')}</div>`
+    :fitList('achs',ACHS,a=>{const v=Math.min(a.goal,achValue(a)),done=WAL.ach.done.includes(a.id);
+      return `<div class="ach ${done?'ok':''}"><span class="medal" aria-hidden="true">${done?'★':'☆'}</span><div><b>${esc(a.t)}</b><small>${esc(a.d)}</small><div class="bar"><i style="width:${Math.round(v*100/a.goal)}%"></i></div><small>${done?'Conseguido':v+' de '+a.goal} · ${coinI.replace('class="coin"','class="coin" style="display:inline-block;width:11px;height:11px;vertical-align:-1px"')} ${a.r}</small></div></div>`},'achs');
+  return phd('Misiones','','extra')+tabs+`<div class="pbody">${body}</div>`}
+function rankingHTML(){const head=phd('Ranking','','extra');if(!db||!uid)return head+`<section class="box"><p class="note" style="margin:0">${LOCAL?'El ranking funciona con tu cuenta en la web.':'El ranking necesita que abras Reviro con tu cuenta de claude.ai.'}</p></section>`;
   subRank();subFriends();const fs=friendSet();const rows=(RANK||[]).filter(r=>r.played>0&&(rankScope==='all'||r.id===uid||fs.has(r.id)));const ids=rows.map(r=>r.id);if(ids.length)ensureNames(ids);
-  return `<div class="shophead"><h2>Ranking</h2></div><div class="subtabs" role="group"><button type="button" data-a="rscope" data-v="all" aria-pressed="${rankScope==='all'}">Todos</button><button type="button" data-a="rscope" data-v="friends" aria-pressed="${rankScope==='friends'}">Mis amigos (${fs.size})</button></div>
-  ${RANK===null?'<p class="note" style="margin-top:12px">Cargando…</p>':rows.length?`<ol class="lb">${rows.map((r,i)=>`<li class="${r.id===uid?'me':''}"><span class="pos">${i+1}</span>${avatarSVG(AVM[r.av]?r.av:'gaucho',36)}<span class="nm">${esc(r.id===uid?myDisp():((r.nick)||NAMES[r.id]||'Jugador'))}<small>${fmt(r.won||0)} ganadas de ${fmt(r.played||0)} · racha máx. ${r.best||0}</small></span><b>${fmt(r.pts||0)}</b></li>`).join('')}</ol>`:(rankScope==='friends'?'<p class="note" style="margin-top:12px">Todavía no tenés amigos con partidas. Pasales tu link de amigo desde Perfil.</p>':'<p class="note" style="margin-top:12px">Todavía nadie terminó una partida. Jugá una y aparecés acá.</p>')}
-  <p class="note" style="margin-top:12px">Puntos: 30 por partida online ganada y 3, 8 o 15 por ganarle a la máquina en Fácil, Medio o Difícil.</p>`}
+  return head+`<div class="subtabs" role="group"><button type="button" data-a="rscope" data-v="all" aria-pressed="${rankScope==='all'}">Todos</button><button type="button" data-a="rscope" data-v="friends" aria-pressed="${rankScope==='friends'}">Mis amigos (${fs.size})</button></div>
+  <div class="pbody">${RANK===null?'<p class="note">Cargando…</p>':fitList('rank-'+rankScope,rows.map((r,i)=>Object.assign({pos:i+1},r)),r=>`<li class="${r.id===uid?'me':''}"><span class="pos">${r.pos}</span>${avatarSVG(AVM[r.av]?r.av:'gaucho',36)}<span class="nm">${esc(r.id===uid?myDisp():((r.nick)||NAMES[r.id]||'Jugador'))}<small>${fmt(r.won||0)} ganadas de ${fmt(r.played||0)} · racha máx. ${r.best||0}</small></span><b>${fmt(r.pts||0)}</b></li>`,'lb',rankScope==='friends'?'<p class="note">Todavía no tenés amigos con partidas. Pasales tu link de amigo desde Perfil.</p>':'<p class="note">Todavía nadie terminó una partida. Jugá una y aparecés acá.</p>')}</div>
+  <p class="note snote">Puntos: 30 por partida online ganada y 3, 8 o 15 por ganarle a la máquina en Fácil, Medio o Difícil.</p>`}
 function tutorialBoxHTML(){const done=WAL.tut||[];
   return `<section class="box"><h2>¿Primera vez?</h2><p class="note">Cinco lecciones cortas con manos armadas para aprender bazas, envido, truco y flor. Cada una te da 20 monedas.</p>
     <div class="lessons">${LESSONS.map((L,i)=>`<button type="button" class="lesson ${done.includes(i)?'ok':''}" data-a="lesson" data-i="${i}"><span>${done.includes(i)?'✓':i+1}</span>${esc(L.title)}</button>`).join('')}</div></section>`}
@@ -742,7 +767,7 @@ function dispName(id){if(!id)return'';if(id===uid)return myDisp();const l=LOOKS[
 function saveNick(v){const n=cleanNick(v);if(n&&n.length<2){toast('El apodo necesita al menos 2 letras');return}WAL.nick=n;saveWallet();writeLooks();toast(n?'Ahora te llamás '+n:'Apodo borrado');render()}
 /* compartir por WhatsApp: abre WhatsApp con el mensaje armado */
 const SITE='https://aleclem180.github.io/Reviro/';
-const siteURL=()=>FB?location.origin+location.pathname:SITE;
+const siteURL=()=>FB?location.origin+BASEP:SITE;
 const waHref=t=>'https://wa.me/?text='+encodeURIComponent(t);
 const WAICO='<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 2.2a9.7 9.7 0 0 0-8.4 14.6L2.3 21.8l5.1-1.3A9.7 9.7 0 1 0 12 2.2zm0 17.7a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 19.9zm4.4-6c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.8 1c-.1.2-.3.2-.5.1a6.6 6.6 0 0 1-3.3-2.9c-.2-.4.3-.4.8-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.5-.4h-.5a.9.9 0 0 0-.7.3 2.8 2.8 0 0 0-.9 2.1 4.9 4.9 0 0 0 1 2.6 11.2 11.2 0 0 0 4.3 3.8c1.6.7 2.2.7 3 .6.5-.1 1.4-.6 1.6-1.2.2-.6.2-1 .1-1.2l-.6-.2z"/></svg>';
 function waInviteText(){return `¿Un truco? Te espero en Reviro: ${FB?siteURL():SITE}${WAL.fcode?'#a-'+WAL.fcode:''}`}
@@ -760,6 +785,7 @@ async function addFriendByCode(raw){const code=String(raw||'').toUpperCase().rep
     toast('¡Ahora sos amigo de '+(dispName(id)||'tu amigo')+'!');ensureNames([id]);render()}
   catch(e){toast('No se pudo agregar. Probá de nuevo')}}
 function checkInviteHash(){let hsh='';try{hsh=location.hash||''}catch(e){}
+  if(PENDTOUR&&FB){const id=PENDTOUR;PENDTOUR=null;openTour(id);return}
   const mm=/^#m-([A-Z0-9-]{4,24})$/i.exec(hsh),mt=/^#t-([A-Z0-9]{8})$/i.exec(hsh);
   if(mm||mt){try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}
     if(mm&&db&&uid){openTable(mm[1]);return}if(mt&&FB){openTour(mt[1].toUpperCase());return}return}
@@ -767,15 +793,10 @@ function checkInviteHash(){let hsh='';try{hsh=location.hash||''}catch(e){}
   try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}
   if(m[1].toUpperCase()!==WAL.fcode)addFriendByCode(m[1])}
 function friendsBoxHTML(){const fs=[...friendSet()];if(fs.length){fetchLooks(fs);ensureNames(fs)}
-  return `<section class="box"><h2>Amigos</h2>
-    ${db&&uid?`<p class="note">Mandá tu link a quien quieras: cuando lo abra, quedan agregados como amigos de los dos lados.</p>
-    <div class="row"><span class="fcode">${esc(WAL.fcode||'')}</span><button class="btn prim sm" data-a="copylink">Copiar mi link de amigo</button></div>
-    <form class="row" data-form="friend"><input type="text" id="friendin" maxlength="6" placeholder="Código de un amigo" aria-label="Código de amigo" autocomplete="off"><button class="btn sm" type="submit">Agregar</button></form>
-    ${fs.length?`<ul class="flist">${fs.map(id=>{const l=LOOKS[id]||{};return `<li>${avatarSVG(AVM[l.av]?l.av:'gaucho',34)}<span style="flex:1">${esc(dispName(id)||'Jugador')}<small>${fmt(l.pts||0)} puntos · ${fmt(l.won||0)} ganadas</small></span><button class="btn sm brass" data-a="invite" data-id="${esc(id)}">Invitar</button></li>`}).join('')}</ul>`:'<p class="note">Todavía no agregaste a nadie.</p>'}
-    <p class="note">Tu amigo necesita acceso a esta página: compartila con él desde el botón Compartir, con permiso para editar.</p>`
-    :'<p class="note">Los amigos necesitan que abras Reviro con tu cuenta de claude.ai.</p>'}</section>`}
-
-
+  if(!(db&&uid))return `<section class="box"><p class="note" style="margin:0">${LOCAL?'Los amigos funcionan con tu cuenta en la web.':'Los amigos necesitan que abras Reviro con tu cuenta de claude.ai.'}</p></section>`;
+  return `<section class="box grow"><div class="row frow"><span class="fcode" title="Tu código de amigo">${esc(WAL.fcode||'')}</span><button class="btn prim sm" data-a="copylink">Copiar mi link</button>
+      <form class="row" data-form="friend"><input type="text" id="friendin" maxlength="6" placeholder="Código de un amigo" aria-label="Código de amigo" autocomplete="off"><button class="btn sm" type="submit">Agregar</button></form></div>
+    ${fitList('friends',fs,id=>{const l=LOOKS[id]||{};return `<li>${avatarSVG(AVM[l.av]?l.av:'gaucho',34)}<span style="flex:1">${esc(dispName(id)||'Jugador')}<small>${fmt(l.pts||0)} puntos · ${fmt(l.won||0)} ganadas</small></span><button class="btn sm brass" data-a="invite" data-id="${esc(id)}">Invitar</button></li>`},'flist','<p class="note" style="margin:0">Todavía no agregaste a nadie. Mandá tu link: cuando lo abran, quedan agregados de los dos lados.</p>')}</section>`}
 /* ---------- cuenta: inicio de sesión y registro ---------- */
 let isOwnerV=false,PREMIUM=false,myEmail=null,regAv='gaucho',PREMS={},ADMINP=null,unsubPrem=null,unsubAdmin=null;
 function bootHTML(){return `<div class="gate">${fileteHTML('gtitle')}<p class="note">Conectando con tu cuenta…</p></div>`}
@@ -804,9 +825,9 @@ async function setPremium(id,on){if(!isOwnerV)return;try{const ref=db.doc('premi
 async function premiumByCode(raw){const code=String(raw||'').toUpperCase().replace(/[^A-Z0-9]/g,'');if(code.length!==6){toast('El código tiene 6 caracteres');return}
   try{const s=await db.collection('looks').where('code','==',code).limit(1).get();if(s.empty){toast('No encontré a nadie con ese código');return}await setPremium(s.docs[0].id,true)}catch(e){toast('No se pudo buscar ese código')}}
 function adminHTML(){if(!isOwnerV)return'';const list=(ADMINP||[]).filter(p=>p.id!==uid);
-  return `<section class="box admin"><h2>Premium</h2><p class="note">Solo vos ves esto, porque sos el dueño. Las cuentas premium pueden cargarse fichas y monedas.</p>
+  return `<section class="box admin grow"><p class="note" style="margin:0">Solo vos ves esto. Las cuentas premium pueden cargarse fichas y monedas de prueba.</p>
     <form class="row" data-form="prem"><input type="text" id="premin" maxlength="6" placeholder="Código" aria-label="Código del jugador" autocomplete="off"><button class="btn prim sm" type="submit">Dar premium</button></form>
-    ${ADMINP===null?'<p class="note">Cargando jugadores…</p>':list.length?`<ul class="flist">${list.map(p=>{const on=!!PREMS[p.id];return `<li>${avatarSVG(AVM[p.av]?p.av:'gaucho',34)}<span style="flex:1">${esc(p.nick||NAMES[p.id]||'Jugador')}<small>Código ${esc(p.code||'—')} · ${on?'premium':'común'}</small></span><button class="btn sm ${on?'warn':'brass'}" data-a="prem" data-id="${esc(p.id)}" data-on="${on?0:1}">${on?'Quitar':'Dar premium'}</button></li>`}).join('')}</ul>`:'<p class="note">Todavía no hay otros jugadores.</p>'}</section>`}
+    ${ADMINP===null?'<p class="note">Cargando jugadores…</p>':fitList('adm-prem',list,p=>{const on=!!PREMS[p.id];return `<li>${avatarSVG(AVM[p.av]?p.av:'gaucho',34)}<span style="flex:1">${esc(p.nick||NAMES[p.id]||'Jugador')}<small>Código ${esc(p.code||'—')} · ${on?'premium':'común'}</small></span><button class="btn sm ${on?'warn':'brass'}" data-a="prem" data-id="${esc(p.id)}" data-on="${on?0:1}">${on?'Quitar':'Dar'}</button></li>`},'flist','<p class="note">Todavía no hay otros jugadores.</p>')}</section>`}
 const premLock=()=>`<div class="demo"><b>Solo para cuentas premium.</b> ${isOwnerV?'':'Pedile al dueño de Reviro que te active el premium. Las monedas también se ganan jugando y con las misiones.'}</div>`;
 
 /* ---------- anotador para jugar en persona ---------- */
@@ -824,12 +845,11 @@ function anotHTML(){const T2=ANOT.target,win=ANOT.s.findIndex(v=>v>=T2);
       <div class="afos">${fosforos(sc,T2)}</div>
       <button class="btn prim abig" data-a="an" data-t="${t}" data-d="1" ${win>=0?'disabled':''}>+1</button>
       <div class="arow">${[2,3,4].map(d=>`<button class="btn sm" data-a="an" data-t="${t}" data-d="${d}" ${win>=0?'disabled':''}>+${d}</button>`).join('')}<button class="btn sm ghost" data-a="an" data-t="${t}" data-d="-1">−1</button></div></section>`};
-  return `<div class="shophead"><h2>Anotador</h2><span class="note">Para jugar en persona</span></div>
-    <div class="row" style="margin-top:10px">${seg('anot.target',[[15,'A 15'],[30,'A 30']],T2)}</div>
+  return phd('Anotador',seg('anot.target',[[15,'A 15'],[30,'A 30']],T2),'extra')+`
     ${win>=0?`<div class="demo" style="text-align:center"><b>¡Ganó ${esc(ANOT.names[win])}!</b> ${ANOT.s[0]} a ${ANOT.s[1]}</div>`:''}
     <div class="anot">${col(0)}${col(1)}</div>
-    <div class="row" style="margin-top:12px;justify-content:center"><button class="btn" data-a="anundo" ${ANOT.hist.length?'':'disabled'}>Deshacer</button><button class="btn ${anotConfirm?'warn':'ghost'}" data-a="anreset">${anotConfirm?'Confirmar: empezar de cero':'Nueva partida'}</button></div>
-    <p class="note" style="margin-top:10px;text-align:center">Atajos: +2 truco o envido querido, +3 retruco, real envido o flor, +4 vale cuatro.</p>`}
+    <div class="row arow2"><button class="btn" data-a="anundo" ${ANOT.hist.length?'':'disabled'}>Deshacer</button><button class="btn ${anotConfirm?'warn':'ghost'}" data-a="anreset">${anotConfirm?'Confirmar: de cero':'Nueva partida'}</button></div>
+    <p class="note snote" style="text-align:center">+2 truco o envido querido · +3 retruco, real envido o flor · +4 vale cuatro</p>`}
 let anotConfirm=false;
 
 
@@ -839,7 +859,9 @@ const prj=([lon,lat])=>[((lon+74)*MAPC*MAPK).toFixed(1),((-21-lat)*MAPK).toFixed
 const pathOf=pts=>'M'+pts.map(p=>prj(p).join(' ')).join('L')+'Z';
 const AR_MAIN=[[-66.8,-22.4],[-65.75,-22.1],[-63.8,-22],[-62.65,-22.25],[-60,-23.8],[-58.6,-24.9],[-57.7,-25.3],[-58.1,-26.4],[-58.6,-27.2],[-57.4,-27.4],[-56.5,-27.4],[-55.9,-27.35],[-55.5,-26.9],[-54.9,-26.4],[-54.6,-25.6],[-53.85,-25.9],[-53.65,-26.25],[-53.8,-27.1],[-55.1,-27.8],[-55.8,-28.4],[-56.4,-28.9],[-57.6,-30.2],[-57.8,-31.2],[-58.1,-32.4],[-58.2,-33.1],[-58.4,-33.9],[-58.4,-34.6],[-57.6,-35],[-57.1,-35.6],[-56.8,-36.3],[-56.7,-36.9],[-57.5,-38.1],[-58.5,-38.6],[-59.6,-38.8],[-61.2,-39],[-62.3,-38.8],[-62.1,-39.6],[-62.3,-40.2],[-62.3,-40.8],[-63,-41.1],[-64.4,-40.8],[-65.1,-40.9],[-65,-41.8],[-64.4,-42.2],[-63.6,-42.6],[-63.8,-42.9],[-64.5,-42.9],[-65,-43.4],[-65.3,-44.5],[-65.7,-45],[-67,-45.5],[-67.5,-46],[-67.4,-46.6],[-66.4,-47.1],[-65.8,-47.8],[-66.6,-48.5],[-67.6,-49.2],[-68.2,-50.1],[-69.1,-50.9],[-69.2,-51.6],[-68.4,-52.3],[-69.5,-52.15],[-71.9,-52],[-72.3,-51.4],[-72.4,-50.7],[-73.2,-49],[-72.6,-48],[-72.3,-47.4],[-71.8,-46.6],[-71.7,-45.6],[-71.5,-44.4],[-71.8,-43.4],[-71.6,-42.1],[-71.8,-41],[-71.6,-39.6],[-71.1,-38.2],[-71.2,-37.2],[-70.5,-36.1],[-70,-35],[-69.9,-33.9],[-70.1,-32.8],[-70.2,-31.4],[-69.9,-30.3],[-69.6,-29],[-68.9,-27.9],[-68.3,-26.9],[-68.6,-26.2],[-68.3,-25.1],[-67.4,-24],[-67,-23]];
 const AR_TDF=[[-68.6,-52.65],[-68.6,-54.9],[-67.2,-55],[-66.1,-55],[-65.2,-54.7],[-65.8,-54.4],[-66.6,-54],[-67.6,-53.3],[-68.2,-52.9]];
-const AR_ISL=[[[-61.3,-51.3],[-59.9,-51.4],[-60.2,-52.2],[-61,-52]],[[-59.2,-51.4],[-57.7,-51.5],[-58.2,-52.3],[-59.3,-52.1]]];
+/* Islas Malvinas: Gran Malvina (oeste) y Soledad (este), con sus bahías */
+const AR_ISL=[[[-61.35,-51.25],[-60.6,-51.2],[-59.95,-51.35],[-60.15,-51.7],[-59.85,-51.95],[-60.25,-52.2],[-60.85,-52.15],[-61.2,-51.85],[-60.95,-51.6]],
+  [[-59.3,-51.42],[-58.6,-51.3],[-57.85,-51.45],[-57.72,-51.7],[-58.2,-51.78],[-58.05,-52.05],[-58.65,-52.25],[-59.2,-52.1],[-59.05,-51.8],[-59.4,-51.62]]];
 const ZONES=[
  {id:'ba',name:'Llanura del Ombú',short:'El Ombú',prov:'Provincia de Buenos Aires, CABA y La Pampa',need:0,col:'#c9a227',lab:[-61,-36.9],
   cut:[[-58.4,-34],[-60.3,-33.3],[-61.9,-34.3],[-63.4,-34.6],[-63.4,-35],[-65.2,-35],[-65.2,-35.6],[-66.6,-35.6],[-68,-37.6],[-68.3,-38],[-64,-39.4],[-62.9,-40.8],[-62,-41.5],[-50,-41.5],[-50,-34]]},
@@ -854,9 +876,11 @@ const ZONES=[
  {id:'nea',name:'Monte Impenetrable',short:'Impenetrable',prov:'Chaco y Formosa',need:1250,col:'#5b7d2a',lab:[-60.5,-25.6],
   cut:[[-62.3,-21],[-57,-21],[-57,-27.2],[-58.7,-27.4],[-59.4,-28],[-61.7,-28],[-61.7,-25.7],[-62.3,-25.7]]},
  {id:'patagonia',name:'Tierra del Viento',short:'Tierra del Viento',prov:'Neuquén, Río Negro, Chubut y Santa Cruz',need:1650,col:'#3f6f8f',lab:[-68.8,-45.2],
-  cut:[[-75,-36.4],[-70.4,-36.4],[-68,-37.6],[-68.3,-38],[-64,-39.4],[-62.9,-40.8],[-62,-41.5],[-50,-41.5],[-50,-52.45],[-75,-52.45]]},
+  cut:[[-75,-36.4],[-70.4,-36.4],[-68,-37.6],[-68.3,-38],[-64,-39.4],[-62.9,-40.8],[-62,-41.5],[-50,-41.5],[-50,-50.6],[-62,-50.6],[-62,-52.45],[-75,-52.45]]},
  {id:'tdf',name:'El Último Faro',short:'Último Faro',prov:'Tierra del Fuego',need:2100,col:'#6d8fa8',lab:[-66.6,-53.9],
   cut:[[-75,-52.45],[-50,-52.45],[-50,-60],[-75,-60]]},
+ {id:'malvinas',name:'Islas del Pingüino',short:'Malvinas',prov:'Islas Malvinas, Gran Malvina y Soledad',need:2600,col:'#4f7d8a',lab:[-59.6,-50.55],
+  cut:[[-62,-50.6],[-50,-50.6],[-50,-52.45],[-62,-52.45]]},
 ];
 const ZM=Object.fromEntries(ZONES.map(z=>[z.id,z]));
 const RIVALS=[
@@ -867,11 +891,12 @@ const RIVALS=[
  ['noa','Ernesto, de Tilcara','mochilero','medio',920],['noa','Rosario, de Santiago del Estero','hippie','dificil',1010],['noa','Don Segundo, de Cafayate','gaucho','dificil',1110],['noa','Facundo, el payador de Salta','tanguero','dificil',1300,1],
  ['nea','Coco, de Resistencia','godin','medio',1270],['nea','Mabel, de Formosa','dona','dificil',1370],['nea','El Pescador de Clorinda','mochilero','dificil',1470],['nea','Don Gauna, del Impenetrable','veterano','dificil',1700,1],
  ['patagonia','Julieta, de Bariloche','influencer','dificil',1670],['patagonia','Tomás, de Neuquén','cheto','dificil',1780],['patagonia','Doña Elba, de Trelew','abuela','dificil',1900],['patagonia','El Esquilador de Río Gallegos','gaucho','dificil',2150,1],
+ ['malvinas','Juana, de Puerto Argentino','hincha','dificil',2580],['malvinas','El Ovejero de Gran Malvina','gaucho','dificil',2700],['malvinas','Don Ramiro, de Bahía Fox','veterano','dificil',2820],['malvinas','El Guardián de las Islas','tanguero','dificil',3100,1],
  ['tdf','Lalo, de Río Grande','fisura','dificil',2120],['tdf','Marina, de Ushuaia','hippie','dificil',2250],['tdf','El Farero de Ushuaia','tanguero','dificil',2380],['tdf','La Leyenda del Último Faro','veterano','dificil',2600,1],
 ].map(([zone,name,av,diff,copas,boss],i)=>{const skill=Math.min(1,Math.max(.05,copas/2400+(boss?.08:0)));return{id:'r'+i,zone,name,av,copas,boss:!!boss,skill,diff:skill<.3?'facil':skill<.65?'medio':'dificil'}});
 const stars=k=>{const n=Math.max(1,Math.min(5,Math.round(k*5)));return '★'.repeat(n)+'☆'.repeat(5-n)};
 const RM=Object.fromEntries(RIVALS.map(r=>[r.id,r]));
-const TITLES=[[0,'Pichón'],[150,'Aprendiz de pulpería'],[350,'Baqueano'],[600,'Truquero de ley'],[900,'Taita'],[1250,'Gaucho mayor'],[1650,'Maestro del truco'],[2100,'Leyenda del Último Faro']];
+const TITLES=[[0,'Pichón'],[150,'Aprendiz de pulpería'],[350,'Baqueano'],[600,'Truquero de ley'],[900,'Taita'],[1250,'Gaucho mayor'],[1650,'Maestro del truco'],[2100,'Leyenda del Último Faro'],[2600,'Guardián de las Islas']];
 const titleOf=c=>{let t=TITLES[0][1];for(const [n,l] of TITLES)if(c>=n)t=l;return t};
 const zoneOpen=z=>(WAL.copas||0)>=z.need;
 let giraZone='ba',CAMP=null;
@@ -885,7 +910,8 @@ const MAPICO={
   noa:'<path d="M-8 5L-1-5L6 5Z"/><path d="M-6 2.2H4.2M-4.2-.4H2.4M-2.6-3H.8"/>',
   nea:'<path d="M0 6V-1M0-1C-5-1-6-6-2-7C-1-10 4-9 3-6C7-5 5-1 0-1Z"/><path d="M-3 6H3"/>',
   patagonia:'<path d="M-7-3Q0-6 4-3T7-1M-8 1Q-1-2 3 1T8 3M-6 5Q0 2 4 5"/>',
-  tdf:'<path d="M-2 6L-1.4-4H1.4L2 6Z"/><path d="M-2.2-4H2.2L1.6-6H-1.6Z"/><path d="M2.6-5.4L7-7M2.6-4.6L7-3"/>'};
+  tdf:'<path d="M-2 6L-1.4-4H1.4L2 6Z"/><path d="M-2.2-4H2.2L1.6-6H-1.6Z"/><path d="M2.6-5.4L7-7M2.6-4.6L7-3"/>',
+  malvinas:'<path d="M0-7C-3-7-4-3-3.6 1C-3.4 4-2 6.4 0 6.4S3.4 4 3.6 1C4-3 3-7 0-7Z"/><path d="M-1.4-1C-2 1-1.6 4 0 5.2C1.6 4 2-1 1.4-1"/><path d="M.6-5.4L3.4-4.6L.8-4"/><path d="M-2 6.6H-.4M.4 6.6H2"/>'};
 const ANDES=[[-66.2,-22.6],[-67.6,-24.4],[-68.4,-26.3],[-69,-28.1],[-69.6,-29.9],[-70,-31.7],[-70.1,-33.4],[-70.2,-35.2],[-70.6,-37],[-71,-38.8],[-71.3,-40.6],[-71.6,-42.4],[-71.8,-44.2],[-72.1,-46],[-72.5,-47.8],[-73,-49.6]];
 function mapSVG(){const main=pathOf(AR_MAIN),tdf=pathOf(AR_TDF),isl=AR_ISL.map(pathOf).join(''),land=main+tdf+isl;
   let o=`<svg class="armap" viewBox="-18 -14 236 440" role="img" aria-label="Mapa de la Argentina por zonas"><defs><clipPath id="arclip"><path d="${land}"/></clipPath>
@@ -917,29 +943,26 @@ function mapSVG(){const main=pathOf(AR_MAIN),tdf=pathOf(AR_TDF),isl=AR_ISL.map(p
   return o+'</svg>'}
 function rivalCard(r){const open=zoneOpen(ZM[r.zone]),wins=(WAL.gira&&WAL.gira.beat[r.id])||0;const my=WAL.copas||0;
   const win=copasDelta(my,r.copas,true),lose=copasDelta(my,r.copas,false);
-  return `<li class="rv ${r.boss?'boss':''}">${avatarSVG(r.av,52)}<div class="rvi"><b>${esc(r.name)}</b><small>${r.boss?'Jefe de la zona · Premio: '+esc(prizeLabel(BOSS_PRIZE[r.zone]))+' · ':''}<span class="stars" aria-label="Nivel ${Math.round(r.skill*5)} de 5">${stars(r.skill)}</span> · ${r.boss?'a 30':'a 15'}</small>
-    <small><span class="cup"><i class="poroto" aria-hidden="true"></i>${fmt(r.copas)}</span> · ganás +${win}, perdés ${lose}${wins?` · le ganaste ${wins} ${wins>1?'veces':'vez'}`:''}</small></div>
+  return `<li class="rv ${r.boss?'boss':''}">${avatarSVG(r.av,46)}<div class="rvi"><b>${esc(r.name)}</b><small>${r.boss?'Jefe de la zona · Premio: '+esc(prizeLabel(BOSS_PRIZE[r.zone]))+' · ':''}<span class="stars" aria-label="Nivel ${Math.round(r.skill*5)} de 5">${stars(r.skill)}</span> · ${r.boss?'a 30':'a 15'}</small>
+    <small><span class="cup"><i class="poroto" aria-hidden="true"></i>${fmt(r.copas)}</span> · <span title="Si ganás / si perdés">+${win} / ${lose}</span>${wins?` · ✓ ${wins}`:''}</small></div>
     <button class="btn ${r.boss?'prim':'brass'} sm" data-a="girago" data-id="${r.id}" ${open?'':'disabled'}>Jugar</button></li>`}
 function giraHTML(){const c=WAL.copas||0,z=ZM[giraZone]||ZONES[0],open=zoneOpen(z);const next=ZONES.find(x=>!zoneOpen(x));
-  const pct=next?Math.round((c-(ZONES[ZONES.indexOf(next)-1]||{need:0}).need)*100/Math.max(1,next.need-(ZONES[ZONES.indexOf(next)-1]||{need:0}).need)):100;
-  const table=RIVALS.map(r=>({n:r.name,c:r.copas,av:r.av})).concat({n:myDisp()+' (vos)',c,av:myAv(),me:1}).sort((a,b)=>b.c-a.c);const myPos=table.findIndex(x=>x.me);
-  const win=table.slice(Math.max(0,myPos-2),myPos+3);
-  return `<div class="shophead"><h2>La Huella</h2><span class="pill cuppill"><i class="poroto" aria-hidden="true"></i>${fmt(c)} porotos</span></div>
-    <p class="note" style="margin-top:6px">Dejá tu huella por el país ganándole a los mejores truqueros de cada zona. Cada victoria suma porotos y con más porotos se abren zonas nuevas.</p>
-    <div class="field" style="margin-top:10px;max-width:320px"><span>Flor en La Huella</span>${seg('hflor',[['true','Con flor'],['false','Sin flor']],SET.hflor!==false)}</div>
-    <div class="girarow"><div class="mapwrap">${mapSVG()}</div>
-    <div class="giraside">
-      <section class="box"><small class="tag">Tu título</small><h2 style="margin:0">${esc(titleOf(c))}</h2>
-        ${next?`<div class="bar"><i style="width:${Math.max(3,Math.min(100,pct))}%"></i></div><p class="note">Te faltan ${fmt(next.need-c)} porotos para abrir <b>${esc(next.name)}</b>.</p>`:'<p class="note">Abriste todo el país. ¡Sos leyenda!</p>'}
-        <h3 style="margin-top:6px">Tabla nacional</h3><ol class="lb mini">${win.map(x=>`<li class="${x.me?'me':''}"><span class="pos">${table.indexOf(x)+1}</span>${avatarSVG(x.av,28)}<span class="nm">${esc(x.n)}</span><b>${fmt(x.c)}</b></li>`).join('')}</ol></section>
-    </div></div>
-    <div class="subtabs" role="group" aria-label="Zonas">${ZONES.map(x=>`<button type="button" data-a="zone" data-id="${x.id}" aria-pressed="${x.id===z.id}">${zoneOpen(x)?'':'🔒︎ '}${esc(x.name)}</button>`).join('')}</div>
-    <section class="box zbox" style="margin-top:10px;border-color:${open?z.col:'var(--line)'}"><h2>${esc(z.name)}</h2><p class="note">${esc(z.prov)}${open?'':` · se abre con ${fmt(z.need)} porotos`}</p>
-      <ul class="rvl">${RIVALS.filter(r=>r.zone===z.id).map(rivalCard).join('')}</ul>
-      ${WAL.gira&&WAL.gira.bosses.includes(z.id)?`<p class="note">★ Ya le ganaste al jefe de ${esc(z.name)}.</p>`:''}</section>`}
+  const prevNeed=next?((ZONES[ZONES.indexOf(next)-1]||{need:0}).need):0;const pct=next?Math.round((c-prevNeed)*100/Math.max(1,next.need-prevNeed)):100;
+  const zi=ZONES.indexOf(z),zp=ZONES[(zi+ZONES.length-1)%ZONES.length],zn=ZONES[(zi+1)%ZONES.length];
+  return phd('La Huella',`<button type="button" class="pill cuppill" data-a="ov" data-v="tabla" aria-label="Ver la tabla nacional"><i class="poroto" aria-hidden="true"></i>${fmt(c)} porotos</button>`)+`<div class="glay">
+    <div class="mapwrap">${mapSVG()}</div>
+    <section class="box gtit"><small class="tag">Tu título</small><b class="gt">${esc(titleOf(c))}</b>
+      ${next?`<div class="bar"><i style="width:${Math.max(3,Math.min(100,pct))}%"></i></div><p class="note" style="margin:0">Te faltan <b>${fmt(next.need-c)}</b> porotos para abrir ${esc(next.name)}.</p>`:'<p class="note" style="margin:0">Abriste todo el país. ¡Sos leyenda!</p>'}
+      <button type="button" class="linkb" data-a="ov" data-v="tabla">Tabla nacional</button></section>
+    <section class="box zbox" style="border-color:${open?z.col:'var(--line)'}"><div class="zhd"><button type="button" class="pgb" data-a="zone" data-id="${zp.id}" aria-label="Zona anterior: ${esc(zp.name)}">‹</button><div><h3>${open?'':'🔒︎ '}${esc(z.name)}</h3><small>${esc(z.prov)}${open?'':` · se abre con ${fmt(z.need)} porotos`}</small></div><button type="button" class="pgb" data-a="zone" data-id="${zn.id}" aria-label="Zona siguiente: ${esc(zn.name)}">›</button></div>
+      ${fitList('riv-'+z.id,RIVALS.filter(r=>r.zone===z.id),rivalCard,'rvl')}
+      ${WAL.gira&&WAL.gira.bosses.includes(z.id)?`<p class="note" style="margin:0">★ Ya le ganaste al jefe de ${esc(z.name)}.</p>`:''}</section></div>`}
+function tablaHTML(){const c=WAL.copas||0;const table=RIVALS.map(r=>({n:r.name,c:r.copas,av:r.av})).concat({n:myDisp()+' (vos)',c,av:myAv(),me:1}).sort((a,b)=>b.c-a.c);const myPos=table.findIndex(x=>x.me);
+  const win=table.slice(Math.max(0,myPos-3),myPos+4);
+  return `<div class="over" data-a="close"><div class="panel lpanel" data-stop><h2>Tabla nacional</h2><p class="note" style="margin:0">Vas ${myPos+1}.º de ${table.length}.</p><ol class="lb">${win.map(x=>`<li class="${x.me?'me':''}"><span class="pos">${table.indexOf(x)+1}</span>${avatarSVG(x.av,30)}<span class="nm">${esc(x.n)}</span><b>${fmt(x.c)}</b></li>`).join('')}</ol><button class="btn ghost" data-a="close">Cerrar</button></div></div>`}
 function startGira(rid){const r=RM[rid];if(!r||!zoneOpen(ZM[r.zone]))return;TUT=null;mySena=null;
   CAMP={rid,before:WAL.copas||0};cfg={n:2,target:r.boss?30:15,stake:0,diff:r.diff,flor:SET.hflor!==false};
-  botLooks={1:{av:r.av,dorso:['pampa','cuero','marino','noche','celeste','oro','fileteado','bordo'][ZONES.findIndex(z=>z.id===r.zone)]||'pampa'}};
+  botLooks={1:{av:r.av,dorso:['pampa','cuero','marino','noche','celeste','oro','fileteado','bordo','viento'][ZONES.findIndex(z=>z.id===r.zone)]||'pampa'}};
   mode='offline';mySeat=0;view='game';confirmExit=false;panel=null;
   const gm=newMatch({...cfg,seats:[{me:true},{bot:true}],matchId:'gira-'+rid+'-'+Date.now().toString(36)});gm.skill=r.skill;setG(gm);render();drive()}
 function settleGira(g){if(!CAMP||!g.matchOver||CAMP.done===g.matchId)return;const C=CAMP;C.done=g.matchId;const r=RM[C.rid];const won=g.matchOver.winner===0;
@@ -1059,37 +1082,28 @@ function musicPickerHTML(compact){const cur=TRACKS[SET.track]?SET.track:'zamba';
 const EXTRA_SUB=['anotador','shop','missions','ranking','rules','tutorial'];
 const backX=()=>`<div class="backx"><button type="button" class="btn ghost sm" data-a="nav" data-v="extra">← Extra</button></div>`;
 function extraHTML(){const done=(WAL.tut||[]).length,mis=(()=>{ensureMissions();return WAL.mis.done.length})();
-  const card=(v,t,d,meta)=>`<button type="button" class="xcard" data-a="nav" data-v="${v}"><b>${t}</b><span>${d}</span>${meta?`<small>${meta}</small>`:''}</button>`;
-  return `<div class="shophead"><h2>Extra</h2></div><div class="xgrid">
-    ${card('anotador','Anotador','Para anotar los puntos cuando jugás en persona, con fósforos.',`${ANOT.s[0]} a ${ANOT.s[1]} · a ${ANOT.target}`)}
-    ${card('shop','Tienda','Personajes, dorsos de cartas y paños de mesa.',`${fmt(WAL.coins)} monedas`)}
-    ${card('missions','Misiones y logros','Tres misiones nuevas por día y logros para siempre.',`${mis} de 3 misiones hoy`)}
-    ${card('ranking','Ranking','Cómo vas contra los demás y contra tus amigos.','')}
-    ${card('tutorial','Tutorial','Cinco lecciones cortas para aprender a jugar.',`${done} de ${LESSONS.length} completas`)}
-    ${card('rules','Reglamento','Orden de las cartas, envido, flor, truco, pardas y mazo.','')}
-    <button type="button" class="xcard" data-a="terms"><b>Términos y condiciones</b><span>Fichas, monedas, abandonos, referidos y tus datos.</span></button>
-  </div>`}
+  return phd('Extra')+`<div class="xtiles">
+    ${modeTile('data-a="nav" data-v="shop"','10O','Tienda',`${fmt(WAL.coins)} monedas · personajes, dorsos y paños`)}
+    ${modeTile('data-a="nav" data-v="missions"','11B','Misiones y logros',`${mis} de 3 misiones hoy`)}
+    ${modeTile('data-a="nav" data-v="ranking"','12E','Ranking','Vos contra todos y contra tus amigos')}
+    ${modeTile('data-a="nav" data-v="tutorial"','10E','Tutorial',`${done} de ${LESSONS.length} lecciones hechas`)}
+    ${modeTile('data-a="nav" data-v="rules"','11O','Reglamento','Cartas, envido, flor, truco y mazo')}
+    ${modeTile('data-a="nav" data-v="anotador"','12B','Anotador',`${ANOT.s[0]} a ${ANOT.s[1]} · a ${ANOT.target}`)}
+  </div><button type="button" class="linkrow" data-a="terms">Términos y condiciones</button>`}
 function settingsHTML(){const tg=(k,l,sub,inv)=>`<div class="toggle"><span>${l}<small>${sub}</small></span><button type="button" class="sw" data-a="toggle" data-k="${k}" aria-pressed="${inv?!SET[k]:!!SET[k]}" aria-label="${l}"></button></div>`;
-  return `<div class="shophead"><h2>Ajustes</h2></div><div class="grid">
-    <section class="box"><h2>Sonido</h2>
-      ${tg('mute','Sonido general','Apaga o prende todo el audio de Reviro',true)}
-      ${tg('music','Música','Suena de fondo en los menús')}
-      ${tg('sound','Efectos','Sonidos al tirar, cantar y sumar puntos')}
+  const opts=[['sonido','Sonido'],['juego','Juego'],['cuenta','Cuenta']];if(isOwnerV)opts.push(['admin','Admin']);const [tab,tabs]=ptabs('set',opts,'sonido');let body='';
+  if(tab==='sonido')body=`<section class="box">${tg('mute','Sonido general','Apaga o prende todo el audio de Reviro',true)}${tg('music','Música','Suena de fondo en los menús')}${tg('sound','Efectos','Al tirar, cantar y sumar puntos')}
       ${[['vol','Volumen general'],['volMusic','Música'],['volFx','Efectos']].map(([k,l])=>`<label class="vol"><span>${l}</span><input type="range" min="0" max="100" step="5" value="${SET[k]??80}" data-vol="${k}" aria-label="${l}"><output id="vo-${k}">${SET[k]??80}%</output></label>`).join('')}
-      <div class="field"><span>Elegí el tema</span>${musicPickerHTML(false)}<p class="note">${esc((TRACKS[SET.track]||TRACKS.zamba).desc)}</p></div></section>
-    <section class="box"><h2>Juego</h2>
-      ${tg('help','Ayuda en pantalla','Te muestra tu envido o tu flor en la primera baza')}
+      <div class="field"><span>Tema</span>${musicPickerHTML(false)}<p class="note" style="margin:0">${esc((TRACKS[SET.track]||TRACKS.zamba).desc)}</p></div></section>`;
+  if(tab==='juego')body=`<section class="box">${tg('help','Ayuda en pantalla','Te muestra tu envido o tu flor en la primera baza')}
       <div class="field"><span>Flor en La Huella</span>${seg('hflor',[['true','Con flor'],['false','Sin flor']],SET.hflor!==false)}</div>
-      <p class="note">La dificultad, los puntos, la flor y la apuesta de cada partida se eligen en Jugar.</p></section>
-    <section class="box"><h2>Cuenta</h2>
-      <p>Jugás como <b>${esc(myDisp())}</b>${PREMIUM?' · <span class="prem">Premium</span>':''}</p>
-      ${myEmail?`<p class="note">Cuenta: ${esc(myEmail)}</p>`:''}
-      <p class="note">Tu código de amigo es <b>${esc(WAL.fcode||'—')}</b>. El apodo y los amigos se manejan desde Perfil.</p>
-      <button class="btn" data-a="nav" data-v="profile">Ir a Perfil</button>${fbAccountHTML()}</section>
-    ${adminHTML()}${fbAdminHTML()}${mpAdminHTML()}${auditHTML()}
-  </div>`}
-
-
+      <p class="note" style="margin:0">La dificultad, los puntos, la flor y la apuesta de cada partida se eligen en Jugar, con el botón Cambiar.</p></section>`;
+  if(tab==='cuenta')body=`<section class="box"><p style="margin:0">Jugás como <b>${esc(myDisp())}</b>${PREMIUM?' · <span class="prem">Premium</span>':''}</p>${myEmail?`<p class="note" style="margin:0">Cuenta: ${esc(myEmail)}</p>`:''}
+      <p class="note" style="margin:0">Tu código de amigo es <b>${esc(WAL.fcode||'—')}</b>. El apodo y los amigos se manejan desde Perfil.</p>
+      <button class="btn" data-a="nav" data-v="profile">Ir a Perfil</button><button class="btn ghost" data-a="terms">Términos y condiciones</button>${fbAccountHTML()}</section>`;
+  if(tab==='admin'){const ao=FB?[['usuarios','Jugadores'],['salas','Salas'],['cobros','Cobros'],['links','Links de pago'],['registro','Registro'],['premium','Premium']]:[['premium','Premium']];const [at,atabs]=ptabs('adm',ao,ao[0][0]);
+    body=atabs+(at==='usuarios'?fbUsersHTML():at==='salas'?fbRoomsHTML():at==='cobros'?mpPendHTML():at==='links'?mpAdminHTML():at==='registro'?auditHTML():adminHTML())}
+  return phd('Ajustes','','profile')+tabs+`<div class="pbody">${body}</div>`}
 /* ---------- bienvenida ---------- */
 function welcomeHTML(){return `<div class="gate">${fileteHTML('gtitle')}<section class="box"><h2>¡Bienvenido a la mesa, ${esc(myDisp())}!</h2>
   <p>¿Sabés jugar al truco?</p><div class="btns" style="justify-content:flex-start"><button class="btn prim" data-a="welcome" data-v="play">Sí, a jugar</button><button class="btn brass" data-a="welcome" data-v="learn">No, enseñame</button><button class="btn ghost" data-a="welcome" data-v="tut">Más o menos</button></div>
@@ -1196,13 +1210,12 @@ function fbStatsHTML(){const s=(MYUSER&&MYUSER.stats)||NET.EMPTY_STATS;const cs=
     <div class="stat-b"><small>Mejor racha</small><b>${fmt(s.bestStreak)}</b></div>
   </div><p class="note" style="margin-top:6px">Cuentan solo las partidas online contra otras personas (1v1 y 2v2, también las de torneo). Contra la IA es práctica: no suma ni resta.</p>`}
 function subFbAdmin(){if(!FB||!isOwnerV||admUnsubs.length)return;try{admUnsubs.push(NET.admin.watchRooms(r=>{ADM_ROOMS=r;if(view==='settings')render()}));admUnsubs.push(NET.admin.watchUsers(u=>{ADM_USERS=u;if(view==='settings')render()}))}catch(e){}}
-function fbAdminHTML(){if(!FB||!isOwnerV)return'';const rooms=ADM_ROOMS||[],users=ADM_USERS||[];
-  const nm=id=>{const u=users.find(x=>x.uid===id);return u?u.username:'—'};
-  return `<section class="box admin"><h2>Salas activas</h2>
-    ${ADM_ROOMS===null?'<p class="note">Cargando…</p>':rooms.length?`<ul class="flist">${rooms.map(r=>`<li><span style="flex:1"><b>${esc(r.code)}</b> · ${esc(r.type||'')} · ${r.status==='playing'?'jugando':'esperando'}<small>Anfitrión: ${esc(nm(r.host))} · ${(r.playerIds||[]).length} jugador${(r.playerIds||[]).length===1?'':'es'}${r.game?' · '+r.game.scores[0]+' a '+r.game.scores[1]:''}</small></span><button class="btn sm warn" data-a="admclose" data-id="${esc(r.code)}">Cerrar</button></li>`).join('')}</ul>`:'<p class="note">No hay salas abiertas.</p>'}</section>
-  <section class="box admin"><h2>Usuarios y roles</h2>
-    ${ADM_USERS===null?'<p class="note">Cargando…</p>':`<ul class="flist">${users.map(u=>{const s=u.stats||{};const adm=u.role==='admin';return `<li>${avatarSVG(AVM[u.avatar]?u.avatar:'gaucho',34)}<span style="flex:1">${esc(u.username||'—')}${adm?' <span class="prem">Admin</span>':''}${u.banned?' <span class="prem" style="background:var(--bad)">Suspendido</span>':''}<small>${fmt(s.played||0)} partidas · ${s.played?Math.round((s.winRate||0)*100):0}% ganadas</small></span><button class="btn sm" data-a="admuser" data-id="${esc(u.uid)}">Ver</button>${u.uid===uid?'':`<button class="btn sm ${adm?'warn':'brass'}" data-a="admrole" data-id="${esc(u.uid)}" data-v="${adm?'player':'admin'}">${adm?'Quitar admin':'Hacer admin'}</button>`}</li>`}).join('')}</ul>`}
-    <p class="note">El admin fijo es alejandro.clemente05@gmail.com, con el mail verificado.</p></section>`}
+function fbAdminHTML(){return fbRoomsHTML()+fbUsersHTML()}
+function fbRoomsHTML(){if(!FB||!isOwnerV)return'';const rooms=ADM_ROOMS||[],users=ADM_USERS||[];const nm=id=>{const u=users.find(x=>x.uid===id);return u?u.username:'—'};
+  return `<section class="box admin grow">${ADM_ROOMS===null?'<p class="note">Cargando…</p>':fitList('adm-rooms',rooms,r=>`<li><span style="flex:1"><b>${esc(r.code)}</b> · ${esc(r.type||'')} · ${r.status==='playing'?'jugando':'esperando'}<small>Anfitrión: ${esc(nm(r.host))} · ${(r.playerIds||[]).length} jugador${(r.playerIds||[]).length===1?'':'es'}${r.game?' · '+r.game.scores[0]+' a '+r.game.scores[1]:''}</small></span><button class="btn sm warn" data-a="admclose" data-id="${esc(r.code)}">Cerrar</button></li>`,'flist','<p class="note">No hay salas abiertas.</p>')}</section>`}
+function fbUsersHTML(){if(!FB||!isOwnerV)return'';const users=ADM_USERS||[];
+  return `<section class="box admin grow">${ADM_USERS===null?'<p class="note">Cargando…</p>':fitList('adm-users',users,u=>{const s=u.stats||{};const adm=u.role==='admin';return `<li>${avatarSVG(AVM[u.avatar]?u.avatar:'gaucho',34)}<span style="flex:1">${esc(u.username||'—')}${adm?' <span class="prem">Admin</span>':''}${u.banned?' <span class="prem" style="background:var(--bad)">Suspendido</span>':''}<small>${fmt(s.played||0)} partidas · ${s.played?Math.round((s.winRate||0)*100):0}% ganadas</small></span><button class="btn sm" data-a="admuser" data-id="${esc(u.uid)}">Ver</button>${u.uid===uid?'':`<button class="btn sm ${adm?'warn':'brass'}" data-a="admrole" data-id="${esc(u.uid)}" data-v="${adm?'player':'admin'}">${adm?'Quitar admin':'Hacer admin'}</button>`}</li>`},'flist')}
+    <p class="note" style="margin:0">El admin fijo es alejandro.clemente05@gmail.com, con el mail verificado.</p></section>`}
 function fbAccountHTML(){if(!FB)return'';const ver=AUTHINFO&&AUTHINFO.emailVerified;
   return `${ver?'':`<div class="demo">Todavía no verificaste tu mail. ${NET.ADMIN_EMAILS.includes((myEmail||'').toLowerCase())?'Hasta que lo verifiques no se activan tus permisos de admin. ':''}<button class="btn sm" data-a="reverify">Reenviar mail</button></div>`}
     <button class="btn ghost" data-a="logout">Cerrar sesión</button>`}
@@ -1220,7 +1233,7 @@ const tTeamName=tm=>!tm?'—':esc(tm.names.filter(Boolean).join(' y ')+(tm.bot?'
 const tMine=tm=>!!(tm&&tm.ids.includes(uid));
 const tStatus={open:'Inscripción abierta',running:'En juego',paused:'En pausa',finished:'Terminado',cancelled:'Cancelado'};
 function subTours(){if(!FB||toursUnsub)return;try{toursUnsub=NET.tour.watchList(l=>{TOURS=l;tourClaims();if(view==='torneos')render()})}catch(e){}}
-function openTour(tid){if(tvUnsub)tvUnsub();TV={tid,t:null,entries:[],matches:[]};tourConfirm=null;view='tour';render();window.scrollTo(0,0);
+function openTour(tid){if(tvUnsub)tvUnsub();TV={tid,t:null,entries:[],matches:[]};tourConfirm=null;PT.tour='res';overlayView=null;view='tour';render();
   TVB=null;tvUnsub=NET.tour.watch(tid,x=>{if(!TV||TV.tid!==tid)return;Object.assign(TV,x,{loaded:true});if(view==='tour')render()})}
 /* cobra solo el premio o el reintegro de los torneos en los que te anotaste */
 function tourClaims(){for(const t of TOURS||[]){const mine=WAL.tours&&WAL.tours[t.id];if(!mine||mine.claimed||TCLAIM.has(t.id))continue;if(t.status!=='finished'&&t.status!=='cancelled')continue;TCLAIM.add(t.id);
@@ -1257,32 +1270,30 @@ function tourCardHTML(t){const mine=!!(WAL.tours&&WAL.tours[t.id]);const cap=NET
     <span class="tc-meta">${t.format==='liga'?'Liga':'Eliminación'} · ${t.mode} · ${t.status==='open'?`${t.players}/${cap} inscriptos`:`${(t.teams||[]).length} ${t.mode==='2v2'?'parejas':'jugadores'}`}${t.startAt&&t.status!=='open'?' · '+esc(tFmtDate(t.startAt)):''}</span>
     <span class="tc-pot"><i class="chip"></i><b>${potHTML(t,'sm')}</b> de premio <small>· entrada ${t.buyIn?fmt(t.buyIn)+' fichas':'gratis'}</small></span>
     ${t.status==='open'&&!tClosed(t)&&left>0&&left<=Math.max(2,Math.ceil(cap/4))?`<span class="fomo">¡Quedan ${left} lugar${left===1?'':'es'}!</span>`:''}${cdHTML(t,false)}</button>`}
-function toursPageHTML(){
-  if(!FB)return `<div class="grid"><section class="box"><h2>Torneos</h2><p class="note">Los torneos se juegan en la web, con tu cuenta: <b>aleclem180.github.io/Reviro</b>. La entrada y el premio son en fichas.</p></section></div>`;
+function toursPageHTML(){const head=phd('Torneos',isOwnerV&&FB?'<button type="button" class="btn sm brass" data-a="tournew">+ Crear</button>':'','menu');
+  if(!FB)return head+`<section class="box"><p style="margin:0">Los torneos se juegan en la web, con tu cuenta: <b>aleclem180.github.io/Reviro</b>. La entrada y el premio son en fichas.</p></section>`;
   const live=(TOURS||[]).filter(t=>t.status==='open'||t.status==='running'||t.status==='paused');
   const done=(TOURS||[]).filter(t=>t.status==='finished'&&Date.now()-(t.finishedAt||t.updatedAt||0)<14*864e5);
-  return `<section class="hero thero"><h1>Torneos</h1><p>Anotate, armá el pozo y llevate el premio en fichas.</p></section><div class="grid">
-    <section class="box tours"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Abiertos y en juego</h2>${isOwnerV?'<button class="btn sm brass" data-a="tournew">+ Crear torneo</button>':''}</div>
-    ${TOURS===null?'<p class="note">Cargando…</p>':live.length?`<div class="tlist">${live.map(tourCardHTML).join('')}</div>`
-      :`<p class="note">${isOwnerV?'Todavía no hay torneos. Creá el primero.':'Por ahora no hay torneos abiertos. Cuando se arme uno, aparece acá.'}</p>`}</section>
-    ${done.length?`<section class="box"><h2>Terminados</h2><div class="tlist">${done.map(tourCardHTML).join('')}</div></section>`:''}
-    <section class="box"><h2>Cómo funciona</h2><ul class="tsteps"><li><b>Anotate</b> pagando la entrada en fichas. El premio crece con cada inscripto.</li><li><b>Cuando cierra la inscripción</b> se sortean los cruces.</li><li><b>Jugá tus partidas</b> desde acá: arrancan solas cuando están todos.</li><li><b>Los tres primeros</b> se llevan el premio, que se cobra solo.</li></ul><p class="note">Las fichas no tienen valor en dinero.</p></section></div>`}
-function tourNewHTML(){if(!isOwnerV)return `<div class="grid"><section class="box"><p>Solo los admins crean torneos.</p></section></div>`;
+  const [tab,tabs]=ptabs('tours',[['live',`Abiertos y en juego${live.length?' · '+live.length:''}`],['done','Terminados']],'live');
+  return head+tabs+`<div class="pbody">${TOURS===null?'<p class="note">Cargando…</p>':fitList('tours-'+tab,tab==='live'?live:done,tourCardHTML,'tlist',`<section class="box"><p class="note" style="margin:0">${tab==='live'?(isOwnerV?'Todavía no hay torneos. Creá el primero.':'Por ahora no hay torneos abiertos. Cuando se arme uno, aparece acá.'):'No terminó ninguno en las últimas dos semanas.'}</p></section>`)}</div>
+    <button type="button" class="linkrow" data-a="ov" data-v="tourhow">¿Cómo funcionan los torneos?</button>`}
+function tourHowHTML(){return `<div class="over" data-a="close"><div class="panel lpanel" data-stop><h2>Cómo funcionan</h2><ul class="tsteps"><li><b>Anotate</b> pagando la entrada en fichas. El premio crece con cada inscripto.</li><li><b>Cuando cierra la inscripción</b> se sortean los cruces.</li><li><b>Jugá tus partidas</b> desde el torneo: arrancan solas cuando están todos.</li><li><b>Los tres primeros</b> se llevan el premio, que se cobra solo.</li></ul><p class="note">Las fichas no tienen valor en dinero.</p><button class="btn ghost" data-a="close">Cerrar</button></div></div>`}
+function tourNewHTML(){const head=phd('Nuevo torneo','','torneos');if(!isOwnerV)return head+`<section class="box"><p style="margin:0">Solo los admins crean torneos.</p></section>`;
   const maxes=TMAX[TN.format];if(!maxes.includes(TN.max))TN.max=maxes[1];
   const full=TN.max*(TN.mode==='2v2'?2:1),fake={id:'new',status:'open',players:full,buyIn:TN.buyIn,split:NET.tour.SPLIT},bk=NET.tour.booksOf(fake),pr=NET.tour.prizesOf(fake,3);
-  return `<div class="backx"><button type="button" class="btn ghost sm" data-a="nav" data-v="torneos">← Torneos</button></div><div class="grid"><form class="box" data-form="tour"><h2>Nuevo torneo</h2>
-    <label class="field"><span>Nombre</span><input class="tin" id="tname" maxlength="40" required placeholder="Copa de la Pulpería" value="${esc(TN.name)}"></label>
+  const [tab,tabs]=ptabs('tnew',[['datos','1. Datos'],['juego','2. Formato'],['premio','3. Premio']],'datos');let body='';
+  if(tab==='datos')body=`<label class="field"><span>Nombre</span><input class="tin" id="tname" maxlength="40" placeholder="Copa de la Pulpería" value="${esc(TN.name)}"></label>
     <label class="field"><span>Temática</span><input class="tin" id="ttheme" maxlength="60" placeholder="Truco de fogón, a 15 con flor" value="${esc(TN.theme)}"></label>
-    <label class="field"><span>Fecha y hora</span><input class="tin" id="tdate" type="datetime-local" value="${esc(TN.date)}"></label>
-    <div class="field"><span>Formato</span>${seg('tn.format',[['ko','Eliminación directa'],['liga','Liga: todos contra todos']],TN.format)}</div>
+    <label class="field"><span>Fecha y hora (cierra la inscripción y arranca)</span><input class="tin" id="tdate" type="datetime-local" value="${esc(TN.date)}"></label>
+    <label class="field"><span>Reglas</span><textarea class="tin" id="trules" maxlength="600" rows="3" placeholder="Ej.: si tu rival no aparece en 5 minutos, podés empezar con la IA en su lugar.">${esc(TN.rules)}</textarea></label>`;
+  if(tab==='juego')body=`<div class="field"><span>Formato</span>${seg('tn.format',[['ko','Eliminación directa'],['liga','Liga: todos contra todos']],TN.format)}</div>
     <div class="field"><span>Modalidad</span>${seg('tn.mode',[['1v1','1 contra 1'],['2v2','Parejas 2 contra 2']],TN.mode)}</div>
     <div class="field"><span>Cupo (${TN.mode==='2v2'?'parejas':'jugadores'})</span>${seg('tn.max',maxes.map(v=>[v,v]),TN.max)}</div>
-    <div class="field"><span>Entrada por jugador</span>${seg('tn.buyIn',TBUY.map(v=>[v,v?fmt(v):'Gratis']),TN.buyIn)}</div>
     <div class="field"><span>Partidas a</span>${seg('tn.target',[[15,'15 puntos'],[30,'30 puntos']],TN.target)}</div>
-    <div class="field"><span>Flor</span>${seg('tn.flor',[['true','Con flor'],['false','Sin flor']],TN.flor)}</div>
-    <label class="field"><span>Reglas</span><textarea class="tin" id="trules" maxlength="600" rows="4" placeholder="Ej.: las partidas se juegan el mismo día. Si tu rival no aparece en 5 minutos, podés empezar con la IA en su lugar.">${esc(TN.rules)}</textarea></label>
-    <div class="demo" style="margin:0"><b>Cuentas internas (solo las ven los admins).</b> El premio es el 90% de lo recaudado y el 10% queda para la casa; los jugadores solo ven el premio ya calculado. Reparto: 1.º 60%, 2.º 30%, 3.º 10%.${TN.buyIn?` Con el cupo lleno: recaudás <b>${fmt(bk.gross)}</b>, el premio es <b>${fmt(bk.pot)}</b> (${fmt(pr[0])} / ${fmt(pr[1])} / ${fmt(pr[2])}) y la casa se queda <b>${fmt(bk.house)}</b>.`:''} Si ponés fecha y hora, la inscripción cierra ahí y el torneo arranca solo cuando tengas Reviro abierto.</div>
-    <button class="btn prim" type="submit" ${tourBusy?'disabled':''}>Crear torneo</button></form></div>`}
+    <div class="field"><span>Flor</span>${seg('tn.flor',[['true','Con flor'],['false','Sin flor']],TN.flor)}</div>`;
+  if(tab==='premio')body=`<div class="field"><span>Entrada por jugador</span>${seg('tn.buyIn',TBUY.map(v=>[v,v?fmt(v):'Gratis']),TN.buyIn)}</div>
+    <div class="demo" style="margin:0"><b>Cuentas internas (solo las ven los admins).</b> El premio es el 90% de lo recaudado y el 10% queda para la casa; los jugadores solo ven el premio ya calculado. Reparto: 1.º 60%, 2.º 30%, 3.º 10%.${TN.buyIn?` Con el cupo lleno: recaudás <b>${fmt(bk.gross)}</b>, el premio es <b>${fmt(bk.pot)}</b> (${fmt(pr[0])} / ${fmt(pr[1])} / ${fmt(pr[2])}) y la casa se queda <b>${fmt(bk.house)}</b>.`:''}</div>`;
+  return head+tabs+`<form class="box tnew" data-form="tour">${body}<button class="btn prim" type="submit" ${tourBusy?'disabled':''}>Crear torneo${TN.name?' «'+esc(TN.name)+'»':''}</button></form>`}
 async function tourCreate(){if(tourBusy)return;const name=(TN.name||'').trim();if(!name){toast('Ponele un nombre al torneo');return}
   tourBusy=true;render();try{const startAt=TN.date?Date.parse(TN.date):null;
     const id=await NET.tour.create({name,theme:TN.theme.trim(),rules:TN.rules.trim(),startAt:isNaN(startAt)?null:startAt,format:TN.format,mode:TN.mode,maxTeams:TN.max,buyIn:TN.buyIn,target:TN.target,flor:TN.flor});
@@ -1295,10 +1306,10 @@ function tourPrizesHTML(t){const n=t.status==='open'?Math.max(3,t.maxTeams):(t.t
 function tourBooksHTML(t){if(!isOwnerV)return'';const live=NET.tour.booksOf(t);const b=t.status==='open'||!TVB?live:(TVB.books||live);
   if(TVB===null&&t.status!=='open'){TVB=undefined;NET.tour.books(t.id).then(x=>{TVB=x;if(view==='tour')render()}).catch(()=>{TVB={books:null,ledger:[]}})}
   const L=(TVB&&TVB.ledger)||[];const kinds={entrada:'Entrada',baja:'Baja',premio:'Premio',reintegro:'Reintegro'};
-  return `<section class="box admin"><h2>Cuentas</h2><p class="note" style="margin:0">Solo las ven los admins.</p>
-    <div class="stats"><div class="stat-b"><small>Recaudación bruta</small><b>${fmt(b.gross||0)}</b></div><div class="stat-b"><small>Premio</small><b>${fmt(b.pot||0)}</b></div><div class="stat-b"><small>Para la casa</small><b>${fmt(b.house||0)}</b></div></div>
-    ${t.status==='cancelled'?'<p class="note">Cancelado: se devolvieron todas las entradas.</p>':''}
-    ${L.length?`<details><summary>Movimientos</summary><ul class="flist">${L.slice(0,20).map(x=>`<li><span style="flex:1">${kinds[x.kind]||x.kind}<small>${esc((TV.entries.find(e=>e.uid===x.uid)||{}).name||x.uid.slice(0,6))} · ${esc(tFmtDate(x.at))}</small></span><b>${x.kind==='entrada'?'+':'−'}${fmt(x.amount)}</b></li>`).join('')}</ul></details>`:''}
+  return `<section class="box admin grow"><h3 style="margin:0">Cuentas <small class="note">(solo admins)</small></h3>
+    <div class="stats"><div class="stat-b"><small>Recaudado</small><b>${fmt(b.gross||0)}</b></div><div class="stat-b"><small>Premio</small><b>${fmt(b.pot||0)}</b></div><div class="stat-b"><small>Casa</small><b>${fmt(b.house||0)}</b></div></div>
+    ${t.status==='cancelled'?'<p class="note" style="margin:0">Cancelado: se devolvieron todas las entradas.</p>':''}
+    ${fitList('tledger',L,x=>`<li><span style="flex:1">${kinds[x.kind]||x.kind}<small>${esc((TV.entries.find(e=>e.uid===x.uid)||{}).name||x.uid.slice(0,6))} · ${esc(tFmtDate(x.at))}</small></span><b>${x.kind==='entrada'?'+':'−'}${fmt(x.amount)}</b></li>`,'flist')}
     ${t.status!=='open'?'<button class="btn sm ghost" data-a="tourbooks">Actualizar</button>':''}</section>`}
 function tourMatchHTML(t,m){const me=tMine(m.a)||tMine(m.b);const done=!!m.winner;
   const side=(s)=>{const tm=m[s];return `<span class="tm-side ${done&&m.winner===s?'win':''} ${tMine(tm)?'tme':''}">${tm?tTeamName(tm):'<i>A definir</i>'}${done&&m.pts&&!m.bye&&!m.wo&&!m.forfeit?`<b>${m.pts[s==='a'?0:1]}</b>`:''}</span>`};
@@ -1306,56 +1317,50 @@ function tourMatchHTML(t,m){const me=tMine(m.a)||tMine(m.b);const done=!!m.winne
   if(!done&&m.a&&m.b&&t.status==='running'){if(me)act=`<button class="btn sm prim" data-a="tourplay" data-mid="${esc(m.id)}">Jugar</button>`;
     if(isOwnerV){const sn=tm=>esc((tm.names[0]||'').split(' ')[0]||'—');act+=`<span class="tm-wo"><button class="btn sm ghost" data-a="tourwo" data-mid="${esc(m.id)}" data-w="a" title="Dar por ganado (no se presentó el rival)">Gana ${sn(m.a)}</button><button class="btn sm ghost" data-a="tourwo" data-mid="${esc(m.id)}" data-w="b" title="Dar por ganado (no se presentó el rival)">Gana ${sn(m.b)}</button></span>`}}
   return `<div class="tm ${me?'mine':''}">${side('a')}${m.bye?'<span class="tm-side bye"><i>Pasa directo</i></span>':side('b')}${m.wo?'<small class="note">Por no presentarse</small>':m.forfeit?'<small class="note">Ganó por abandono del rival</small>':''}${act?`<div class="row">${act}</div>`:''}</div>`}
-function tourHTML(){const back=`<div class="backx"><button type="button" class="btn ghost sm" data-a="nav" data-v="torneos">← Torneos</button></div>`;
-  if(!TV||!TV.t)return back+`<div class="grid"><section class="box"><p class="note">${TV&&TV.t===null&&TV.loaded?'Ese torneo ya no existe.':'Cargando torneo…'}</p></section></div>`;
-  const t=TV.t,E=TV.entries,M=TV.matches,cap=NET.tour.cap(t);const myE=E.find(e=>e.uid===uid);
-  const info=[t.format==='liga'?'Liga':'Eliminación directa',t.mode==='2v2'?'Parejas 2 contra 2':'1 contra 1','a '+t.target+' puntos',t.flor===false?'sin flor':'con flor',t.buyIn?'entrada '+fmt(t.buyIn)+' fichas':'entrada gratis'];
-  let o=back+`<div class="grid"><section class="box thead"><div class="row" style="justify-content:space-between;align-items:flex-start"><div style="min-width:0"><h2 style="margin:0">${esc(t.name)}</h2>${t.theme?`<p class="tc-theme" style="margin:2px 0 0">${esc(t.theme)}</p>`:''}</div><span class="tst ${t.status}">${tStatus[t.status]}</span></div>
-    <div class="tchips">${info.map(x=>`<span>${esc(x)}</span>`).join('')}${t.startAt?`<span>${esc(tFmtDate(t.startAt))}</span>`:''}</div>
-    ${cdHTML(t,true)}${tourPrizesHTML(t)}
-    ${t.status==='open'&&!tClosed(t)?`<a class="btn wa" href="${waHref(`Anotate en el torneo ${t.name} de Reviro. Premio acumulado: ${fmt(NET.tour.potOf(t))} fichas. ${siteURL()}#t-${t.id}`)}" target="_blank" rel="noopener">${WAICO} Invitar al torneo por WhatsApp</a>`:''}
-    ${t.rules?`<details class="trules"><summary>Reglas del torneo</summary><p>${esc(t.rules)}</p></details>`:''}</section>`;
-  if(t.status==='open'){const pct=Math.min(100,Math.round(t.players/cap*100));const closed=tClosed(t),left=cap-t.players;
-    const recent=E.slice().sort((x,y)=>y.at-x.at).slice(0,3);
-    const teams={};E.forEach(e=>{(teams[e.team]=teams[e.team]||[]).push(e)});
-    o+=`<section class="box"><h2>Inscripción</h2><div class="tbar"><i style="width:${pct}%"></i></div><p class="note" style="margin:0">${t.players} de ${cap} lugares${t.mode==='2v2'?' ('+t.maxTeams+' parejas)':''}</p>${!closed&&left>0&&left<=Math.max(2,Math.ceil(cap/4))?`<p class="fomo">¡Quedan ${left} lugar${left===1?'':'es'}!</p>`:''}
-      ${recent.length&&!closed?`<div class="recent">${recent.map(e=>`<span>${avatarSVG(AVM[e.av]?e.av:'gaucho',22)}<b>${esc(e.name)}</b> se anotó ${esc(agoTxt(e.at))}</span>`).join('')}</div>`:''}
-      ${closed?`<p class="note">La inscripción cerró. ${isOwnerV?'Largalo cuando quieras.':'El torneo arranca en un ratito: cuando se sorteen los cruces te aparece tu partida.'}</p>`:''}`;
-    if(myE){const cap2=E.find(e=>e.uid===myE.team),mate=myE.team===uid?E.find(e=>e.uid===myE.partner):cap2;
-      o+=`<p class="ok">Estás inscripto${t.mode==='2v2'?(mate?` con <b>${esc(mate.name)}</b>`:'. Si nadie se suma a tu pareja, al empezar te toca compañero (o la IA)'):''}.</p>
-        <button class="btn ghost" data-a="tourleave" ${tourBusy||closed?'disabled':''}>${tourConfirm==='leave'?'Confirmar baja':'Darme de baja'}${t.buyIn?` (te devolvemos ${fmt(t.buyIn)})`:''}</button>`}
-    else{const full=t.players>=cap,poor=t.buyIn>WAL.chips;
-      o+=`<button class="btn prim big-cta" data-a="tourjoin" ${full||poor||tourBusy||closed?'disabled':''}>${closed?'Inscripción cerrada':full?'Cupo lleno':`Inscribirme${t.buyIn?' · '+fmt(t.buyIn)+' fichas':''}`}</button>${poor&&!full?'<p class="note">No te alcanzan las fichas.</p>':''}
-        ${t.mode==='2v2'?(()=>{const fr=[...friendSet()];const inv=E.filter(e=>e.invite===uid&&!e.partner);
-          return `${inv.map(e=>`<div class="trow hot"><div><b>${esc(e.name)}</b> <span>te invitó a ser su pareja</span></div><button class="btn prim" data-a="tourjoin" data-team="${esc(e.uid)}" ${full||poor||tourBusy||closed?'disabled':''}>Aceptar</button></div>`).join('')}
-          ${fr.length&&!full&&!closed?`<h3>O anotate con un amigo</h3><p class="note" style="margin:0">Le llega la invitación y el lugar queda reservado para él.</p><div class="frpick">${fr.slice(0,12).map(id=>`<button type="button" class="btn sm" data-a="tourwith" data-id="${esc(id)}" ${poor||tourBusy?'disabled':''}>${avatarSVG((LOOKS[id]&&LOOKS[id].av)||'gaucho',24)} ${esc(dispName(id)||'Amigo')}</button>`).join('')}</div>`:''}
-          <p class="note">Si te anotás solo, otro se puede sumar a tu pareja; si no se suma nadie, al empezar te toca compañero (o la IA).</p>`})():''}`}
-    const TG=Object.values(teams),showAll=TV.all||TG.length<=24;
-    o+=`<h3>Inscriptos</h3>${E.length?`<ul class="flist">${(showAll?TG:TG.slice(0,24)).map(g=>{const capE=g.find(e=>e.uid===e.team)||g[0];const open=t.mode==='2v2'&&g.length<2&&capE.uid===capE.team&&!capE.partner&&(!capE.invite||capE.invite===uid);const reserved=t.mode==='2v2'&&g.length<2&&capE.invite&&capE.invite!==uid&&!capE.partner;
-      return `<li>${g.map(e=>avatarSVG(AVM[e.av]?e.av:'gaucho',30)).join('')}<span style="flex:1">${esc(g.map(e=>e.name).join(' y '))}${g.some(e=>e.uid===uid)?' <small>(vos)</small>':''}${open?'<small>Falta compañero</small>':reserved?`<small>Esperando a ${esc(dispName(capE.invite)||'su amigo')}</small>`:''}</span>${open&&!myE&&!closed&&t.players<cap?`<button class="btn sm" data-a="tourjoin" data-team="${esc(capE.uid)}" ${t.buyIn>WAL.chips||tourBusy?'disabled':''}>Sumarme</button>`:''}</li>`}).join('')}</ul>${showAll?'':`<button class="btn ghost sm" data-a="tourall">Ver los ${TG.length}</button>`}`:'<p class="note">Todavía no se anotó nadie.</p>'}</section>`;
-    if(isOwnerV)o+=`<section class="box admin"><h2>Administrar</h2>${t.startAt&&Date.now()>t.startAt?'<p class="note">Ya es la hora: empezalo cuando quieras.</p>':''}
-      <div class="row"><button class="btn prim" data-a="tourstart" ${E.length<2||tourBusy?'disabled':''}>${tourConfirm==='start'?'Confirmar: cerrar inscripción y sortear':'Empezar torneo'}</button>
-      <button class="btn warn" data-a="tourcancel" ${tourBusy?'disabled':''}>${tourConfirm==='cancel'?'Confirmar cancelación':'Cancelar torneo'}</button></div>
-      <p class="note">Al empezar se sortean los cruces${t.mode==='2v2'?' y se arman las parejas que falten (si sobra uno, juega con la IA)':''}. Si lo cancelás, a todos se les devuelve la entrada.</p></section>`}
-  else if(t.status==='cancelled')o+=`<section class="box"><p>Este torneo se canceló. A cada inscripto se le devolvió la entrada.</p></section>`;
-  else{
-    const pending=M.filter(m=>!m.winner&&m.a&&m.b&&(tMine(m.a)||tMine(m.b)));
-    if(t.status==='paused')o+=`<section class="box tnext"><h2>Torneo en pausa</h2><p class="note" style="margin:0">El organizador frenó el torneo un momento. Cuando lo reanude, vas a poder jugar tu partida.</p></section>`;
-    if(isOwnerV&&(t.status==='running'||t.status==='paused'))o+=`<section class="box admin"><h2>Controles del torneo</h2><div class="row"><button class="btn ${t.status==='paused'?'prim':'brass'}" data-a="tourpause">${t.status==='paused'?'Reanudar torneo':'Pausar torneo'}</button><button class="btn warn" data-a="tourcancel">${tourConfirm==='cancel'?'Confirmar: cancelar y devolver entradas':'Cancelar y devolver entradas'}</button></div><p class="note" style="margin:0">En pausa no arrancan partidas nuevas; las que se están jugando terminan normal.</p></section>`;
-    if(t.status==='running'&&pending.length)o+=`<section class="box tnext"><h2>Te toca</h2>${pending.map(m=>`<div class="trow"><div><b>${esc(m.label)}</b> <span>vs ${tTeamName(tMine(m.a)?m.b:m.a)}</span></div><button class="btn prim" data-a="tourplay" data-mid="${esc(m.id)}">Jugar mi partida</button></div>`).join('')}<p class="note">Si tu rival no llega en 5 minutos, podés empezar igual: la IA juega en su lugar. Abandonar una partida es perderla.</p></section>`;
-    if(t.status==='finished'&&t.places){const pr=NET.tour.prizesOf(t,(t.teams||[]).length);
-      o+=`<section class="box podio"><h2>Podio</h2>${['p1','p2','p3'].map((p,i)=>t.places[p]?`<div class="pd pd${i+1} ${tMine(t.places[p])?'tme':''}"><span class="pd-n">${i+1}.º</span><span class="pd-w">${tTeamName(t.places[p])}</span><span class="pd-p"><i class="chip"></i>${fmt(pr[i]||0)}</span></div>`:'').join('')}</section>`}
-    if(t.format==='liga'){const S=NET.tour.standingsOf(t,M);
-      o+=`<section class="box"><h2>Tabla</h2><table class="tstand"><thead><tr><th>#</th><th>${t.mode==='2v2'?'Pareja':'Jugador'}</th><th>PJ</th><th>PG</th><th>Dif.</th></tr></thead><tbody>${S.map((r,i)=>`<tr class="${tMine(r.team)?'tme':''}"><td>${i+1}</td><td>${tTeamName(r.team)}</td><td>${r.pj}</td><td><b>${r.w}</b></td><td>${r.pf-r.pa>0?'+':''}${r.pf-r.pa}</td></tr>`).join('')}</tbody></table></section>`;
-      const rounds=[...new Set(M.map(m=>m.round))];
-      o+=`<section class="box"><h2>Partidos</h2>${rounds.map(r=>`<h3>Fecha ${r}</h3><div class="tms">${M.filter(m=>m.round===r).map(m=>tourMatchHTML(t,m)).join('')}</div>`).join('')}</section>`}
-    else{let rounds=[...new Set(M.filter(m=>!m.third).map(m=>m.round))];
-      /* llaves grandes: se ve una ronda por vez, con pestañas (arranca en la ronda que se está jugando) */
-      let tabs='';if(rounds.length>3){const cur=rounds.find(r=>M.some(m=>m.round===r&&!m.third&&!m.winner))||rounds[rounds.length-1];const sel=rounds.includes(TV.round)?TV.round:cur;
-        tabs=`<div class="subtabs" role="group">${rounds.map(r=>{const ms=M.filter(m=>m.round===r&&!m.third);return `<button type="button" data-a="tourround" data-v="${r}" aria-pressed="${r===sel}">${esc(ms[0].label)}</button>`}).join('')}</div>`;rounds=[sel]}
-      o+=`<section class="box"><h2>Llave</h2>${tabs}<div class="bracket">${rounds.map(r=>{const ms=M.filter(m=>m.round===r&&!m.third);return `<div class="bcol"><h3>${esc(ms[0].label)}</h3><div class="tms">${ms.map(m=>tourMatchHTML(t,m)).join('')}</div>${M.filter(m=>m.third&&m.round===r).map(m=>`<h3 style="margin-top:10px">${esc(m.label)}</h3><div class="tms">${tourMatchHTML(t,m)}</div>`).join('')}</div>`}).join('')}</div></section>`}}
-  if(isOwnerV)o+=tourBooksHTML(t);
-  return o+'</div>'}
+function tourHTML(){
+  if(!TV||!TV.t)return phd('Torneo','','torneos')+`<section class="box"><p class="note" style="margin:0">${TV&&TV.t===null&&TV.loaded?'Ese torneo ya no existe.':'Cargando torneo…'}</p></section>`;
+  const t=TV.t,E=TV.entries,M=TV.matches,cap=NET.tour.cap(t);const myE=E.find(e=>e.uid===uid);const closed=tClosed(t),left=cap-t.players;
+  const teams={};E.forEach(e=>{(teams[e.team]=teams[e.team]||[]).push(e)});const TG=Object.values(teams);
+  const opts=[['res','Resumen']];if(t.status==='open')opts.push(['ins',`Inscriptos · ${TG.length}`]);
+  else if(t.status!=='cancelled'){opts.push(['cuadro',t.format==='liga'?'Tabla':'Llave']);if(t.format==='liga')opts.push(['fechas','Partidos'])}
+  if(isOwnerV)opts.push(['adm','Admin']);const [tab,tabs]=ptabs('tour',opts,'res');
+  const head=phd(esc(t.name),`<span class="tst ${t.status}">${tStatus[t.status]}</span>`,'torneos');let body='';
+  if(tab==='res'){const info=[t.format==='liga'?'Liga':'Eliminación directa',t.mode==='2v2'?'Parejas':'1 contra 1','a '+t.target,t.flor===false?'sin flor':'con flor',t.buyIn?'entrada '+fmt(t.buyIn):'gratis'];
+    let cta='';
+    if(t.status==='open'){
+      if(myE){const mate=myE.team===uid?E.find(e=>e.uid===myE.partner):E.find(e=>e.uid===myE.team);
+        cta=`<p class="ok" style="margin:0">Estás inscripto${t.mode==='2v2'?(mate?` con <b>${esc(mate.name)}</b>`:'. Si nadie se suma a tu pareja, al empezar te toca compañero (o la IA)'):''}.</p><button class="btn ghost" data-a="tourleave" ${tourBusy||closed?'disabled':''}>${tourConfirm==='leave'?'Confirmar baja':'Darme de baja'}${t.buyIn?` (te devolvemos ${fmt(t.buyIn)})`:''}</button>`}
+      else{const full=t.players>=cap,poor=t.buyIn>WAL.chips,dis=full||poor||tourBusy||closed;const inv=E.filter(e=>e.invite===uid&&!e.partner);
+        cta=inv.map(e=>`<div class="trow hot"><div><b>${esc(e.name)}</b> <span>te invitó a ser su pareja</span></div><button class="btn prim" data-a="tourjoin" data-team="${esc(e.uid)}" ${dis?'disabled':''}>Aceptar</button></div>`).join('')+
+          `<div class="row ctas"><button class="btn prim big-cta" data-a="tourjoin" ${dis?'disabled':''}>${closed?'Inscripción cerrada':full?'Cupo lleno':`Inscribirme${t.buyIn?' · '+fmt(t.buyIn)+' fichas':''}`}</button>${t.mode==='2v2'&&!full&&!closed&&friendSet().size?`<button class="btn" data-a="ov" data-v="tourfriend" ${poor||tourBusy?'disabled':''}>Con un amigo</button>`:''}</div>${poor&&!full?'<p class="note" style="margin:0">No te alcanzan las fichas.</p>':''}`}
+      if(!closed&&left>0&&left<=Math.max(2,Math.ceil(cap/4)))cta+=`<p class="fomo">¡Quedan ${left} lugar${left===1?'':'es'}!</p>`}
+    else if(t.status==='paused')cta=`<p class="note" style="margin:0"><b>Torneo en pausa.</b> El organizador lo frenó un momento. Cuando lo reanude, vas a poder jugar tu partida.</p>`;
+    else if(t.status==='running'){const pending=M.filter(m=>!m.winner&&m.a&&m.b&&(tMine(m.a)||tMine(m.b)));
+      cta=pending.length?pending.map(m=>`<div class="trow hot"><div><b>Te toca: ${esc(m.label)}</b> <span>vs ${tTeamName(tMine(m.a)?m.b:m.a)}</span></div><button class="btn prim" data-a="tourplay" data-mid="${esc(m.id)}">Jugar</button></div>`).join('')+'<p class="note" style="margin:0">Si tu rival no llega en 5 minutos, la IA juega en su lugar. Abandonar una partida es perderla.</p>':`<p class="note" style="margin:0">Se está jugando. Mirá la ${t.format==='liga'?'tabla':'llave'} para ver cómo va.</p>`}
+    else if(t.status==='cancelled')cta='<p style="margin:0">Este torneo se canceló. A cada inscripto se le devolvió la entrada.</p>';
+    else if(t.status==='finished'&&t.places){const pr=NET.tour.prizesOf(t,(t.teams||[]).length);cta=`<div class="podio">${['p1','p2','p3'].map((p,i)=>t.places[p]?`<div class="pd pd${i+1} ${tMine(t.places[p])?'tme':''}"><span class="pd-n">${i+1}.º</span><span class="pd-w">${tTeamName(t.places[p])}</span><span class="pd-p"><i class="chip"></i>${fmt(pr[i]||0)}</span></div>`:'').join('')}</div>`}
+    body=`<section class="box thead">${t.theme?`<p class="tc-theme" style="margin:0">${esc(t.theme)}</p>`:''}<div class="tchips">${info.map(x=>`<span>${esc(x)}</span>`).join('')}${t.startAt?`<span>${esc(tFmtDate(t.startAt))}</span>`:''}</div>
+      ${cdHTML(t,true)}${tourPrizesHTML(t)}${cta}
+      <div class="row tlinks">${t.status==='open'&&!closed?`<a class="btn wa sm" href="${waHref(`Anotate en el torneo ${t.name} de Reviro. Premio acumulado: ${fmt(NET.tour.potOf(t))} fichas. ${siteURL()}torneo?id=${t.id}`)}" target="_blank" rel="noopener">${WAICO} Invitar</a>`:''}${t.rules?'<button type="button" class="btn sm ghost" data-a="ov" data-v="tourrules">Reglas del torneo</button>':''}</div></section>`}
+  if(tab==='ins'){const pct=Math.min(100,Math.round(t.players/cap*100));const recent=E.slice().sort((x,y)=>y.at-x.at)[0];
+    body=`<section class="box grow"><div class="tbar"><i style="width:${pct}%"></i></div><p class="note" style="margin:0">${t.players} de ${cap} lugares${t.mode==='2v2'?' ('+t.maxTeams+' parejas)':''}${recent&&!closed?` · ${esc(recent.name)} se anotó ${esc(agoTxt(recent.at))}`:''}</p>
+      ${fitList('tins',TG,g=>{const capE=g.find(e=>e.uid===e.team)||g[0];const open=t.mode==='2v2'&&g.length<2&&capE.uid===capE.team&&!capE.partner&&(!capE.invite||capE.invite===uid);const reserved=t.mode==='2v2'&&g.length<2&&capE.invite&&capE.invite!==uid&&!capE.partner;
+        return `<li>${g.map(e=>avatarSVG(AVM[e.av]?e.av:'gaucho',30)).join('')}<span style="flex:1">${esc(g.map(e=>e.name).join(' y '))}${g.some(e=>e.uid===uid)?' <small>(vos)</small>':''}${open?'<small>Falta compañero</small>':reserved?`<small>Esperando a ${esc(dispName(capE.invite)||'su amigo')}</small>`:''}</span>${open&&!myE&&!closed&&t.players<cap?`<button class="btn sm" data-a="tourjoin" data-team="${esc(capE.uid)}" ${t.buyIn>WAL.chips||tourBusy?'disabled':''}>Sumarme</button>`:''}</li>`},'flist','<p class="note" style="margin:0">Todavía no se anotó nadie.</p>')}</section>`}
+  if(tab==='cuadro'&&t.format==='liga'){const S=NET.tour.standingsOf(t,M);
+    body=`<section class="box grow"><div class="strow sth"><span>#</span><span>${t.mode==='2v2'?'Pareja':'Jugador'}</span><span>PJ</span><span>PG</span><span>Dif.</span></div>${fitList('tstand',S.map((r,i)=>Object.assign({pos:i+1},r)),r=>`<div class="strow ${tMine(r.team)?'tme':''}"><span>${r.pos}</span><span>${tTeamName(r.team)}</span><span>${r.pj}</span><b>${r.w}</b><span>${r.pf-r.pa>0?'+':''}${r.pf-r.pa}</span></div>`,'stand')}</section>`}
+  if(tab==='fechas'||(tab==='cuadro'&&t.format!=='liga')){const ko=t.format!=='liga';const rounds=[...new Set(M.filter(m=>!m.third).map(m=>m.round))];
+    const cur=rounds.find(r=>M.some(m=>m.round===r&&!m.third&&!m.winner))||rounds[rounds.length-1];const sel=rounds.includes(TV.round)?TV.round:cur;
+    const ms=M.filter(m=>m.round===sel).sort((a,b)=>(a.third?1:0)-(b.third?1:0));const lab=r=>{const x=M.find(m=>m.round===r&&!m.third);return ko?(x?x.label:'Ronda '+r):'Fecha '+r};
+    body=`${rounds.length>1?`<div class="subtabs rtabs" role="group">${rounds.map(r=>`<button type="button" data-a="tourround" data-v="${r}" aria-pressed="${r===sel}">${esc(lab(r))}</button>`).join('')}</div>`:''}
+      <section class="box grow">${fitList('tms-'+sel,ms,m=>(m.third?`<small class="tm-lab">${esc(m.label)}</small>`:'')+tourMatchHTML(t,m),'tms','<p class="note" style="margin:0">Todavía no hay cruces.</p>')}</section>`}
+  if(tab==='adm'){let c='';
+    if(t.status==='open')c=`<section class="box admin">${t.startAt&&Date.now()>t.startAt?'<p class="note" style="margin:0">Ya es la hora: empezalo cuando quieras.</p>':''}<div class="row"><button class="btn prim" data-a="tourstart" ${E.length<2||tourBusy?'disabled':''}>${tourConfirm==='start'?'Confirmar: cerrar y sortear':'Empezar torneo'}</button><button class="btn warn" data-a="tourcancel" ${tourBusy?'disabled':''}>${tourConfirm==='cancel'?'Confirmar cancelación':'Cancelar torneo'}</button></div><p class="note" style="margin:0">Al empezar se sortean los cruces${t.mode==='2v2'?' y se arman las parejas que falten (si sobra uno, juega con la IA)':''}. Si lo cancelás, a todos se les devuelve la entrada.</p></section>`;
+    else if(t.status==='running'||t.status==='paused')c=`<section class="box admin"><div class="row"><button class="btn ${t.status==='paused'?'prim':'brass'}" data-a="tourpause">${t.status==='paused'?'Reanudar torneo':'Pausar torneo'}</button><button class="btn warn" data-a="tourcancel">${tourConfirm==='cancel'?'Confirmar: cancelar y devolver':'Cancelar y devolver entradas'}</button></div><p class="note" style="margin:0">En pausa no arrancan partidas nuevas; las que se están jugando terminan normal.</p></section>`;
+    body=c+tourBooksHTML(t)}
+  return head+tabs+`<div class="pbody">${body}</div>`}
+function tourFriendHTML(){const fr=[...friendSet()];const t=TV&&TV.t;return `<div class="over" data-a="close"><div class="panel lpanel" data-stop><h2>Anotate con un amigo</h2><p class="note" style="margin:0">Le llega la invitación y el lugar queda reservado para él.</p>
+  ${fitList('tfr',fr,id=>`<li>${avatarSVG((LOOKS[id]&&LOOKS[id].av)||'gaucho',30)}<span style="flex:1">${esc(dispName(id)||'Amigo')}</span><button class="btn sm prim" data-a="tourwith" data-id="${esc(id)}" ${tourBusy||(t&&t.buyIn>WAL.chips)?'disabled':''}>Elegir</button></li>`,'flist')}
+  <button class="btn ghost" data-a="close">Cerrar</button></div></div>`}
 async function tourJoin(team,invite){const t=TV&&TV.t;if(!t||tourBusy)return;if(t.buyIn>WAL.chips){toast('No te alcanzan las fichas');return}
   tourBusy=true;render();try{const r=await NET.tour.register(t.id,{name:myDisp(),av:WAL.eq.av,team:team||null,invite:invite||null});tourBusy=false;
     if(r.ok&&invite){try{await db.collection('invites').add({from:uid,to:invite,kind:'tour',tid:t.id,name:t.name,at:Date.now()})}catch(e){}}
@@ -1416,9 +1421,10 @@ function claimReferral(){let code=null;try{code=localStorage.getItem('reviro.ref
   try{localStorage.removeItem('reviro.ref')}catch(e){}
   NET.ref.byCode(code).then(r=>r&&r!==uid?NET.ref.claim(r):false).then(ok=>{if(ok)applyTx('ref-new',{coins:NET.REF_NEW,earn:true}).then(()=>toast(`Te sumaste con la invitación de un amigo: +${fmt(NET.REF_NEW)} monedas`))}).catch(()=>{})}
 function refBoxHTML(){if(!FB)return'';const n=(MYUSER&&MYUSER.refBonus)||NET.REF_DEFAULT,played=REFS.filter(x=>x.played).length;
-  return `<section class="box"><h2>Invitá y ganá</h2><p class="note" style="margin:0">Por cada amigo que se registre con tu link y juegue su primera partida online, ganás <b>${fmt(n)}</b> monedas. Tu amigo arranca con ${fmt(NET.REF_NEW)} de regalo.</p>
+  return `<section class="box grow"><p class="note" style="margin:0">Por cada amigo que se registre con tu link y juegue su primera partida online, ganás <b>${fmt(n)}</b> monedas. Tu amigo arranca con ${fmt(NET.REF_NEW)} de regalo.</p>
     <div class="row" style="flex-wrap:nowrap"><a class="btn wa" href="${waHref(waInviteText())}" target="_blank" rel="noopener">${WAICO} Invitar por WhatsApp</a><button class="btn" data-a="copylink">Copiar link</button></div>
-    ${REFS.length?`<p class="note" style="margin:0">Invitaste a ${REFS.length} ${REFS.length===1?'persona':'personas'}: ${played} ya ${played===1?'jugó':'jugaron'}.</p><ul class="flist">${REFS.slice(0,10).map(x=>`<li><span style="flex:1">${esc(x.username||'Jugador')}<small>${x.played?(x.paidReferrer?'Cobraste el premio':'Jugó: cobrando…'):'Todavía no jugó online'}</small></span></li>`).join('')}</ul>`:''}</section>`}
+    ${REFS.length?`<p class="note" style="margin:0">Invitaste a ${REFS.length} ${REFS.length===1?'persona':'personas'}: ${played} ya ${played===1?'jugó':'jugaron'}.</p>`:''}
+    ${fitList('refs',REFS,x=>`<li><span style="flex:1">${esc(x.username||'Jugador')}<small>${x.played?(x.paidReferrer?'Cobraste el premio':'Jugó: cobrando…'):'Todavía no jugó online'}</small></span></li>`,'flist')}</section>`}
 function bannedHTML(){const r=MYUSER&&MYUSER.bannedReason;return `<div class="gate">${fileteHTML('gtitle')}<section class="box"><h2>Tu cuenta está suspendida</h2><p>${r?'Motivo: '+esc(r)+'. ':''}Si creés que es un error, hablá con el administrador.</p><button class="btn ghost" data-a="logout">Cerrar sesión</button></section></div>`}
 
 /* ---------- administración: vista completa de un jugador ---------- */
@@ -1437,9 +1443,8 @@ function admUserHTML(){const d=ADMU||{};const u=d.user;
     <form class="aform" data-form="admban"><h3>${u.banned?'Cuenta suspendida':'Suspender cuenta'}</h3>${u.banned?'':`<input class="tin" id="abanr" maxlength="120" placeholder="Motivo (lo ve el jugador)">`}<button class="btn ${u.banned?'brass':'warn'}" type="submit">${u.banned?'Reactivar cuenta':'Suspender'}</button></form>
     <button class="btn ghost" data-a="close">Cerrar</button></div></div>`}
 function auditHTML(){if(!FB||!isOwnerV)return'';const L=AUDIT||[];
-  return `<section class="box admin"><h2>Registro de acciones</h2><p class="note" style="margin:0">Todo lo que hacen los admins queda acá y no se puede borrar.</p>
-    ${AUDIT===null?'<p class="note">Cargando…</p>':L.length?`<ul class="flist">${L.slice(0,30).map(x=>`<li><span style="flex:1">${esc(x.action)}<small>${esc(x.byName||'admin')} · ${esc(tFmtDate(x.at))}${x.target?' · '+esc(String(x.target).slice(0,24)):''}</small></span></li>`).join('')}</ul>`:'<p class="note">Todavía no hay acciones.</p>'}</section>`}
-
+  return `<section class="box admin grow"><p class="note" style="margin:0">Todo lo que hacen los admins queda acá y no se puede borrar.</p>
+    ${AUDIT===null?'<p class="note">Cargando…</p>':fitList('adm-audit',L.slice(0,200),x=>`<li><span style="flex:1">${esc(x.action)}<small>${esc(x.byName||'admin')} · ${esc(tFmtDate(x.at))}${x.target?' · '+esc(String(x.target).slice(0,24)):''}</small></span></li>`,'flist','<p class="note">Todavía no hay acciones.</p>')}</section>`}
 /* ---------- monedas con Mercado Pago (web con cuenta) ---------- */
 function subPay(){if(!FB||payUnsubs.length)return;try{
   payUnsubs.push(NET.pay.watchConfig(c=>{PAYCFG=c;if(view==='shop'||view==='settings')render()}));
@@ -1449,25 +1454,25 @@ function subPay(){if(!FB||payUnsubs.length)return;try{
       applyTx('mp:'+x.id,{coins:x.coins}).then(()=>NET.pay.markApplied(x.id)).then(()=>{sfx('buy');toast(`¡Se acreditaron ${fmt(x.coins)} monedas!`)}).catch(()=>PAYAPPLY.delete(x.id))}
     if(view==='shop')render()}));
   if(isOwnerV)payUnsubs.push(NET.pay.watchPending(l=>{PENDPUR=l;if(view==='settings')render()}))}catch(e){}}
-function mpShopHTML(){const links=(PAYCFG&&PAYCFG.links)||[],alias=PAYCFG&&PAYCFG.alias;const st={pendiente:'Esperando confirmación',acreditada:'Acreditada',rechazada:'No se encontró el pago'};
-  return `<p class="note" style="margin-top:12px">Las monedas sirven para la tienda: personajes, camisetas, dorsos y paños. Se pagan con Mercado Pago y se acreditan cuando se confirma el pago. No se cambian por fichas ni por plata.</p>
-    <div class="items">${PACKS.map((p,i)=>{const link=links[i];return `<div class="item pack"><div class="prev">${coinI.replace('class="coin"','class="coin" style="width:26px;height:26px"')}${fmt(p.coins)}</div><b>${fmt(p.coins)} monedas</b><p>${p.tag?`<span class="tag">${p.tag}</span><br>`:''}<span class="ars">$ ${fmt(p.ars)}</span></p>
-      ${PAYSTEP===i?`<p class="note" style="margin:0">${link?'Cuando termines de pagar, avisá acá:':`Transferí $ ${fmt(p.ars)} al alias <b>${esc(alias)}</b> y avisá acá:`}</p><button class="btn prim" data-a="mpdone" data-i="${i}">Ya pagué</button><button class="btn ghost sm" data-a="mpcancel">Cancelar</button>`
-       :link?`<a class="btn mp" href="${esc(link)}" target="_blank" rel="noopener" data-a="mppay" data-i="${i}">Pagar con Mercado Pago</a>`
-       :alias?`<button class="btn mp" data-a="mppay" data-i="${i}">Pagar con Mercado Pago</button>`
-       :'<button class="btn" disabled>Todavía no está habilitado</button>'}</div>`}).join('')}</div>
-    ${MYPUR.length?`<h3 style="margin:16px 0 6px">Tus compras</h3><ul class="flist">${MYPUR.slice(0,8).map(x=>`<li><span style="flex:1">${fmt(x.coins)} monedas · $ ${fmt(x.ars)}<small>${esc(tFmtDate(x.at))}</small></span><span class="tst ${x.status==='acreditada'?'open':x.status==='rechazada'?'cancelled':'running'}">${st[x.status]||x.status}</span></li>`).join('')}</ul>`:''}
-    <p class="note" style="margin-top:12px">También ganás monedas jugando: 20, 40 u 80 por partida ganada según la dificultad, 60 por partida online ganada, 5 por jugar aunque pierdas y 30 de premio cada día.</p>`}
-function mpAdminHTML(){if(!FB||!isOwnerV)return'';const c=PAYCFG||{links:[],alias:''};const P=PENDPUR||[];
-  return `<section class="box admin"><h2>Cobros con Mercado Pago</h2>
-    <p class="note" style="margin:0">En la app de Mercado Pago: <b>Cobrar → Link de pago</b>, poné el monto de cada paquete y pegá acá el link. Si preferís, dejá solo tu alias y te transfieren.</p>
-    <form class="mpform" data-form="mpcfg">${PACKS.map((p,i)=>`<label class="field"><span>${fmt(p.coins)} monedas · $ ${fmt(p.ars)}</span><input class="tin" id="mpl${i}" placeholder="https://mpago.la/…" value="${esc(c.links&&c.links[i]||'')}"></label>`).join('')}
-      <label class="field"><span>Alias de Mercado Pago (opcional)</span><input class="tin" id="mpalias" placeholder="tu.alias.mp" value="${esc(c.alias||'')}"></label>
-      <button class="btn prim" type="submit">Guardar cobros</button></form>
-    <h3>Pagos para confirmar</h3>
-    ${PENDPUR===null?'<p class="note">Cargando…</p>':P.length?`<ul class="flist">${P.map(x=>`<li><span style="flex:1">${esc(x.username||'Jugador')} · ${fmt(x.coins)} monedas<small>$ ${fmt(x.ars)} · ${esc(tFmtDate(x.at))}</small></span><button class="btn sm brass" data-a="mpok" data-id="${esc(x.id)}">Acreditar</button><button class="btn sm ghost" data-a="mpno" data-id="${esc(x.id)}">Rechazar</button></li>`).join('')}</ul>`:'<p class="note">No hay pagos esperando.</p>'}
-    <p class="note">Antes de acreditar, fijate en tu cuenta de Mercado Pago que el pago haya entrado.</p></section>`}
-
+function mpShopHTML(){const links=(PAYCFG&&PAYCFG.links)||[],alias=PAYCFG&&PAYCFG.alias;
+  return `<p class="note snote">Las monedas son para la tienda: se pagan con Mercado Pago y se acreditan cuando se confirma el pago. No se cambian por fichas ni por plata.</p>
+    ${fitList('shop-mp',PACKS.map((p,i)=>Object.assign({i},p)),p=>{const i=p.i,link=links[i];return `<div class="item pack"><div class="prev">${coinI.replace('class="coin"','class="coin" style="width:26px;height:26px"')}${fmt(p.coins)}</div><b>${fmt(p.coins)} monedas</b><p>${p.tag?`<span class="tag">${p.tag}</span> `:''}<span class="ars">$ ${fmt(p.ars)}</span></p>
+      ${PAYSTEP===i?`<button class="btn prim" data-a="mpdone" data-i="${i}">Ya pagué</button><button class="btn ghost sm" data-a="mpcancel">Cancelar</button>`
+       :link?`<a class="btn mp" href="${esc(link)}" target="_blank" rel="noopener" data-a="mppay" data-i="${i}">Mercado Pago</a>`
+       :alias?`<button class="btn mp" data-a="mppay" data-i="${i}">Mercado Pago</button>`
+       :'<button class="btn" disabled>No habilitado</button>'}</div>`},'items')}
+    ${PAYSTEP>=0&&!links[PAYSTEP]&&alias?`<p class="note snote">Transferí $ ${fmt(PACKS[PAYSTEP].ars)} al alias <b>${esc(alias)}</b> y tocá «Ya pagué».</p>`:''}
+    ${MYPUR.length?`<button type="button" class="linkrow" data-a="ov" data-v="compras">Tus compras (${MYPUR.length})</button>`:''}`}
+function comprasHTML(){const st={pendiente:'Esperando confirmación',acreditada:'Acreditada',rechazada:'No se encontró el pago'};
+  return `<div class="over" data-a="close"><div class="panel lpanel" data-stop><h2>Tus compras</h2>${fitList('compras',MYPUR,x=>`<li><span style="flex:1">${fmt(x.coins)} monedas · $ ${fmt(x.ars)}<small>${esc(tFmtDate(x.at))}</small></span><span class="tst ${x.status==='acreditada'?'open':x.status==='rechazada'?'cancelled':'running'}">${st[x.status]||x.status}</span></li>`,'flist')}<button class="btn ghost" data-a="close">Cerrar</button></div></div>`}
+function mpAdminHTML(){if(!FB||!isOwnerV)return'';const c=PAYCFG||{links:[],alias:''};
+  return `<section class="box admin"><p class="note" style="margin:0">En Mercado Pago: <b>Cobrar → Link de pago</b>, poné el monto de cada paquete y pegá el link. O dejá solo tu alias.</p>
+    <form class="mpform" data-form="mpcfg">${PACKS.map((p,i)=>`<label class="field mpl"><span>${fmt(p.coins)} · $ ${fmt(p.ars)}</span><input class="tin" id="mpl${i}" placeholder="https://mpago.la/…" value="${esc(c.links&&c.links[i]||'')}"></label>`).join('')}
+      <label class="field mpl"><span>Alias</span><input class="tin" id="mpalias" placeholder="tu.alias.mp" value="${esc(c.alias||'')}"></label>
+      <button class="btn prim" type="submit">Guardar cobros</button></form></section>`}
+function mpPendHTML(){if(!FB||!isOwnerV)return'';const P=PENDPUR||[];
+  return `<section class="box admin grow">${PENDPUR===null?'<p class="note">Cargando…</p>':fitList('adm-pend',P,x=>`<li><span style="flex:1">${esc(x.username||'Jugador')} · ${fmt(x.coins)} monedas<small>$ ${fmt(x.ars)} · ${esc(tFmtDate(x.at))}</small></span><button class="btn sm brass" data-a="mpok" data-id="${esc(x.id)}">Acreditar</button><button class="btn sm ghost" data-a="mpno" data-id="${esc(x.id)}">Rechazar</button></li>`,'flist','<p class="note">No hay pagos esperando.</p>')}
+    <p class="note" style="margin:0">Antes de acreditar, fijate en tu cuenta de Mercado Pago que el pago haya entrado.</p></section>`}
 /* ---------- eventos ---------- */
 document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closest('[data-a],[data-set],[data-card]');if(!t)return;
   if(t.dataset.a==='close'&&t.classList.contains('over')&&e.target!==t)return;
@@ -1479,7 +1484,11 @@ document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closes
   const a=t.dataset.a;
   if(a!=='anreset')anotConfirm=false;if(a!=='mazo')confirmMazo=false;if(a!=='exit')confirmExit=false;if(!['tourleave','tourstart','tourcancel'].includes(a))tourConfirm=null;if(a!=='buy'&&a!=='prebuy'&&a!=='pack'&&a!=='prepack')pendingBuy=null;
   switch(a){
-  case 'nav':view=t.dataset.v;render();window.scrollTo(0,0);return;
+  case 'nav':overlayView=null;view=t.dataset.v;render();return;
+  case 'ptab':PT[t.dataset.k]=t.dataset.v;render();return;
+  case 'pg':{const k=t.dataset.k;FITP[k]=Math.max(0,(FITP[k]||0)+(+t.dataset.d));render();return}
+  case 'ov':overlayView=t.dataset.v;render();return;
+  case 'shopgo':shopTab=t.dataset.v;view='shop';render();return;
   case 'load':overlayView='load';render();return;
   case 'close':if(overlayView==='termsAccept')return;overlayView=null;render();return;
   case 'terms':{const c=document.getElementById('aterms');if(c)TOSOK=c.checked;overlayView='terms';render();return}
@@ -1488,7 +1497,7 @@ document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closes
   case 'sound':SET.mute=!SET.mute;saveSet();renderSnd();musicUpdate();if(!SET.mute)setTimeout(()=>sfx('pts'),60);if(view==='profile')render();return;
   case 'toggle':SET[t.dataset.k]=!SET[t.dataset.k];saveSet();renderSnd();render();musicUpdate();return;
   case 'admuser':openAdmUser(t.dataset.id);return;
-  case 'tourwith':tourJoin(null,t.dataset.id);return;
+  case 'tourwith':overlayView=null;tourJoin(null,t.dataset.id);return;
   case 'tourround':if(TV){TV.round=+t.dataset.v;render()}return;
   case 'tourall':if(TV){TV.all=true;render()}return;
   case 'tourpause':if(TV&&TV.t)NET.tour.pause(TV.t.id,TV.t.status!=='paused').then(()=>toast(TV.t.status==='paused'?'Torneo en pausa':'Torneo reanudado')).catch(()=>toast('No se pudo'));return;
@@ -1505,10 +1514,10 @@ document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closes
   case 'pack':{if(!PREMIUM){toast('Solo para cuentas premium');return}const p=PACKS[+t.dataset.i];pendingBuy=null;if(p){applyTx('pack-'+Date.now(),{coins:p.coins}).then(()=>{sfx('buy');toast('Compra de prueba: +'+fmt(p.coins)+' monedas, sin cobro')})}return}
   case 'add':if(!PREMIUM){toast('Solo para cuentas premium');return}applyTx('load-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),{chips:+t.dataset.v});overlayView=null;toast('Cargaste '+fmt(t.dataset.v)+' fichas de práctica');render();return;
   case 'tour':openTour(t.dataset.id);return;
-  case 'soloopts':SOLOOPTS=!SOLOOPTS;render();return;
-  case 'onopts':ONOPTS=!ONOPTS;render();return;
+  case 'soloopts':overlayView='soloopts';render();return;
+  case 'onopts':overlayView='onopts';render();return;
   case 'tourbooks':TVB=null;render();return;
-  case 'tournew':view='tournew';render();window.scrollTo(0,0);return;
+  case 'tournew':view='tournew';render();return;
   case 'tourjoin':tourJoin(t.dataset.team);return;
   case 'tourleave':tourLeave();return;
   case 'tourstart':tourStart();return;
@@ -1517,8 +1526,8 @@ document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closes
   case 'tourwo':if(TV&&TV.t)NET.tour.walkover(TV.t.id,t.dataset.mid,t.dataset.w).then(()=>toast('Partido dado por ganado')).catch(()=>toast('No se pudo'));return;
   case 'tourforce':if(T&&T.tour)NET.tour.startMatchRoom(T.code,tourBuild,true).then(r=>{if(!r.ok)toast('Todavía no se puede')}).catch(()=>toast('No se pudo empezar'));return;
   case 'tourback':{const tid=T&&T.tour&&T.tour.tid;if(view==='game'&&inProgress()){toast('Terminá la partida primero');return}leaveTable(true);if(tid)openTour(tid);return}
-  case 'solo':startSolo();return;
-  case 'create':createTable();return;
+  case 'solo':overlayView=null;startSolo();return;
+  case 'create':overlayView=null;createTable();return;
   case 'join':case 'rejoin':openTable(t.dataset.code);return;
   case 'sit':sit(+t.dataset.i);return;
   case 'addbot':setSeat(+t.dataset.i,{id:null,bot:true});return;
@@ -1534,7 +1543,7 @@ document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closes
   case 'invgo':acceptInvite(true);return;
   case 'invno':acceptInvite(false);return;
   case 'welcome':if(t.dataset.v==='learn'){startLesson(0)}else if(t.dataset.v==='tut'){view='tutorial';render()}else{view='menu';render()}return;
-  case 'zone':giraZone=t.dataset.id;render();return;
+  case 'zone':giraZone=t.dataset.id;FITP['riv-'+giraZone]=0;render();return;
   case 'girago':startGira(t.dataset.id);return;
   case 'regav':regAv=t.dataset.id;render();return;
   case 'authv':AUTHV=t.dataset.v;AUTHERR='';render();return;

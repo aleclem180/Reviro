@@ -40,29 +40,30 @@ const AVM=Object.fromEntries(AVS.map(a=>[a.id,a]));
 const GUARDA_URL="url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2728%27 height=%2712%27%3E%3Crect width=%2728%27 height=%2712%27 fill=%27%23efe0bf%27/%3E%3Crect width=%2728%27 height=%271.4%27 fill=%27%232a170b%27/%3E%3Crect y=%2710.6%27 width=%2728%27 height=%271.4%27 fill=%27%232a170b%27/%3E%3Cpath d=%27M14 2.2L19 6L14 9.8L9 6Z%27 fill=%27%232a170b%27/%3E%3Cpath d=%27M14 4.2L16.4 6L14 7.8L11.6 6Z%27 fill=%27%23b0261c%27/%3E%3Cpath d=%27M0 3L3.4 6L0 9ZM28 3L24.6 6L28 9Z%27 fill=%27%23b0261c%27/%3E%3C/svg%3E')";
 const DORSOS=[
  {id:'pampa',name:'Guarda pampa',price:0,bio:'La guarda de los ponchos, en negro y punzó.',bg:GUARDA_URL+' left center/18px 8px repeat, #efe0bf'},
- {id:'bordo',name:'Bordó de club',price:0,bio:'El de siempre, rombos dorados sobre bordó.',bg:'repeating-linear-gradient(45deg, rgba(220,170,72,.75) 0 1px, transparent 1px 5px), repeating-linear-gradient(-45deg, rgba(220,170,72,.45) 0 1px, transparent 1px 5px), #6e1f33'},
- {id:'marino',name:'Azul marino',price:400,bio:'Trama fina y elegante, como los mazos de antes.',bg:'repeating-linear-gradient(45deg, #c9d6ea 0 1px, transparent 1px 5px), repeating-linear-gradient(-45deg, #c9d6ea 0 1px, transparent 1px 5px), #1d2f57'},
- {id:'cuero',name:'Cuero curtido',price:500,bio:'Como la tapa de un mate de calabaza viejo.',bg:'repeating-linear-gradient(90deg, rgba(0,0,0,.12) 0 2px, transparent 2px 6px), radial-gradient(circle at 30% 30%, #9a6436, #6b3f1e)'},
+ {id:'bordo',name:'Bordó de club',price:0,bio:'El de siempre: rombos dorados sobre bordó y un sol al medio.',bg:'repeating-linear-gradient(45deg, rgba(220,170,72,.75) 0 1px, transparent 1px 5px), repeating-linear-gradient(-45deg, rgba(220,170,72,.45) 0 1px, transparent 1px 5px), #6e1f33'},
+ {id:'marino',name:'Azul marino',price:400,bio:'Trama fina y una rosa de los vientos, como los mazos de antes.',bg:'repeating-linear-gradient(45deg, #c9d6ea 0 1px, transparent 1px 5px), repeating-linear-gradient(-45deg, #c9d6ea 0 1px, transparent 1px 5px), #1d2f57'},
+ {id:'cuero',name:'Cuero curtido',price:500,bio:'Cuero curtido con costura a mano y una herradura de la suerte.',bg:'repeating-linear-gradient(90deg, rgba(0,0,0,.12) 0 2px, transparent 2px 6px), radial-gradient(circle at 30% 30%, #9a6436, #6b3f1e)'},
  {id:'celeste',name:'Celeste y blanco',price:600,bio:'Tres franjas y un sol dorado al medio.',bg:'radial-gradient(circle at 50% 50%, #f6b40e 0 10%, transparent 11%), linear-gradient(#74acdf 0 33%, #ffffff 33% 67%, #74acdf 67%)'},
- {id:'noche',name:'Noche de peña',price:700,bio:'Cielo de campo con estrellas, para jugar hasta el amanecer.',bg:'radial-gradient(1.2px 1.2px at 20% 30%, #fff 90%, transparent), radial-gradient(1px 1px at 70% 62%, #fff 90%, transparent), radial-gradient(1.6px 1.6px at 40% 80%, #f6d27a 90%, transparent), radial-gradient(1px 1px at 82% 18%, #fff 90%, transparent), radial-gradient(1.4px 1.4px at 55% 40%, #f6d27a 90%, transparent), #0f1638'},
- {id:'oro',name:'Oro viejo',price:800,bio:'Cuadriculado sobre dorado. Para los que ganan seguido.',bg:'repeating-linear-gradient(0deg, rgba(80,50,0,.35) 0 1px, transparent 1px 6px), repeating-linear-gradient(90deg, rgba(80,50,0,.35) 0 1px, transparent 1px 6px), linear-gradient(135deg, #f1cf6b, #b8861f)'},
+ {id:'noche',name:'Noche de peña',price:700,bio:'Cielo de campo con luna, ombú y molino, para jugar hasta el amanecer.',bg:'radial-gradient(1.2px 1.2px at 20% 30%, #fff 90%, transparent), radial-gradient(1px 1px at 70% 62%, #fff 90%, transparent), radial-gradient(1.6px 1.6px at 40% 80%, #f6d27a 90%, transparent), radial-gradient(1px 1px at 82% 18%, #fff 90%, transparent), radial-gradient(1.4px 1.4px at 55% 40%, #f6d27a 90%, transparent), #0f1638'},
+ {id:'oro',name:'Oro viejo',price:800,bio:'Cuadriculado dorado con un oro al medio. Para los que ganan seguido.',bg:'repeating-linear-gradient(0deg, rgba(80,50,0,.35) 0 1px, transparent 1px 6px), repeating-linear-gradient(90deg, rgba(80,50,0,.35) 0 1px, transparent 1px 6px), linear-gradient(135deg, #f1cf6b, #b8861f)'},
  {id:'fileteado',name:'Fileteado porteño',price:900,bio:'Rosetón rojo y dorado sobre negro, como los carteles de colectivo.',bg:'radial-gradient(circle at 50% 50%, #e9c46a 0 14%, #c0392b 15% 24%, transparent 25%), repeating-radial-gradient(circle at 50% 50%, transparent 0 4px, rgba(233,196,106,.55) 4px 5px), #111'},
 ];
 DORSOS.push(
  {id:'ombu',name:'Ombú',boss:'ba',bio:'Premio del jefe de la Llanura del Ombú.',bg:'radial-gradient(circle at 50% 38%, #3e7a38 0 20%, transparent 21%), radial-gradient(circle at 34% 46%, #4c8c44 0 13%, transparent 14%), radial-gradient(circle at 66% 46%, #4c8c44 0 13%, transparent 14%), linear-gradient(#5a3a22,#5a3a22) 50% 78%/10% 28% no-repeat, linear-gradient(#cfe3f0 0 72%, #c9a227 72%)'},
  {id:'cuarteto',name:'Cuarteto',boss:'centro',bio:'Premio del jefe de las Sierras del Cuarteto.',bg:'repeating-linear-gradient(135deg, #e0453a 0 4px, #ffd23f 4px 8px, #3ec1d3 8px 12px, #7a3fa0 12px 16px)'},
  {id:'sietecolores',name:'Siete Colores',boss:'noa',bio:'Premio del jefe de los Cerros de Siete Colores.',bg:'linear-gradient(#c4532d 0 14%,#d9822b 14% 28%,#e8c35a 28% 42%,#8a5a9e 42% 56%,#3f8f6b 56% 70%,#b5302a 70% 84%,#6b3f1e 84%)'},
- {id:'viento',name:'Viento sur',boss:'patagonia',bio:'Premio del jefe de la Tierra del Viento.',bg:'repeating-radial-gradient(circle at 0 0, #3f6f8f 0 3px, #e9f1f6 3px 5px)'});
+ {id:'viento',name:'Viento sur',boss:'patagonia',bio:'Premio del jefe de la Tierra del Viento.',bg:'repeating-radial-gradient(circle at 0 0, #3f6f8f 0 3px, #e9f1f6 3px 5px)'},
+ {id:'cruzsur',name:'Cruz del Sur',boss:'malvinas',bio:'Premio del jefe de las Islas del Pingüino: un pingüino bajo la Cruz del Sur.',bg:'#13254a'});
 const DM=Object.fromEntries(DORSOS.map(d=>[d.id,d]));
 const PANOS=[
  {id:'quincho',name:'Mesa de quincho',price:0,bio:'Tablones de madera, como en el fondo de la estancia.',bg:'repeating-linear-gradient(90deg, rgba(0,0,0,.28) 0 2px, transparent 2px 25%), repeating-linear-gradient(91deg, rgba(255,255,255,.035) 0 2px, transparent 2px 9px), linear-gradient(180deg, #7a4b28, #573117)',edge:'#2a170b'},
  {id:'cuerovaca',name:'Cuero vacuno',price:900,bio:'Cuero de vaca manchado, para jugar como en la estancia.',bg:'radial-gradient(ellipse 22% 16% at 20% 30%, #3a2416 98%, transparent), radial-gradient(ellipse 18% 24% at 72% 62%, #3a2416 98%, transparent), radial-gradient(ellipse 14% 10% at 40% 82%, #3a2416 98%, transparent), radial-gradient(ellipse 16% 12% at 86% 18%, #3a2416 98%, transparent), #8a5a35',edge:'#2a170b'},
- {id:'bordo',name:'Paño bordó',price:0,bio:'La mesa del club, con su borde de bronce.',bg:'radial-gradient(90% 70% at 50% 45%, #561a2e, #3a1120)',edge:'rgba(220,170,72,.4)'},
+ {id:'bordo',name:'Paño bordó',price:0,bio:'La mesa del club, con su sol estampado y borde de bronce.',bg:'radial-gradient(90% 70% at 50% 45%, #561a2e, #3a1120)',edge:'rgba(220,170,72,.4)'},
  {id:'verde',name:'Verde de casino',price:600,bio:'El clásico paño verde de las mesas de juego.',bg:'radial-gradient(90% 70% at 50% 45%, #1d6644, #0f3a26)',edge:'rgba(220,170,72,.4)'},
- {id:'azul',name:'Azul medianoche',price:700,bio:'Para las partidas que terminan tarde.',bg:'radial-gradient(90% 70% at 50% 45%, #1f3a6e, #10203f)',edge:'rgba(160,190,240,.45)'},
- {id:'petroleo',name:'Petróleo',price:700,bio:'Un verde azulado profundo, tranquilo para la vista.',bg:'radial-gradient(90% 70% at 50% 45%, #1a5d66, #0d3236)',edge:'rgba(220,170,72,.4)'},
- {id:'bodegon',name:'Mesa de bodegón',price:1000,bio:'Madera gastada, la de la esquina con vino de la casa.',bg:'repeating-linear-gradient(92deg, rgba(0,0,0,.14) 0 3px, transparent 3px 11px, rgba(255,255,255,.04) 11px 13px, transparent 13px 22px), linear-gradient(180deg, #6b4224, #4a2c17)',edge:'rgba(30,15,5,.8)'},
- {id:'fileteado',name:'Negro fileteado',price:1200,bio:'Negro brillante con doble filete dorado.',bg:'radial-gradient(90% 70% at 50% 45%, #2a2426, #121012)',edge:'#e9c46a'},
+ {id:'azul',name:'Azul medianoche',price:700,bio:'Con luna y estrellas, para las partidas que terminan tarde.',bg:'radial-gradient(90% 70% at 50% 45%, #1f3a6e, #10203f)',edge:'rgba(160,190,240,.45)'},
+ {id:'petroleo',name:'Petróleo',price:700,bio:'Un verde azulado profundo con un rombo dorado, tranquilo para la vista.',bg:'radial-gradient(90% 70% at 50% 45%, #1a5d66, #0d3236)',edge:'rgba(220,170,72,.4)'},
+ {id:'bodegon',name:'Mesa de bodegón',price:1000,bio:'El mantel a cuadros de la esquina, con la mancha del vino de la casa.',bg:'repeating-linear-gradient(92deg, rgba(0,0,0,.14) 0 3px, transparent 3px 11px, rgba(255,255,255,.04) 11px 13px, transparent 13px 22px), linear-gradient(180deg, #6b4224, #4a2c17)',edge:'rgba(30,15,5,.8)'},
+ {id:'fileteado',name:'Negro fileteado',price:1200,bio:'Negro brillante con volutas de filete en las esquinas.',bg:'radial-gradient(90% 70% at 50% 45%, #2a2426, #121012)',edge:'#e9c46a'},
 ];
 PANOS.push(
  {id:'ibera',name:'Esteros del Iberá',boss:'litoral',bio:'Premio del jefe de la Tierra del Chamamé.',bg:'radial-gradient(ellipse 8% 5% at 20% 30%, #6fbf73 98%, transparent), radial-gradient(ellipse 6% 4% at 70% 72%, #6fbf73 98%, transparent), radial-gradient(ellipse 7% 4% at 82% 25%, #f2c6d8 98%, transparent), radial-gradient(90% 70% at 50% 45%, #1f6b6b, #0e3b3d)',edge:'#a7d3c4'},
@@ -70,7 +71,7 @@ PANOS.push(
  {id:'monte',name:'Monte chaqueño',boss:'nea',bio:'Premio del jefe del Monte Impenetrable.',bg:'radial-gradient(circle at 15% 25%, #2f5a1f 0 6%, transparent 7%), radial-gradient(circle at 60% 70%, #2f5a1f 0 8%, transparent 9%), radial-gradient(circle at 85% 30%, #3d6b28 0 7%, transparent 8%), radial-gradient(90% 70% at 50% 45%, #4a6b2a, #243a14)',edge:'#c9a227'},
  {id:'faro',name:'Noche del faro',boss:'tdf',bio:'Premio del jefe del Último Faro.',bg:'conic-gradient(from 200deg at 85% 15%, rgba(255,240,180,.35) 0deg 18deg, transparent 18deg), radial-gradient(90% 70% at 50% 45%, #1b2f55, #0a1428)',edge:'#f2d27a'});
 const PM=Object.fromEntries(PANOS.map(p=>[p.id,p]));
-const BOSS_PRIZE={ba:['dorso','ombu'],litoral:['pano','ibera'],centro:['dorso','cuarteto'],cuyo:['pano','vinedo'],noa:['dorso','sietecolores'],nea:['pano','monte'],patagonia:['dorso','viento'],tdf:['pano','faro']};
+const BOSS_PRIZE={ba:['dorso','ombu'],litoral:['pano','ibera'],centro:['dorso','cuarteto'],cuyo:['pano','vinedo'],noa:['dorso','sietecolores'],nea:['pano','monte'],patagonia:['dorso','viento'],tdf:['pano','faro'],malvinas:['dorso','cruzsur']};
 const prizeLabel=p=>p?(p[0]==='dorso'?'el dorso '+DM[p[1]].name:'el paño '+PM[p[1]].name):'';
 /* paquetes de monedas: el más chico es de $ 1.000 */
 const PACKS=[{coins:1100,ars:1000,tag:'+10% de regalo'},{coins:3000,ars:2500,tag:'+20% de regalo'},{coins:6500,ars:5000,tag:'+30% de regalo'},{coins:14000,ars:10000,tag:'+40% de regalo'},{coins:30000,ars:20000,tag:'+50% de regalo'}];
@@ -315,7 +316,6 @@ function hatSVG(p){const c=p.hatc||'#222',c2=p.hatc2||'#eee',b=p.band||'#c0392b'
   case 'gorro':return `<path d="M20.4 25c0-7.6 5-12.6 11.6-12.6S43.6 17.4 43.6 25z" fill="${c}"/><path d="M24 16.6h16M22 20.2h20" stroke="${c2}" stroke-width="1.2"/><rect x="20" y="22.6" width="24" height="4" rx="1.8" fill="${c2}"/><circle cx="32" cy="11.4" r="3.2" fill="${c2}"/>`;
   case 'shadesHead':return `<rect x="22.6" y="16.6" width="8" height="4.4" rx="2" fill="#1a1a1a"/><rect x="33.4" y="16.6" width="8" height="4.4" rx="2" fill="#1a1a1a"/><path d="M30.6 18h2.8" stroke="#1a1a1a" stroke-width="1.2"/>`;
   }return ''}
-const backBg=id=>(DM[id]||DM.bordo).bg;
 
 /* ---------- frases de cada personaje ---------- */
 const LINES={

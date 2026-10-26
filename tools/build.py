@@ -1,17 +1,27 @@
 #!/usr/bin/env python3
-"""Arma index.html (la web de GitHub Pages) a partir de src/.
+"""Arma la web de Reviro a partir de src/.
 
 Uso:  python3 tools/build.py
-También genera dist/claude.html, la versión para publicar como artifact en claude.ai.
+
+- index.html: la página de GitHub Pages. Carga el estilo (src/style.css) y el código (src/*.js) como archivos
+  aparte, cada uno con una marca de versión para que el navegador baje solo lo que cambió.
+- <hoja>/index.html: una copia chiquita por cada sección (/Reviro/torneos, /Reviro/online…), así cada hoja
+  tiene su propia dirección y se puede recargar o compartir.
+- dist/claude.html: todo en un solo archivo, para publicar como artifact en claude.ai.
 """
+import hashlib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "src"
+JS = ["engine.js", "cat.js", "art.js", "ui.js"]
+# las direcciones tienen que coincidir con ROUTES en src/ui.js
+ROUTES = ["online", "torneos", "torneo", "nuevo-torneo", "huella", "extra", "perfil", "ajustes",
+          "tienda", "misiones", "ranking", "reglamento", "tutorial", "anotador"]
 
-head = (SRC / "head.html").read_text(encoding="utf-8")
-script = "\n".join((SRC / f).read_text(encoding="utf-8") for f in ["engine.js", "cat.js", "ui.js"])
-body = head + "\n<script>\n" + script + "\n</script>\n"
+read = lambda f: (SRC / f).read_text(encoding="utf-8")
+ver = lambda f: hashlib.sha1((SRC / f).read_bytes()).hexdigest()[:8]
+head, style, body = read("head.html"), read("style.css"), read("body.html")
 
 RESET = ("html{color-scheme:light}:root{padding-top:env(safe-area-inset-top,0px);"
          "padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}"
@@ -20,26 +30,48 @@ RESET = ("html{color-scheme:light}:root{padding-top:env(safe-area-inset-top,0px)
 # Firebase: la configuración se carga primero; la capa de red (módulo) solo si hay configuración.
 FIREBASE = """<script src="js/firebase-config.js"></script>
 <script>
+window.REVIRO_WEB = 1;
 if (window.REVIRO_FIREBASE && window.REVIRO_FIREBASE.apiKey) {
   var s = document.createElement('script'); s.type = 'module'; s.src = 'js/net.js'; document.head.appendChild(s);
 }
 </script>
 """
 
-web = f"""<!doctype html>
+
+def web(base=""):
+    scripts = "\n".join(f'<script src="src/{f}?v={ver(f)}"></script>' for f in JS)
+    return f"""<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
+{f'<base href="{base}">' if base else ''}
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="Reviro: truco argentino con flor. Jugá contra la IA, 1v1 y 2v2 en tiempo real, recorré La Huella y anotá tus partidas en persona.">
 <meta name="theme-color" content="#1c1109">
 <style>{RESET}</style>
+{head}<link rel="stylesheet" href="src/style.css?v={ver('style.css')}">
 {FIREBASE}</head>
 <body>
-{body}</body>
+{body}
+{scripts}
+</body>
 </html>
 """
-(ROOT / "index.html").write_text(web, encoding="utf-8")
+
+
+(ROOT / "index.html").write_text(web(), encoding="utf-8")
+for r in ROUTES:
+    d = ROOT / r
+    d.mkdir(exist_ok=True)
+    (d / "index.html").write_text(web("../"), encoding="utf-8")
+
+# versión de un solo archivo para claude.ai
+script = "\n".join(read(f) for f in JS)
+one = head + "\n<style>\n" + style + "</style>\n\n" + body + "\n<script>\n" + script + "\n</script>\n"
 (ROOT / "dist").mkdir(exist_ok=True)
-(ROOT / "dist" / "claude.html").write_text(body, encoding="utf-8")
-print("index.html y dist/claude.html listos")
+(ROOT / "dist" / "claude.html").write_text(one, encoding="utf-8")
+
+# para GitHub, lo generado no cuenta como código del proyecto
+attrs = ["dist/** linguist-generated=true", "index.html linguist-generated=true"] + [f"{r}/index.html linguist-generated=true" for r in ROUTES]
+(ROOT / ".gitattributes").write_text("\n".join(attrs) + "\n", encoding="utf-8")
+print(f"index.html, {len(ROUTES)} hojas y dist/claude.html listos")

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<base href="../">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Reviro: truco argentino con flor. Jugá contra la IA, 1v1 y 2v2 en tiempo real, recorré La Huella y anotá tus partidas en persona.">
+<meta name="theme-color" content="#1c1109">
+<style>html{color-scheme:light}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Reviro</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="src/style.css?v=30a97248">
+<script src="js/firebase-config.js"></script>
+<script>
+window.REVIRO_WEB = 1;
+if (window.REVIRO_FIREBASE && window.REVIRO_FIREBASE.apiKey) {
+  var s = document.createElement('script'); s.type = 'module'; s.src = 'js/net.js'; document.head.appendChild(s);
+}
+</script>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="gPapel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fdf9ee"/><stop offset="1" stop-color="#efe5cf"/></linearGradient>
+    <linearGradient id="gFold" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".28"/></linearGradient>
+    <linearGradient id="gOro" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6d77a"/><stop offset=".55" stop-color="#d9a521"/><stop offset="1" stop-color="#a8760f"/></linearGradient>
+    <linearGradient id="gHoja" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e9eef5"/><stop offset=".5" stop-color="#b9c6d6"/><stop offset="1" stop-color="#7f93ad"/></linearGradient>
+    <linearGradient id="gCopa" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#d9473c"/><stop offset=".6" stop-color="#b3271f"/><stop offset="1" stop-color="#7f1a14"/></linearGradient>
+    <linearGradient id="gBasto" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7fae4f"/><stop offset=".5" stop-color="#4f8a35"/><stop offset="1" stop-color="#2f5e22"/></linearGradient>
+    <!-- lápiz de color: trazo tembloroso, relleno con rayado de lápiz y un contorno suelto de grafito -->
+    <filter id="fLapiz" x="-8%" y="-8%" width="116%" height="116%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency=".07" numOctaves="2" seed="4" result="w"/>
+      <feDisplacementMap in="SourceGraphic" in2="w" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="d"/>
+      <feTurbulence type="fractalNoise" baseFrequency="1.5 .07" numOctaves="2" seed="9" result="s"/>
+      <feColorMatrix in="s" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -3.2 2.1" result="sa"/>
+      <feComposite in="d" in2="sa" operator="in" result="t"/>
+      <feColorMatrix in="d" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 .38 0" result="soft"/>
+      <feMorphology in="SourceAlpha" operator="dilate" radius=".4" result="dl"/>
+      <feComposite in="dl" in2="SourceAlpha" operator="out" result="ed"/>
+      <feTurbulence type="fractalNoise" baseFrequency=".16" numOctaves="1" seed="21" result="w2"/>
+      <feDisplacementMap in="ed" in2="w2" scale="1.9" xChannelSelector="R" yChannelSelector="G" result="ed2"/>
+      <feFlood flood-color="#3b2d22" flood-opacity=".55"/><feComposite in2="ed2" operator="in" result="gr"/>
+      <feMerge><feMergeNode in="soft"/><feMergeNode in="t"/><feMergeNode in="gr"/></feMerge>
+    </filter>
+    <!-- grano del papel de la carta -->
+    <filter id="fGrano" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="2"/><feColorMatrix type="matrix" values="0 0 0 0 .45  0 0 0 0 .36  0 0 0 0 .25  0 0 0 -1.1 .62"/><feComposite in2="SourceGraphic" operator="in"/></filter>
+    <symbol id="sO" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.8" fill="url(#gOro)" stroke="#8a5d0c" stroke-width=".7"/><circle cx="12" cy="12" r="8.4" fill="none" stroke="#8a5d0c" stroke-width=".45"/>
+      <g stroke="#a8760f" stroke-width=".55" stroke-linecap="round"><path d="M12 4.6v2.2M12 17.2v2.2M4.6 12h2.2M17.2 12h2.2M6.8 6.8l1.5 1.5M15.7 15.7l1.5 1.5M17.2 6.8l-1.5 1.5M8.3 15.7l-1.5 1.5"/></g>
+      <circle cx="12" cy="12" r="4.2" fill="#f2cc5c" stroke="#8a5d0c" stroke-width=".5"/><circle cx="10.6" cy="11.3" r=".55" fill="#8a5d0c"/><circle cx="13.4" cy="11.3" r=".55" fill="#8a5d0c"/><path d="M10.4 13.4q1.6 1.2 3.2 0" stroke="#8a5d0c" stroke-width=".5" fill="none" stroke-linecap="round"/>
+      <path d="M6.4 8.2a7 7 0 0 1 4.4-3.6" stroke="#fff6d6" stroke-width=".7" fill="none" stroke-linecap="round" opacity=".8"/></symbol>
+    <symbol id="sC" viewBox="0 0 24 24"><path d="M5 3.2h14c.2 5.6-2.4 9-5.6 9.8v4.2H10.6V13C7.4 12.2 4.8 8.8 5 3.2z" fill="url(#gCopa)" stroke="#6b130e" stroke-width=".6" stroke-linejoin="round"/>
+      <path d="M4.6 2.4h14.8v1.8H4.6z" fill="url(#gOro)" stroke="#8a5d0c" stroke-width=".45"/><path d="M6.6 6.2h10.8" stroke="#e0b23a" stroke-width=".9"/><circle cx="12" cy="8.8" r="1.1" fill="#e0b23a" stroke="#8a5d0c" stroke-width=".35"/>
+      <path d="M10.4 14.6h3.2l.4 1.6h-4z" fill="url(#gOro)" stroke="#8a5d0c" stroke-width=".4"/><path d="M7.4 21.8q.4-3.4 4.6-4.2q4.2.8 4.6 4.2z" fill="url(#gOro)" stroke="#8a5d0c" stroke-width=".5"/>
+      <path d="M7.2 4.8q.2 3.6 2.4 5.6" stroke="#fff" stroke-opacity=".45" stroke-width=".7" fill="none" stroke-linecap="round"/></symbol>
+    <symbol id="sE" viewBox="0 0 24 24"><path d="M12 .4l1.9 2.6v12.6h-3.8V3z" fill="url(#gHoja)" stroke="#2c4a72" stroke-width=".5" stroke-linejoin="round"/><path d="M12 1.4v13.8" stroke="#5f7894" stroke-width=".4"/>
+      <path d="M5.4 15.2q6.6-1.4 13.2 0v1.6q-6.6 1.4-13.2 0z" fill="url(#gOro)" stroke="#8a5d0c" stroke-width=".45"/><circle cx="5.2" cy="16" r=".9" fill="url(#gOro)" stroke="#8a5d0c" stroke-width=".35"/><circle cx="18.8" cy="16" r=".9" fill="url(#gOro)" stroke="#8a5d0c" stroke-width=".35"/>
+      <rect x="10.9" y="17" width="2.2" height="4" rx=".5" fill="#2b5b9c" stroke="#1a3a66" stroke-width=".35"/><path d="M10.9 18.2h2.2M10.9 19.6h2.2" stroke="#9ab4d8" stroke-width=".3"/><circle cx="12" cy="22.3" r="1.4" fill="url(#gOro)" stroke="#8a5d0c" stroke-width=".4"/></symbol>
+    <symbol id="sB" viewBox="0 0 24 24"><path d="M9.2 23.4c-.8-6.6-.4-13.8 1.2-20.4.7-2.4 4.4-2.6 5 .2 1 6.8.4 13.8-1 20.2z" fill="url(#gBasto)" stroke="#23461a" stroke-width=".55" stroke-linejoin="round"/>
+      <g fill="#c9822b" stroke="#7a4512" stroke-width=".35"><ellipse cx="10.3" cy="7.6" rx="1.5" ry="1.1"/><ellipse cx="15.6" cy="11.8" rx="1.5" ry="1.1"/><ellipse cx="10.1" cy="15.6" rx="1.4" ry="1"/><ellipse cx="14.6" cy="19.2" rx="1.3" ry=".95"/></g>
+      <path d="M11.4 4q-1.4 8.4-.6 18" stroke="#b5d68f" stroke-opacity=".6" stroke-width=".6" fill="none" stroke-linecap="round"/></symbol>
+
+  </defs>
+</svg>
+
+<div id="app">
+  <div class="topbar">
+    <div class="brand">Reviro</div>
+    <div class="pills">
+      <button type="button" class="pill" data-a="load" aria-label="Fichas para apostar"><i class="chip" aria-hidden="true"></i><span id="chips">1.000</span></button>
+      <button type="button" class="pill" data-a="shopcoins" aria-label="Monedas de la tienda"><i class="coin" aria-hidden="true"></i><span id="coins">150</span></button>
+      <button type="button" class="snd" data-a="sound" id="sndbtn" aria-label="Sonido"></button>
+      <button type="button" class="snd gear" data-a="nav" data-v="settings" aria-label="Ajustes"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.8v2.6M12 18.6v2.6M2.8 12h2.6M18.6 12h2.6M5.5 5.5l1.9 1.9M16.6 16.6l1.9 1.9M18.5 5.5l-1.9 1.9M7.4 16.6l-1.9 1.9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+    </div>
+  </div>
+  <div class="guarda" aria-hidden="true"></div>
+  <main id="view"></main>
+</div>
+<div id="toast" role="status" aria-live="polite" hidden></div>
+<div id="overlay"></div>
+
+<script src="src/engine.js?v=848c09dc"></script>
+<script src="src/cat.js?v=6da1ade8"></script>
+<script src="src/art.js?v=28380056"></script>
+<script src="src/ui.js?v=878ff72b"></script>
+</body>
+</html>
