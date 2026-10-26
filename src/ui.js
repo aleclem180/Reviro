@@ -121,7 +121,7 @@ async function loadWallet(){try{const l=JSON.parse(localStorage.getItem(walKey()
   if(!WAL.th2){WAL.th2=1;if(WAL.eq.pano==='bordo')WAL.eq.pano='quincho';if(WAL.eq.dorso==='bordo')WAL.eq.dorso='pampa';saveWallet()}
   ensureMissions();writeLooks();render()}
 function mergeWal(d){for(const k of ['chips','coins','daily','th2','nick','fcode','registered','copas'])if(d[k]!==undefined)WAL[k]=d[k];
-  if(Array.isArray(d.owned))WAL.owned=d.owned;if(d.mis)WAL.mis=d.mis;if(d.ach)WAL.ach={cnt:d.ach.cnt||{},done:d.ach.done||[]};if(Array.isArray(d.evk))WAL.evk=d.evk;if(Array.isArray(d.tut))WAL.tut=d.tut;if(Array.isArray(d.friends))WAL.friends=d.friends;if(d.gira)WAL.gira={beat:d.gira.beat||{},bosses:d.gira.bosses||[]};if(Array.isArray(d.applied))WAL.applied=d.applied;
+  if(Array.isArray(d.owned))WAL.owned=d.owned;if(d.mis)WAL.mis=d.mis;if(d.ach)WAL.ach={cnt:d.ach.cnt||{},done:d.ach.done||[]};if(Array.isArray(d.evk))WAL.evk=d.evk;if(Array.isArray(d.tut))WAL.tut=d.tut;if(Array.isArray(d.friends))WAL.friends=d.friends;if(d.gira)WAL.gira={beat:d.gira.beat||{},bosses:d.gira.bosses||[]};if(d.tours&&typeof d.tours==='object')WAL.tours=d.tours;if(Array.isArray(d.applied))WAL.applied=d.applied;
   if(d.eq)WAL.eq=Object.assign({},WAL.eq,d.eq);if(d.stats)WAL.stats=Object.assign({},WAL.stats,d.stats)}
 async function saveWallet(){const body=JSON.parse(JSON.stringify(WAL));try{localStorage.setItem(walKey(),JSON.stringify(body))}catch(e){}
   if(walRef){try{await walRef.set(body)}catch(e){walRef=null}}}
@@ -130,6 +130,7 @@ function applyTx(key,d){walQ=walQ.then(async()=>{if(WAL.applied.includes(key))re
     WAL.chips=Math.max(0,WAL.chips+(d.chips||0));WAL.coins=Math.max(0,WAL.coins+(d.coins||0));
     if(d.coins>0&&d.earn)WAL.stats.earned+=d.coins;
     if(d.own&&!WAL.owned.includes(d.own))WAL.owned=WAL.owned.concat(d.own);
+    if(d.tour){const x=Object.assign({},WAL.tours||{});if(d.tour.v)x[d.tour.id]=d.tour.v;else delete x[d.tour.id];WAL.tours=x}
     if(d.pts)WAL.stats.pts=(WAL.stats.pts||0)+d.pts;if(d.stat){WAL.stats.played++;if(d.stat==='w'){WAL.stats.won++;WAL.stats.streak++;WAL.stats.best=Math.max(WAL.stats.best,WAL.stats.streak)}else WAL.stats.streak=0}
     WAL.applied=WAL.applied.concat(key).slice(-80);renderWallet();await saveWallet();render();return true});return walQ}
 let lastLooks='';
@@ -190,6 +191,8 @@ function render(){const v=$('#view');
   else if(view==='rules')v.innerHTML=tabsHTML()+backX()+rulesHTML().replace('<details class="rules">','<details class="rules" open>');
   else if(view==='tutorial')v.innerHTML=tabsHTML()+backX()+`<div class="grid">${tutorialBoxHTML()}</div>`;
   else if(view==='menu')v.innerHTML=tabsHTML()+playHTML();
+  else if(view==='tour')v.innerHTML=tabsHTML()+tourHTML();
+  else if(view==='tournew')v.innerHTML=tabsHTML()+tourNewHTML();
   else if(view==='shop')v.innerHTML=tabsHTML()+backX()+shopHTML();
   else if(view==='profile')v.innerHTML=tabsHTML()+profileHTML();
   else if(view==='missions')v.innerHTML=tabsHTML()+backX()+missionsHTML();
@@ -201,15 +204,16 @@ function render(){const v=$('#view');
   if(view==='room'&&T){const ids=T.seats.filter(s=>s.id).map(s=>s.id);ensureNames(ids);fetchLooks(ids)}
   if(view==='game'&&mode==='online'&&G){const ids=G.seats.filter(s=>s.id).map(s=>s.id);ensureNames(ids);fetchLooks(ids)}
   if(view==='menu'&&lobby.length)ensureNames(lobby.map(t=>t.host))}
-function tabsHTML(){const t=[['menu','Jugar'],['gira','La Huella'],['profile','Perfil'],['extra','Extra'],['settings','Ajustes']];const cur=EXTRA_SUB.includes(view)?'extra':view;
+function tabsHTML(){const t=[['menu','Jugar'],['gira','La Huella'],['profile','Perfil'],['extra','Extra'],['settings','Ajustes']];const cur=EXTRA_SUB.includes(view)?'extra':(view==='tour'||view==='tournew')?'menu':view;
   return `<nav class="tabs" aria-label="Secciones">${t.map(([v,l])=>`<button type="button" data-a="nav" data-v="${v}" ${cur===v?'aria-current="page"':''}>${l}</button>`).join('')}</nav>`}
 function seg(key,opts,cur,dis){return `<div class="seg" role="group">${opts.map(([v,l])=>`<button type="button" data-set="${key}" data-v="${v}" aria-pressed="${String(cur)===String(v)}" ${dis&&dis(v)?'disabled':''}>${l}</button>`).join('')}</div>`}
 const STAKES=[0,50,100,250,500,1000];
 function playHTML(){const on=SET.on;const remembered=(()=>{try{return localStorage.getItem('reviro.table')}catch(e){return null}})();
-  const onlineOk=!!(db&&uid);const open=lobby.filter(t=>Date.now()-(t.created||0)<3*3600e3);const me=AVM[WAL.eq.av]||AVM.gaucho;
+  const onlineOk=!!(db&&uid);const open=lobby.filter(t=>!t.tour&&Date.now()-(t.created||0)<3*3600e3);const me=AVM[WAL.eq.av]||AVM.gaucho;
   return `<section class="hero"><h1>Re<span>viro</span></h1><p>Truco de campo, como en la pulpería.</p>
     <div class="me">${avatarSVG(myAv(),52)}<div><small>Jugás como</small><b>${esc(me.name)}</b></div><button class="btn sm" data-a="nav" data-v="shop">Cambiar</button></div></section>
   <div class="grid">
+    ${toursBoxHTML()}
     <section class="box"><h2>Contra la máquina</h2>
       <div class="field"><span>Dificultad</span>${seg('diff',[['facil','Fácil'],['medio','Medio'],['dificil','Difícil']],SET.diff)}</div>
       <div class="field"><span>Jugadores</span>${seg('n',[[2,'1 contra 1'],[4,'2 contra 2']],SET.n)}</div>
@@ -298,7 +302,7 @@ function profileHTML(){const a=AVM[WAL.eq.av]||AVM.gaucho,st=WAL.stats,pct=st.pl
   </div>`}
 
 /* ---------- sala online ---------- */
-function roomHTML(){if(!T)return `<div class="room"><p class="note">Cargando mesa…</p></div>`;
+function roomHTML(){if(!T)return `<div class="room"><p class="note">Cargando mesa…</p></div>`;if(T.tour)return tourRoomHTML();
   const mine=T.seats.findIndex(s=>s.id===uid);const full=T.seats.every(s=>s.id||s.bot);
   return `<div class="room"><div class="row" style="justify-content:space-between"><div><h3 style="margin:0;color:var(--muted);font-size:.78rem;letter-spacing:.14em;text-transform:uppercase">Mesa</h3><div class="code">${esc(T.code)}</div></div>
     <button class="btn" data-a="copy">Copiar código</button></div>
@@ -394,13 +398,13 @@ function overlayHTML(){
   if(overlayView==='load'&&!PREMIUM)return `<div class="over" data-a="close"><div class="panel" data-stop><h2>Cargar fichas</h2><p>Tenés ${fmt(WAL.chips)} fichas.</p>${premLock()}<button class="btn ghost" data-a="close">Cerrar</button></div></div>`;
   if(overlayView==='load')return `<div class="over" data-a="close"><div class="panel" data-stop><h2>Cargar fichas</h2><p>Las fichas sirven para apostar en las partidas. Son de práctica: se cargan gratis, no se compran ni se cobran. Las monedas de la tienda son otra cosa.</p>
     <div class="btns">${[500,1000,5000].map(v=>`<button class="btn prim" data-a="add" data-v="${v}">+ ${fmt(v)}</button>`).join('')}</div><button class="btn ghost" data-a="close">Cerrar</button></div></div>`;
-  if(view==='game'&&G&&G.matchOver){const won=G.matchOver.winner===myTeam();const st=G.stake;const can=mode==='offline'||isHost;
+  if(view==='game'&&G&&G.matchOver){const won=G.matchOver.winner===myTeam();const st=G.stake;const TT=mode==='online'&&T&&T.tour;const can=!TT&&(mode==='offline'||isHost);
     const rw=lastReward&&lastReward.matchId===G.matchId?lastReward.coins:null;
     let conf='';if(won&&FX.over){const suits=['O','C','E','B'];for(let i=0;i<26;i++){const s=suits[i%4];conf+=`<svg viewBox="0 0 24 24" style="left:${(Math.random()*100).toFixed(1)}%;animation-delay:${(Math.random()*.9).toFixed(2)}s;color:${SUITCOL[s]}"><use href="#s${s}"/></svg>`}}
-    return `<div class="over">${conf?`<div class="confetti" aria-hidden="true">${conf}</div>`:''}<div class="panel"><h2>${won?'¡Ganamos!':'Perdimos'}</h2><p>${G.scores[myTeam()]} a ${G.scores[1-myTeam()]}</p>
+    return `<div class="over">${conf?`<div class="confetti" aria-hidden="true">${conf}</div>`:''}<div class="panel"><h2>${won?'¡Ganamos!':'Perdimos'}</h2><p>${G.scores[myTeam()]} a ${G.scores[1-myTeam()]}${G.matchOver.forfeit?(won?' · el rival abandonó':' · por abandono'):''}</p>${TT?`<p class="note">${esc(T.tour.name)} · ${esc(T.tour.label||'')}: ${won?'pasás a la siguiente':'quedaste afuera de este cruce'}.</p>`:''}
       ${st&&mySeat>=0?`<p class="big"><i class="chip"></i>${won?'+ '+fmt(st*2):'− '+fmt(st)} fichas</p>`:''}
       ${rw?`<p class="big">${coinI}+ ${fmt(rw)} monedas</p>`:''}${CAMP?giraOverHTML():''}
-      <div class="btns">${can?`<button class="btn prim" data-a="rematch" ${st>WAL.chips?'disabled':''}>Revancha</button>`:'<p class="note">Esperando la revancha del anfitrión</p>'}<button class="btn" data-a="tomenu">${CAMP?'Volver al mapa':'Menú'}</button></div></div></div>`}
+      <div class="btns">${TT?`<button class="btn prim" data-a="tourback">Volver al torneo</button>`:can?`<button class="btn prim" data-a="rematch" ${st>WAL.chips?'disabled':''}>Revancha</button>`:'<p class="note">Esperando la revancha del anfitrión</p>'}<button class="btn" data-a="tomenu">${CAMP?'Volver al mapa':'Menú'}</button></div></div></div>`}
   return''}
 
 /* ---------- control de partida ---------- */
@@ -465,6 +469,7 @@ function openTable(code){code=code.toUpperCase();if(unsubTable)unsubTable();tabl
   let first=true;unsubTable=tableRef.onSnapshot(s=>{onTable(s,first);first=false},()=>toast('Se cortó la conexión con la mesa'))}
 function onTable(snap,first){if(!snap.exists){toast(first?'No existe una mesa con ese código':'La mesa se cerró');leaveTable(true);return}
   T=snap.data();mySeat=T.seats.findIndex(s=>s.id===uid);isHost=T.host===uid;
+  if(FB&&T.tour)tourOnTable();
   if(FB&&T.status==='finished'&&T.result&&mySeat>=0)fbRecord(T.code,T.result.matchId);
   if(T.status==='closed'){toast('El anfitrión cerró la mesa');leaveTable(true);return}
   if(T.status==='waiting'){view='room';G=null;if(first&&mySeat<0){const i=T.seats.findIndex(s=>!s.id&&!s.bot);if(i>=0&&T.stake<=WAL.chips){if(FB)NET.rooms.join(T.code).catch(()=>{});else sit(i)}}}
@@ -493,8 +498,9 @@ const inProgress=()=>!!(G&&!G.matchOver&&mySeat>=0&&!TUT);
 function abandonCurrent(){if(!inProgress())return;const g=G;
   applyTx(g.matchId+':done',{stat:'l'}).then(()=>{recordEvents(g.matchId+':m',['match_played']);writeLooks()});
   if(CAMP)settleGira(Object.assign({},g,{matchOver:{winner:1}}));
-  if(FB&&mode==='online'&&T)abandonP=NET.stats.recordAbandon(T.code).then(r=>{if(r&&r.stats)MYUSER=Object.assign({},MYUSER,{stats:r.stats})}).catch(()=>{});
-  toast('Abandonaste la partida: cuenta como derrota')}
+  if(FB&&mode==='online'&&T){const code=T.code,tt=T.tour;abandonP=NET.stats.recordAbandon(code).then(r=>{if(r&&r.stats)MYUSER=Object.assign({},MYUSER,{stats:r.stats})})
+    .then(()=>tt?NET.tour.forfeit(code).then(()=>NET.tour.reportResult(tt.tid,tt.mid)):null).catch(()=>{})}
+  toast(FB&&mode==='online'&&T&&T.tour?'Abandonaste: perdés este partido del torneo':'Abandonaste la partida: cuenta como derrota')}
 function toMenu(){TUT=null;mySena=null;const wasCamp=!!CAMP;CAMP=null;if(mode==='online')leaveTable(true);else{G=null;mode=null;view=wasCamp?'gira':'menu';panel=null;clearTimeout(driveT);render()}}
 
 /* ---------- presencia online: quién está y quién maneja la mesa ---------- */
@@ -980,7 +986,7 @@ function roomInviteHTML(full){const fs=[...friendSet()];if(!fs.length||full||!T|
   return `<section class="box" style="margin-top:4px"><h2>Invitá a tus amigos</h2><ul class="flist">${fs.filter(id=>!inTable.has(id)).map(id=>{const l=LOOKS[id]||{};const sent=INVITED.has(id);
     return `<li>${avatarSVG(AVM[l.av]?l.av:'gaucho',34)}<span style="flex:1">${esc(dispName(id)||'Jugador')}</span><button class="btn sm ${sent?'':'brass'}" data-a="invite" data-id="${esc(id)}" ${sent?'disabled':''}>${sent?'Invitado':'Invitar'}</button></li>`}).join('')}</ul></section>`}
 async function quickPlay(){if(!db||!uid){toast('El juego online necesita tu cuenta');return}
-  const t=lobby.filter(x=>x.status==='waiting'&&x.host!==uid&&Date.now()-(x.created||0)<3*3600e3&&(x.stake||0)<=WAL.chips&&x.seats.some(s=>!s.id&&!s.bot)).sort((a,b)=>b.created-a.created)[0];
+  const t=lobby.filter(x=>x.status==='waiting'&&!x.tour&&x.host!==uid&&Date.now()-(x.created||0)<3*3600e3&&(x.stake||0)<=WAL.chips&&x.seats.some(s=>!s.id&&!s.bot)).sort((a,b)=>b.created-a.created)[0];
   if(t){toast('Te sentamos en la mesa '+t.code);openTable(t.code);return}
   const code=await createTable();if(code)toast('No había mesas abiertas: armamos una. Invitá amigos o completá con bots.')}
 async function fillAndStart(){if(!isHost||!tableRef)return;if(FB){startOnline();return}let seats=null;
@@ -1033,7 +1039,8 @@ async function authSubmit(kind){if(AUTHBUSY)return;AUTHERR='';AUTHBUSY=true;
   AUTHBUSY=false;render()}
 function resetSession(){for(const k of Object.keys(WAL))delete WAL[k];Object.assign(WAL,JSON.parse(JSON.stringify(WAL0)));walRef=null;renderWallet();uid=null;db=null;usr=null;roomCap=null;MYUSER=null;isOwnerV=false;PREMIUM=false;myName='';myEmail=null;
   [unsubLobby,unsubRev,unsubPrem,unsubInv,unsubRank].forEach(u=>{try{u&&u()}catch(e){}});unsubLobby=unsubRev=unsubPrem=unsubInv=unsubRank=null;
-  admUnsubs.forEach(u=>{try{u()}catch(e){}});admUnsubs=[];unsubAdmin=null;ADM_ROOMS=ADM_USERS=null}
+  admUnsubs.forEach(u=>{try{u()}catch(e){}});admUnsubs=[];unsubAdmin=null;ADM_ROOMS=ADM_USERS=null;
+  [toursUnsub,tvUnsub].forEach(u=>{try{u&&u()}catch(e){}});toursUnsub=tvUnsub=null;TOURS=null;TV=null;TCLAIM.clear()}
 async function onFbUser(info,fresh){AUTHINFO=info;
   if(!info){resetSession();AUTHV='login';view='auth';render();return}
   if(!info.user&&!(NET.auth.user())){AUTHV='complete';view='auth';render();return}
@@ -1044,7 +1051,7 @@ async function onFbUser(info,fresh){AUTHINFO=info;
   if(!WAL.registered){WAL.registered=true;WAL.eq.av=AVM[u.avatar]?u.avatar:'gaucho';saveWallet();writeLooks();view='welcome'}
   else if(view==='auth'||view==='boot')view='menu';
   NET.stats.watchUser(uid,x=>{MYUSER=x;const adm=NET.auth.isAdmin();if(adm!==isOwnerV){isOwnerV=adm;PREMIUM=PREMIUM||adm;subAdmin();subFbAdmin()}if(view==='profile'||view==='settings')render()});
-  subLobby();subFriends();subPremium();subAdmin();subFbAdmin();subInvites();checkInviteHash();
+  subLobby();subFriends();subPremium();subAdmin();subFbAdmin();subInvites();subTours();checkInviteHash();
   NET.stats.recordPending().catch(()=>{});render()}
 const RECORDED=new Set();
 function fbRecord(code,matchId){if(RECORDED.has(matchId))return;RECORDED.add(matchId);
@@ -1074,15 +1081,139 @@ async function fbStartAI(){const n=+SET.n,stake=+SET.stake;if(stake>WAL.chips){t
     await NET.rooms.startRoom(code,(seats,d)=>newMatch({n:d.n,target:d.target,stake:d.stake,flor:d.flor!==false,seats:seats.map(s=>({id:s.id,bot:!!s.bot})),matchId:code+'-'+Date.now().toString(36),diff:d.diff||'medio'}));
     openTable(code)}catch(e){toast('No se pudo armar la partida. Revisá tu conexión.')}}
 
+/* ---------- torneos (web con cuenta). Entrada y premios en fichas: no tienen valor en dinero ---------- */
+let TOURS=null,TV=null,tvUnsub=null,toursUnsub=null,tourBusy=false,tourConfirm=null;const TREP=new Set(),TOPEN=new Set(),TSTART=new Set(),TCLAIM=new Set();
+const TN={name:'',theme:'',date:'',rules:'',format:'ko',mode:'1v1',max:8,buyIn:100,target:15,flor:true};
+const TMAX={ko:[4,8,16],liga:[3,4,6,8]};const TBUY=[0,50,100,250,500,1000];
+const tFmtDate=ms=>{try{return new Date(ms).toLocaleString('es-AR',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}catch(e){return''}};
+const tTeamName=tm=>!tm?'—':esc(tm.names.filter(Boolean).join(' y ')+(tm.bot?' y la IA':''));
+const tMine=tm=>!!(tm&&tm.ids.includes(uid));
+const tStatus={open:'Inscripción abierta',running:'En juego',finished:'Terminado',cancelled:'Cancelado'};
+function subTours(){if(!FB||toursUnsub)return;try{toursUnsub=NET.tour.watchList(l=>{TOURS=l;tourClaims();if(view==='menu')render()})}catch(e){}}
+function openTour(tid){if(tvUnsub)tvUnsub();TV={tid,t:null,entries:[],matches:[]};tourConfirm=null;view='tour';render();window.scrollTo(0,0);
+  tvUnsub=NET.tour.watch(tid,x=>{if(!TV||TV.tid!==tid)return;Object.assign(TV,x,{loaded:true});if(view==='tour')render()})}
+/* cobra solo el premio o el reintegro de los torneos en los que te anotaste */
+function tourClaims(){for(const t of TOURS||[]){const mine=WAL.tours&&WAL.tours[t.id];if(!mine||mine.claimed||TCLAIM.has(t.id))continue;if(t.status!=='finished'&&t.status!=='cancelled')continue;TCLAIM.add(t.id);
+  NET.tour.claim(t.id).then(r=>{const v=Object.assign({},mine,{claimed:true});
+    if(r&&r.amount>0){applyTx('tour:'+t.id+':claim',{chips:r.amount,tour:{id:t.id,v}}).then(()=>{sfx('pts');toast(r.kind==='premio'?`¡Saliste ${r.place}.º en ${t.name}! Cobraste ${fmt(r.amount)} fichas`:`Se canceló ${t.name}: te devolvimos ${fmt(r.amount)} fichas`)})}
+    else applyTx('tour:'+t.id+':noprize',{tour:{id:t.id,v}})}).catch(()=>TCLAIM.delete(t.id))}}
+function toursBoxHTML(){
+  if(!FB)return `<section class="box tours"><h2>Torneos</h2><p class="note">Los torneos se juegan en la web, con tu cuenta: <b>aleclem180.github.io/Reviro</b>. La entrada y el premio son en fichas.</p></section>`;
+  const list=(TOURS||[]).filter(t=>t.status==='open'||t.status==='running'||(t.status==='finished'&&Date.now()-(t.finishedAt||t.updatedAt||0)<3*864e5));
+  return `<section class="box tours"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Torneos</h2>${isOwnerV?'<button class="btn sm brass" data-a="tournew">+ Crear torneo</button>':''}</div>
+    ${TOURS===null?'<p class="note">Cargando…</p>':list.length?`<div class="tlist">${list.map(t=>{const mine=!!(WAL.tours&&WAL.tours[t.id]);const cap=NET.tour.cap(t);
+      return `<button type="button" class="tcard ${mine?'mine':''}" data-a="tour" data-id="${esc(t.id)}"><span class="tc-top"><b>${esc(t.name)}</b><span class="tst ${t.status}">${mine&&t.status==='running'?'Estás jugando':mine&&t.status==='open'?'Inscripto':tStatus[t.status]}</span></span>
+        ${t.theme?`<span class="tc-theme">${esc(t.theme)}</span>`:''}
+        <span class="tc-meta">${t.format==='liga'?'Liga':'Eliminación'} · ${t.mode} · ${t.status==='open'?`${t.players}/${cap} inscriptos`:`${(t.teams||[]).length} ${t.mode==='2v2'?'parejas':'jugadores'}`}${t.startAt?' · '+esc(tFmtDate(t.startAt)):''}</span>
+        <span class="tc-pot"><i class="chip"></i><b>${fmt(NET.tour.potOf(t))}</b> en el pozo <small>· entrada ${t.buyIn?fmt(t.buyIn)+' fichas':'gratis'}</small></span></button>`}).join('')}</div>`
+    :`<p class="note">${isOwnerV?'Todavía no hay torneos. Creá el primero.':'Por ahora no hay torneos abiertos. Cuando se arme uno, aparece acá.'}</p>`}</section>`}
+function tourNewHTML(){if(!isOwnerV)return `<div class="grid"><section class="box"><p>Solo los admins crean torneos.</p></section></div>`;
+  const maxes=TMAX[TN.format];if(!maxes.includes(TN.max))TN.max=maxes[1];
+  const full=TN.max*(TN.mode==='2v2'?2:1),pot=Math.floor(full*TN.buyIn*.9),pr=[.6,.3,.1].map(x=>Math.floor(pot*x));
+  return `<div class="backx"><button type="button" class="btn ghost sm" data-a="nav" data-v="menu">← Jugar</button></div><div class="grid"><form class="box" data-form="tour"><h2>Nuevo torneo</h2>
+    <label class="field"><span>Nombre</span><input class="tin" id="tname" maxlength="40" required placeholder="Copa de la Pulpería" value="${esc(TN.name)}"></label>
+    <label class="field"><span>Temática</span><input class="tin" id="ttheme" maxlength="60" placeholder="Truco de fogón, a 15 con flor" value="${esc(TN.theme)}"></label>
+    <label class="field"><span>Fecha y hora</span><input class="tin" id="tdate" type="datetime-local" value="${esc(TN.date)}"></label>
+    <div class="field"><span>Formato</span>${seg('tn.format',[['ko','Eliminación directa'],['liga','Liga: todos contra todos']],TN.format)}</div>
+    <div class="field"><span>Modalidad</span>${seg('tn.mode',[['1v1','1 contra 1'],['2v2','Parejas 2 contra 2']],TN.mode)}</div>
+    <div class="field"><span>Cupo (${TN.mode==='2v2'?'parejas':'jugadores'})</span>${seg('tn.max',maxes.map(v=>[v,v]),TN.max)}</div>
+    <div class="field"><span>Entrada por jugador</span>${seg('tn.buyIn',TBUY.map(v=>[v,v?fmt(v):'Gratis']),TN.buyIn)}</div>
+    <div class="field"><span>Partidas a</span>${seg('tn.target',[[15,'15 puntos'],[30,'30 puntos']],TN.target)}</div>
+    <div class="field"><span>Flor</span>${seg('tn.flor',[['true','Con flor'],['false','Sin flor']],TN.flor)}</div>
+    <label class="field"><span>Reglas</span><textarea class="tin" id="trules" maxlength="600" rows="4" placeholder="Ej.: las partidas se juegan el mismo día. Si tu rival no aparece en 5 minutos, podés empezar con la IA en su lugar.">${esc(TN.rules)}</textarea></label>
+    <div class="demo" style="margin:0">El pozo es el 90% de las entradas y crece con cada inscripto; el 10% queda para la casa. Reparto: 1.º 60%, 2.º 30%, 3.º 10%.${TN.buyIn?` Con el cupo lleno: <b>${fmt(pot)}</b> fichas (${fmt(pr[0])} / ${fmt(pr[1])} / ${fmt(pr[2])}).`:''}</div>
+    <button class="btn prim" type="submit" ${tourBusy?'disabled':''}>Crear torneo</button></form></div>`}
+async function tourCreate(){if(tourBusy)return;const name=(TN.name||'').trim();if(!name){toast('Ponele un nombre al torneo');return}
+  tourBusy=true;render();try{const startAt=TN.date?Date.parse(TN.date):null;
+    const id=await NET.tour.create({name,theme:TN.theme.trim(),rules:TN.rules.trim(),startAt:isNaN(startAt)?null:startAt,format:TN.format,mode:TN.mode,maxTeams:TN.max,buyIn:TN.buyIn,target:TN.target,flor:TN.flor});
+    Object.assign(TN,{name:'',theme:'',date:'',rules:''});tourBusy=false;toast('Torneo creado');openTour(id)}catch(e){tourBusy=false;render();toast('No se pudo crear el torneo')}}
+function tourPrizesHTML(t){const n=t.status==='open'?Math.max(3,t.maxTeams):(t.teams||[]).length;const pr=NET.tour.prizesOf(t,n);const pot=NET.tour.potOf(t);
+  return `<div class="pozo"><small>Pozo</small><div class="pz-n"><i class="chip"></i>${fmt(pot)}</div>
+    <div class="pz-sp">${pr.map((v,i)=>`<span><b>${i+1}.º</b> ${fmt(v)}</span>`).join('')}</div>
+    ${t.status==='open'?`<p class="note">El 90% de las entradas. Crece con cada inscripto${t.buyIn?`: con el cupo lleno llega a ${fmt(Math.floor(NET.tour.cap(t)*t.buyIn*.9))}`:''}.</p>`:`<p class="note">El 90% de las entradas; el 10% quedó para la casa.${t.mode==='2v2'?' En parejas, el premio se parte entre los dos (si tu compañero es la IA, es todo tuyo).':''}</p>`}</div>`}
+function tourMatchHTML(t,m){const me=tMine(m.a)||tMine(m.b);const done=!!m.winner;
+  const side=(s)=>{const tm=m[s];return `<span class="tm-side ${done&&m.winner===s?'win':''} ${tMine(tm)?'tme':''}">${tm?tTeamName(tm):'<i>A definir</i>'}${done&&m.pts&&!m.bye&&!m.wo&&!m.forfeit?`<b>${m.pts[s==='a'?0:1]}</b>`:''}</span>`};
+  let act='';
+  if(!done&&m.a&&m.b&&t.status==='running'){if(me)act=`<button class="btn sm prim" data-a="tourplay" data-mid="${esc(m.id)}">Jugar</button>`;
+    if(isOwnerV){const sn=tm=>esc((tm.names[0]||'').split(' ')[0]||'—');act+=`<span class="tm-wo"><button class="btn sm ghost" data-a="tourwo" data-mid="${esc(m.id)}" data-w="a" title="Dar por ganado (no se presentó el rival)">Gana ${sn(m.a)}</button><button class="btn sm ghost" data-a="tourwo" data-mid="${esc(m.id)}" data-w="b" title="Dar por ganado (no se presentó el rival)">Gana ${sn(m.b)}</button></span>`}}
+  return `<div class="tm ${me?'mine':''}">${side('a')}${m.bye?'<span class="tm-side bye"><i>Pasa directo</i></span>':side('b')}${m.wo?'<small class="note">Por no presentarse</small>':m.forfeit?'<small class="note">Ganó por abandono del rival</small>':''}${act?`<div class="row">${act}</div>`:''}</div>`}
+function tourHTML(){const back=`<div class="backx"><button type="button" class="btn ghost sm" data-a="nav" data-v="menu">← Jugar</button></div>`;
+  if(!TV||!TV.t)return back+`<div class="grid"><section class="box"><p class="note">${TV&&TV.t===null&&TV.loaded?'Ese torneo ya no existe.':'Cargando torneo…'}</p></section></div>`;
+  const t=TV.t,E=TV.entries,M=TV.matches,cap=NET.tour.cap(t);const myE=E.find(e=>e.uid===uid);
+  const info=[t.format==='liga'?'Liga':'Eliminación directa',t.mode==='2v2'?'Parejas 2 contra 2':'1 contra 1','a '+t.target+' puntos',t.flor===false?'sin flor':'con flor',t.buyIn?'entrada '+fmt(t.buyIn)+' fichas':'entrada gratis'];
+  let o=back+`<div class="grid"><section class="box thead"><div class="row" style="justify-content:space-between;align-items:flex-start"><div style="min-width:0"><h2 style="margin:0">${esc(t.name)}</h2>${t.theme?`<p class="tc-theme" style="margin:2px 0 0">${esc(t.theme)}</p>`:''}</div><span class="tst ${t.status}">${tStatus[t.status]}</span></div>
+    <div class="tchips">${info.map(x=>`<span>${esc(x)}</span>`).join('')}${t.startAt?`<span>${esc(tFmtDate(t.startAt))}</span>`:''}</div>
+    ${tourPrizesHTML(t)}
+    ${t.rules?`<details class="trules"><summary>Reglas del torneo</summary><p>${esc(t.rules)}</p></details>`:''}</section>`;
+  if(t.status==='open'){const pct=Math.min(100,Math.round(t.players/cap*100));
+    const teams={};E.forEach(e=>{(teams[e.team]=teams[e.team]||[]).push(e)});
+    o+=`<section class="box"><h2>Inscripción</h2><div class="tbar"><i style="width:${pct}%"></i></div><p class="note" style="margin:0">${t.players} de ${cap} lugares${t.mode==='2v2'?' ('+t.maxTeams+' parejas)':''}</p>`;
+    if(myE){const cap2=E.find(e=>e.uid===myE.team),mate=myE.team===uid?E.find(e=>e.uid===myE.partner):cap2;
+      o+=`<p class="ok">Estás inscripto${t.mode==='2v2'?(mate?` con <b>${esc(mate.name)}</b>`:'. Si nadie se suma a tu pareja, al empezar te toca compañero (o la IA)'):''}.</p>
+        <button class="btn ghost" data-a="tourleave" ${tourBusy?'disabled':''}>${tourConfirm==='leave'?'Confirmar baja':'Darme de baja'}${t.buyIn?` (te devolvemos ${fmt(t.buyIn)})`:''}</button>`}
+    else{const full=t.players>=cap,poor=t.buyIn>WAL.chips;
+      o+=`<button class="btn prim" data-a="tourjoin" ${full||poor||tourBusy?'disabled':''}>${full?'Cupo lleno':`Inscribirme${t.buyIn?' · '+fmt(t.buyIn)+' fichas':''}`}</button>${poor&&!full?'<p class="note">No te alcanzan las fichas.</p>':''}
+        ${t.mode==='2v2'?'<p class="note">Te inscribís y armás tu pareja: otro se puede sumar con vos. O sumate a una pareja que tenga un lugar libre.</p>':''}`}
+    o+=`<h3>Inscriptos</h3>${E.length?`<ul class="flist">${Object.values(teams).map(g=>{const capE=g.find(e=>e.uid===e.team)||g[0];const open=t.mode==='2v2'&&g.length<2&&capE.uid===capE.team&&!capE.partner;
+      return `<li>${g.map(e=>avatarSVG(AVM[e.av]?e.av:'gaucho',30)).join('')}<span style="flex:1">${esc(g.map(e=>e.name).join(' y '))}${g.some(e=>e.uid===uid)?' <small>(vos)</small>':''}${open?'<small>Falta compañero</small>':''}</span>${open&&!myE&&t.players<cap?`<button class="btn sm" data-a="tourjoin" data-team="${esc(capE.uid)}" ${t.buyIn>WAL.chips||tourBusy?'disabled':''}>Sumarme</button>`:''}</li>`}).join('')}</ul>`:'<p class="note">Todavía no se anotó nadie.</p>'}</section>`;
+    if(isOwnerV)o+=`<section class="box admin"><h2>Administrar</h2>${t.startAt&&Date.now()>t.startAt?'<p class="note">Ya es la hora: empezalo cuando quieras.</p>':''}
+      <div class="row"><button class="btn prim" data-a="tourstart" ${E.length<2||tourBusy?'disabled':''}>${tourConfirm==='start'?'Confirmar: cerrar inscripción y sortear':'Empezar torneo'}</button>
+      <button class="btn warn" data-a="tourcancel" ${tourBusy?'disabled':''}>${tourConfirm==='cancel'?'Confirmar cancelación':'Cancelar torneo'}</button></div>
+      <p class="note">Al empezar se sortean los cruces${t.mode==='2v2'?' y se arman las parejas que falten (si sobra uno, juega con la IA)':''}. Si lo cancelás, a todos se les devuelve la entrada.</p></section>`}
+  else if(t.status==='cancelled')o+=`<section class="box"><p>Este torneo se canceló. A cada inscripto se le devolvió la entrada.</p></section>`;
+  else{
+    const pending=M.filter(m=>!m.winner&&m.a&&m.b&&(tMine(m.a)||tMine(m.b)));
+    if(t.status==='running'&&pending.length)o+=`<section class="box tnext"><h2>Te toca</h2>${pending.map(m=>`<div class="trow"><div><b>${esc(m.label)}</b> <span>vs ${tTeamName(tMine(m.a)?m.b:m.a)}</span></div><button class="btn prim" data-a="tourplay" data-mid="${esc(m.id)}">Jugar mi partida</button></div>`).join('')}<p class="note">Si tu rival no llega en 5 minutos, podés empezar igual: la IA juega en su lugar. Abandonar una partida es perderla.</p></section>`;
+    if(t.status==='finished'&&t.places){const pr=NET.tour.prizesOf(t,(t.teams||[]).length);
+      o+=`<section class="box podio"><h2>Podio</h2>${['p1','p2','p3'].map((p,i)=>t.places[p]?`<div class="pd pd${i+1} ${tMine(t.places[p])?'tme':''}"><span class="pd-n">${i+1}.º</span><span class="pd-w">${tTeamName(t.places[p])}</span><span class="pd-p"><i class="chip"></i>${fmt(pr[i]||0)}</span></div>`:'').join('')}</section>`}
+    if(t.format==='liga'){const S=NET.tour.standingsOf(t,M);
+      o+=`<section class="box"><h2>Tabla</h2><table class="tstand"><thead><tr><th>#</th><th>${t.mode==='2v2'?'Pareja':'Jugador'}</th><th>PJ</th><th>PG</th><th>Dif.</th></tr></thead><tbody>${S.map((r,i)=>`<tr class="${tMine(r.team)?'tme':''}"><td>${i+1}</td><td>${tTeamName(r.team)}</td><td>${r.pj}</td><td><b>${r.w}</b></td><td>${r.pf-r.pa>0?'+':''}${r.pf-r.pa}</td></tr>`).join('')}</tbody></table></section>`;
+      const rounds=[...new Set(M.map(m=>m.round))];
+      o+=`<section class="box"><h2>Partidos</h2>${rounds.map(r=>`<h3>Fecha ${r}</h3><div class="tms">${M.filter(m=>m.round===r).map(m=>tourMatchHTML(t,m)).join('')}</div>`).join('')}</section>`}
+    else{const rounds=[...new Set(M.filter(m=>!m.third).map(m=>m.round))];
+      o+=`<section class="box"><h2>Llave</h2><div class="bracket">${rounds.map(r=>{const ms=M.filter(m=>m.round===r&&!m.third);return `<div class="bcol"><h3>${esc(ms[0].label)}</h3><div class="tms">${ms.map(m=>tourMatchHTML(t,m)).join('')}</div>${M.filter(m=>m.third&&m.round===r).map(m=>`<h3 style="margin-top:10px">${esc(m.label)}</h3><div class="tms">${tourMatchHTML(t,m)}</div>`).join('')}</div>`}).join('')}</div></section>`}}
+  return o+'</div>'}
+async function tourJoin(team){const t=TV&&TV.t;if(!t||tourBusy)return;if(t.buyIn>WAL.chips){toast('No te alcanzan las fichas');return}
+  tourBusy=true;render();try{const r=await NET.tour.register(t.id,{name:myDisp(),av:WAL.eq.av,team:team||null});tourBusy=false;
+    if(!r.ok){toast({lleno:'Ya se llenó el cupo',cerrado:'La inscripción ya cerró',ya:'Ya estás inscripto',pareja:'Esa pareja ya está completa'}[r.reason]||'No se pudo inscribir');render();return}
+    await applyTx('tour:'+t.id+':in:'+r.at,{chips:-(r.buyIn||0),tour:{id:t.id,v:{at:r.at}}});sfx('buy');toast(r.buyIn?`Inscripto: pagaste ${fmt(r.buyIn)} fichas`:'¡Inscripto!')}
+  catch(e){tourBusy=false;render();toast('No se pudo inscribir. Revisá tu conexión.')}}
+async function tourLeave(){const t=TV&&TV.t;if(!t||tourBusy)return;if(tourConfirm!=='leave'){tourConfirm='leave';render();return}tourConfirm=null;
+  tourBusy=true;render();try{const r=await NET.tour.unregister(t.id);tourBusy=false;if(!r.ok){toast('El torneo ya empezó');render();return}
+    await applyTx('tour:'+t.id+':out:'+r.at,{chips:r.buyIn||0,tour:{id:t.id,v:null}});toast('Te diste de baja'+(r.buyIn?`: te devolvimos ${fmt(r.buyIn)} fichas`:''))}
+  catch(e){tourBusy=false;render();toast('No se pudo. Revisá tu conexión.')}}
+async function tourStart(){const t=TV&&TV.t;if(!t||tourBusy)return;if(tourConfirm!=='start'){tourConfirm='start';render();return}tourConfirm=null;
+  tourBusy=true;render();try{const r=await NET.tour.start(t.id);tourBusy=false;render();toast(r.ok?'¡Arrancó el torneo! Ya se sortearon los cruces':r.reason==='pocos'?'Hacen falta al menos dos '+(t.mode==='2v2'?'parejas':'jugadores'):'No se pudo empezar')}
+  catch(e){tourBusy=false;render();toast('No se pudo empezar el torneo')}}
+async function tourCancel(){const t=TV&&TV.t;if(!t||tourBusy)return;if(tourConfirm!=='cancel'){tourConfirm='cancel';render();return}tourConfirm=null;
+  try{await NET.tour.cancel(t.id);toast('Torneo cancelado: se devuelven las entradas')}catch(e){toast('No se pudo cancelar')}}
+async function tourPlay(mid){const t=TV&&TV.t;if(!t)return;try{const code=await NET.tour.openMatch(t.id,mid);if(!code){toast('Ese partido ya no está para jugar');return}TOPEN.add(code);openTable(code)}catch(e){toast('No se pudo abrir la partida. Revisá tu conexión.')}}
+const tourBuild=(seats,d)=>newMatch({n:d.n,target:d.target,stake:0,flor:d.flor!==false,seats:seats.map(s=>({id:s.id,bot:!!s.bot})),matchId:d.code+'-'+Date.now().toString(36),diff:d.diff||'dificil'});
+/* la sala de un partido del torneo: se marca quién llegó y arranca sola cuando están todos */
+function tourOnTable(){if(!T||!T.tour||mySeat<0)return;const code=T.code;
+  if(T.status==='waiting'){const here=T.here||{};
+    if(!here[uid]&&!TOPEN.has(code)){TOPEN.add(code);NET.tour.openMatch(T.tour.tid,T.tour.mid).catch(()=>TOPEN.delete(code))}
+    const all=T.seats.filter(s=>s.id&&!s.bot).every(s=>here[s.id]);
+    if(all&&!TSTART.has(code)){TSTART.add(code);NET.tour.startMatchRoom(code,tourBuild).then(r=>{if(!r.ok)TSTART.delete(code)}).catch(()=>TSTART.delete(code))}}
+  if(T.status==='finished'&&T.result&&!TREP.has(T.result.matchId)){TREP.add(T.result.matchId);NET.tour.reportResult(T.tour.tid,T.tour.mid).catch(()=>TREP.delete(T.result.matchId))}}
+function tourRoomHTML(){const here=T.here||{};const wait=Math.max(0,5*60e3-(Date.now()-(T.created||Date.now())));
+  return `<div class="room"><h3 style="margin:0;color:var(--muted);font-size:.78rem;letter-spacing:.14em;text-transform:uppercase">Torneo · ${esc(T.tour.label||'')}</h3><div class="code" style="font-size:1.6rem">${esc(T.tour.name||'')}</div>
+    <p class="note">A ${T.target} puntos · ${T.flor===false?'sin flor':'con flor'}${T.n===4?' · los asientos 1 y 3 juegan juntos contra 2 y 4':''}. La partida arranca sola cuando están todos.</p>
+    <div class="seats">${T.seats.map((s,i)=>{const who=s.bot?'La IA':s.id===uid?'Vos':(dispName(s.id)||'Jugador');const av=s.bot?'veterano':s.id===uid?myAv():((LOOKS[s.id]&&LOOKS[s.id].av)||'gaucho');const ok=s.bot||here[s.id];
+      return `<div class="seatc ${s.id===uid?'mine':''}"><div class="who">${avatarSVG(av,36)}<div><small>Asiento ${i+1}${T.n===4?' · equipo '+(i%2?'B':'A'):''}</small><b>${esc(who)}</b></div></div><span class="tst ${ok?'running':'open'}">${ok?'Llegó':'Esperando'}</span></div>`}).join('')}</div>
+    <div class="row">${wait?`<p class="note">Si falta alguien, en ${Math.ceil(wait/60e3)} min podés empezar con la IA en su lugar.</p>`:`<button class="btn brass" data-a="tourforce">Empezar igual (la IA juega por los que faltan)</button>`}
+    <button class="btn ghost" data-a="tourback">Volver al torneo</button></div></div>`}
+
 /* ---------- eventos ---------- */
 document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closest('[data-a],[data-set],[data-card]');if(!t)return;
   if(t.dataset.a==='close'&&t.classList.contains('over')&&e.target!==t)return;
   if(t.dataset.set){const k=t.dataset.set,v=t.dataset.v;const val=v==='true'?true:v==='false'?false:(isNaN(+v)?v:+v);
     if(k==='anot.target'){ANOT.target=val;ANOT.s=ANOT.s.map(x=>Math.min(x,val));saveAnot();render();return}
+    if(k.startsWith('tn.')){TN[k.slice(3)]=val;render();return}
     if(k.startsWith('on.'))SET.on[k.slice(3)]=val;else SET[k]=val;saveSet();render();return}
   if(t.dataset.card){doAction({t:'play',card:t.dataset.card});return}
   const a=t.dataset.a;
-  if(a!=='anreset')anotConfirm=false;if(a!=='mazo')confirmMazo=false;if(a!=='exit')confirmExit=false;if(a!=='buy'&&a!=='prebuy'&&a!=='pack'&&a!=='prepack')pendingBuy=null;
+  if(a!=='anreset')anotConfirm=false;if(a!=='mazo')confirmMazo=false;if(a!=='exit')confirmExit=false;if(!['tourleave','tourstart','tourcancel'].includes(a))tourConfirm=null;if(a!=='buy'&&a!=='prebuy'&&a!=='pack'&&a!=='prepack')pendingBuy=null;
   switch(a){
   case 'nav':view=t.dataset.v;render();window.scrollTo(0,0);return;
   case 'load':overlayView='load';render();return;
@@ -1097,6 +1228,16 @@ document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closes
   case 'prepack':if(!PREMIUM){toast('Solo para cuentas premium');return}pendingBuy='pack:'+t.dataset.i;render();return;
   case 'pack':{if(!PREMIUM){toast('Solo para cuentas premium');return}const p=PACKS[+t.dataset.i];pendingBuy=null;if(p){applyTx('pack-'+Date.now(),{coins:p.coins}).then(()=>{sfx('buy');toast('Compra de prueba: +'+fmt(p.coins)+' monedas, sin cobro')})}return}
   case 'add':if(!PREMIUM){toast('Solo para cuentas premium');return}applyTx('load-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),{chips:+t.dataset.v});overlayView=null;toast('Cargaste '+fmt(t.dataset.v)+' fichas de práctica');render();return;
+  case 'tour':openTour(t.dataset.id);return;
+  case 'tournew':view='tournew';render();window.scrollTo(0,0);return;
+  case 'tourjoin':tourJoin(t.dataset.team);return;
+  case 'tourleave':tourLeave();return;
+  case 'tourstart':tourStart();return;
+  case 'tourcancel':tourCancel();return;
+  case 'tourplay':tourPlay(t.dataset.mid);return;
+  case 'tourwo':if(TV&&TV.t)NET.tour.walkover(TV.t.id,t.dataset.mid,t.dataset.w).then(()=>toast('Partido dado por ganado')).catch(()=>toast('No se pudo'));return;
+  case 'tourforce':if(T&&T.tour)NET.tour.startMatchRoom(T.code,tourBuild,true).then(r=>{if(!r.ok)toast('Todavía no se puede')}).catch(()=>toast('No se pudo empezar'));return;
+  case 'tourback':{const tid=T&&T.tour&&T.tour.tid;if(view==='game'&&inProgress()){toast('Terminá la partida primero');return}leaveTable(true);if(tid)openTour(tid);return}
   case 'solo':startSolo();return;
   case 'create':createTable();return;
   case 'join':case 'rejoin':openTable(t.dataset.code);return;
@@ -1142,8 +1283,10 @@ document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closes
   if(a&&a.startsWith('truco:')){doAction({t:'truco',level:+a.slice(6)});return}
 });
 document.addEventListener('keydown',e=>{const t=e.target;if((e.key==='Enter'||e.key===' ')&&t.classList&&t.classList.contains('zp')){e.preventDefault();giraZone=t.dataset.id;render()}});
+document.addEventListener('input',e=>{const k={tname:'name',ttheme:'theme',tdate:'date',trules:'rules'}[e.target.id];if(k)TN[k]=e.target.value});
 document.addEventListener('change',e=>{const m=/^an([01])$/.exec(e.target.id||'');if(m){ANOT.names[+m[1]]=cleanNick(e.target.value)||(m[1]==='0'?'Nosotros':'Ellos');saveAnot()}});
 document.addEventListener('submit',e=>{const fa=e.target.closest('[data-form="login"],[data-form="register"],[data-form="complete"],[data-form="reset"]');if(fa){e.preventDefault();authSubmit(fa.dataset.form);return}
+  const ft=e.target.closest('[data-form="tour"]');if(ft){e.preventDefault();tourCreate();return}
   const fr=e.target.closest('[data-form="reg"]');if(fr){e.preventDefault();doRegister();return}
   const fp=e.target.closest('[data-form="prem"]');if(fp){e.preventDefault();premiumByCode($('#premin').value);return}
   const fn=e.target.closest('[data-form="nick"]');if(fn){e.preventDefault();saveNick($('#nickin').value);return}
@@ -1158,7 +1301,7 @@ async function start(data){
   view='boot';
   if(data&&data.G&&data.mode==='offline'){mode='offline';mySeat=0;view='game';cfg=data.cfg;botLooks=data.botLooks||pickBotLooks(data.G.n);G=data.G}
   renderSnd();renderWallet();render();drive();
-  setInterval(presenceTick,3000);setInterval(turnTick,500);
+  setInterval(presenceTick,3000);setInterval(turnTick,500);setInterval(()=>{if(view==='room'&&T&&T.tour&&T.status==='waiting')render()},15000);
   try{CL=window.claude;if(CL&&CL.use){[db,usr,roomCap]=await Promise.all([CL.use('db'),CL.use('user'),CL.use('room')]);uid=usr?await usr.id():null;if(usr){try{const me=await usr.me();myName=me.name||'';myEmail=me.email||null}catch(e){}try{isOwnerV=!!(await usr.isOwner())}catch(e){}}}}catch(e){db=null}
   if(FB){await waitNET();if(!window.NET){$('#view').innerHTML=`<div class="gate"><h1 class="gtitle">Re<span>viro</span></h1><section class="box"><h2>No se pudo conectar</h2><p>No pudimos llegar al servidor del juego. Revisá tu conexión y recargá la página.</p></section></div>`;return}
     if(view!=='game')view='boot';render();NET.auth.onChange(info=>onFbUser(info));return}

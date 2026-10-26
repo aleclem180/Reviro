@@ -146,6 +146,84 @@ service cloud.firestore {
       }
     }
 
+    // ---------- torneos (entrada y premios en fichas, sin valor en dinero) ----------
+    match /tournaments/{tid} {
+      function T() { return resource.data; }
+      function capOf(t) { return t.maxTeams * (t.mode == '2v2' ? 2 : 1); }
+      function entryPath(u) { return /databases/$(database)/documents/tournaments/$(tid)/entries/$(u); }
+
+      allow read: if signedIn();
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin()
+        // inscribirse o darse de baja: solo cambia la cantidad de inscriptos, junto con la inscripción
+        || (signedIn() && T().status == 'open' && changed().hasOnly(['players', 'updatedAt'])
+            && ((request.resource.data.players == T().players + 1 && request.resource.data.players <= capOf(T())
+                 && !exists(entryPath(request.auth.uid)) && existsAfter(entryPath(request.auth.uid)))
+             || (request.resource.data.players == T().players - 1
+                 && exists(entryPath(request.auth.uid)) && !existsAfter(entryPath(request.auth.uid)))))
+        // cerrar el torneo con el podio cuando se jugó todo (lo hace cualquiera de los inscriptos)
+        || (signedIn() && T().status == 'running' && request.resource.data.status == 'finished'
+            && changed().hasOnly(['status', 'places', 'finishedAt', 'updatedAt'])
+            && exists(entryPath(request.auth.uid)));
+
+      match /entries/{uid} {
+        function tour() { return get(/databases/$(database)/documents/tournaments/$(tid)).data; }
+        allow read: if signedIn();
+        allow create: if isSelf(uid) && tour().status == 'open'
+          && request.resource.data.uid == uid
+          && request.resource.data.partner == null
+          && (request.resource.data.team == uid
+              || (tour().mode == '2v2'
+                  && get(/databases/$(database)/documents/tournaments/$(tid)/entries/$(request.resource.data.team)).data.team == request.resource.data.team
+                  && get(/databases/$(database)/documents/tournaments/$(tid)/entries/$(request.resource.data.team)).data.partner == null
+                  && getAfter(/databases/$(database)/documents/tournaments/$(tid)/entries/$(request.resource.data.team)).data.partner == uid))
+          && getAfter(/databases/$(database)/documents/tournaments/$(tid)).data.players == tour().players + 1;
+        // sumarse a una pareja (o dejarla): solo se toca el campo partner de quien la armó
+        allow update: if isAdmin()
+          || (signedIn() && tour().status == 'open' && changed().hasOnly(['partner'])
+              && ((resource.data.partner == null && request.resource.data.partner == request.auth.uid
+                   && getAfter(/databases/$(database)/documents/tournaments/$(tid)/entries/$(request.auth.uid)).data.team == uid)
+               || (resource.data.partner == request.auth.uid && request.resource.data.partner == null
+                   && !existsAfter(/databases/$(database)/documents/tournaments/$(tid)/entries/$(request.auth.uid)))));
+        allow delete: if isAdmin()
+          || (isSelf(uid) && tour().status == 'open'
+              && getAfter(/databases/$(database)/documents/tournaments/$(tid)).data.players == tour().players - 1);
+      }
+
+      match /matches/{mid} {
+        function M() { return resource.data; }
+        function N() { return request.resource.data; }
+        // el resultado tiene que coincidir con el de la sala del partido
+        function validResult() {
+          let room = get(/databases/$(database)/documents/rooms/$(M().room)).data;
+          return changed().hasOnly(['winner', 'pts', 'forfeit', 'updatedAt'])
+            && M().winner == null && N().winner in ['a', 'b']
+            && room.status == 'finished' && room.tour.tid == tid && room.tour.mid == mid
+            && room.result.winnerTeam == (N().winner == 'a' ? 0 : 1)
+            && M().a.ids[0] in room.teams && room.teams[M().a.ids[0]] == 0;
+        }
+        // pasar a la ronda siguiente: el lugar se llena con el ganador (o el perdedor, en el tercer puesto) del partido anterior
+        function validFill(slot) {
+          let src = get(/databases/$(database)/documents/tournaments/$(tid)/matches/$(M().from[slot])).data;
+          let side = M().get('loser', false) == true ? (src.winner == 'a' ? 'b' : 'a') : src.winner;
+          return changed().hasOnly([slot, 'updatedAt']) && M()[slot] == null
+            && src.winner in ['a', 'b'] && N()[slot] == src[side];
+        }
+        allow read: if signedIn();
+        allow create, delete: if isAdmin();
+        allow update: if isAdmin() || (signedIn() && (validResult() || validFill('a') || validFill('b')));
+      }
+
+      match /claims/{uid} {
+        allow read: if isSelf(uid) || isAdmin();
+        allow create: if isSelf(uid)
+          && get(/databases/$(database)/documents/tournaments/$(tid)).data.status in ['finished', 'cancelled']
+          && exists(/databases/$(database)/documents/tournaments/$(tid)/entries/$(uid))
+          && request.resource.data.uid == uid;
+        allow update, delete: if false;
+      }
+    }
+
     // ---------- perfil público (personaje, apodo, código de amigo, amigos, puntos) ----------
     match /profiles/{uid} {
       allow read: if signedIn();

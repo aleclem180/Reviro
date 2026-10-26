@@ -9,7 +9,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import {
   getFirestore, doc, collection, getDoc, getDocs, setDoc, updateDoc, deleteDoc, addDoc,
-  onSnapshot, query, where, orderBy, limit, runTransaction, serverTimestamp,
+  onSnapshot, query, where, orderBy, limit, runTransaction, serverTimestamp, writeBatch,
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 /* ------------------------------------------------------------------ */
@@ -270,6 +270,11 @@ async function leaveRoom(code) {
     const s = await tx.get(roomRef(code));
     if (!s.exists()) return;
     const d = s.data();
+    // salas de torneo: los asientos están reservados; salir solo te marca como ausente
+    if (d.tour) {
+      if (d.status === 'waiting') { const here = { ...(d.here || {}) }; delete here[uid]; tx.update(roomRef(code), { here, updatedAt: Date.now() }); }
+      return;
+    }
     if (d.status === 'waiting') {
       if (d.host === uid) { tx.update(roomRef(code), { status: 'closed', updatedAt: Date.now() }); return; }
       const seats = d.seats.map((x) => (x.id === uid ? { id: null, bot: false } : x));
@@ -358,9 +363,12 @@ async function recordPending() {
   const snap = await getDocs(q);
   for (const d of snap.docs) {
     const r = d.data();
-    if (r.status === 'finished') await recordMatch(d.id).catch(() => null);
+    if (r.status === 'finished') {
+      await recordMatch(d.id).catch(() => null);
+      if (r.tour) await tour.reportResult(r.tour.tid, r.tour.mid).catch(() => null);
+    }
     // partida contra la IA que quedó colgada (se cerró la pestaña sin salir): cuenta como abandono
-    else if (r.status === 'playing' && humans(r.seats || []).length === 1 && Date.now() - (r.updatedAt || 0) > 15 * 60e3) {
+    else if (r.status === 'playing' && !r.tour && humans(r.seats || []).length === 1 && Date.now() - (r.updatedAt || 0) > 15 * 60e3) {
       await recordAbandon(d.id).catch(() => null);
       await leaveRoom(d.id).catch(() => null);
     }
@@ -374,6 +382,399 @@ function watchUser(uid, cb) {
     cb(USER);
   });
 }
+
+/* ------------------------------------------------------------------ */
+/* Torneos                                                             */
+/* ------------------------------------------------------------------ */
+/*
+  tournaments/{tid}
+    id, name, theme, rules, startAt (ms | null),
+    format ('ko' eliminación directa | 'liga' todos contra todos), mode ('1v1' | '2v2'),
+    maxTeams, buyIn (fichas), target (15 | 30), flor, cut (% de la casa), split ([60, 30, 10]),
+    status ('open' | 'running' | 'finished' | 'cancelled'), players (inscriptos),
+    pot (se fija al empezar), teams [{ids, names, bot}], places {p1, p2, p3}, createdBy, created, updatedAt
+  tournaments/{tid}/entries/{uid}   uid, name, av, team (uid del que armó la pareja), partner, at
+  tournaments/{tid}/matches/{mid}   id, round, idx, label, a/b {ids, names, bot} | null, room (código de la sala),
+                                    winner ('a' | 'b' | null), pts [a, b], bye, from {a, b}, loser, final, third, wo
+  tournaments/{tid}/claims/{uid}    uid, kind ('premio' | 'reintegro'), place, amount, at
+
+  Las fichas no tienen valor en dinero: la entrada y el premio se pagan en fichas de práctica.
+  El pozo es el (100 - cut)% de las entradas; el resto queda para la casa (esas fichas salen de circulación).
+*/
+const T_CUT = 10, T_SPLIT = [60, 30, 10];
+const tRef = (tid) => doc(fs, 'tournaments', tid);
+const tEntry = (tid, uid) => doc(fs, 'tournaments', tid, 'entries', uid);
+const tMatch = (tid, mid) => doc(fs, 'tournaments', tid, 'matches', mid);
+const tClaim = (tid, uid) => doc(fs, 'tournaments', tid, 'claims', uid);
+const tCap = (t) => t.maxTeams * (t.mode === '2v2' ? 2 : 1);
+const other = (s) => (s === 'a' ? 'b' : 'a');
+
+/** Pozo: el 90% de lo que se juntó en entradas (antes de empezar, va creciendo con cada inscripto). */
+const potOf = (t) => (t.status === 'open' || t.pot == null)
+  ? Math.floor((t.players || 0) * (t.buyIn || 0) * (100 - (t.cut ?? T_CUT)) / 100) : t.pot;
+
+/** Premios por puesto. Si hay menos de tres equipos, lo que sobra va al primero. */
+function prizesOf(t, nTeams) {
+  const pot = potOf(t), split = t.split || T_SPLIT;
+  const places = Math.max(1, Math.min(split.length, nTeams || split.length));
+  const shares = split.slice(0, places);
+  shares[0] += split.slice(places).reduce((a, b) => a + b, 0);
+  return shares.map((s) => Math.floor(pot * s / 100));
+}
+
+/** Tabla de la liga: partidos ganados, después diferencia de puntos, después puntos a favor. */
+function standingsOf(t, matches) {
+  const rows = (t.teams || []).map((tm, i) => ({ team: tm, key: tm.ids.join(','), i, w: 0, l: 0, pf: 0, pa: 0, pj: 0 }));
+  const by = Object.fromEntries(rows.map((r) => [r.key, r]));
+  for (const m of matches) {
+    if (!m.winner || !m.a || !m.b) continue;
+    const A = by[m.a.ids.join(',')], B = by[m.b.ids.join(',')];
+    if (!A || !B) continue;
+    const [pa, pb] = m.pts || [0, 0];
+    A.pj++; B.pj++; A.pf += pa; A.pa += pb; B.pf += pb; B.pa += pa;
+    if (m.winner === 'a') { A.w++; B.l++; } else { B.w++; A.l++; }
+  }
+  return rows.sort((x, y) => y.w - x.w || (y.pf - y.pa) - (x.pf - x.pa) || y.pf - x.pf || x.i - y.i);
+}
+
+/** Podio, o null si todavía falta jugar. */
+function placesOf(t, matches) {
+  if (t.format === 'liga') {
+    if (!matches.length || matches.some((m) => !m.winner)) return null;
+    const s = standingsOf(t, matches);
+    return { p1: s[0]?.team || null, p2: s[1]?.team || null, p3: s[2]?.team || null };
+  }
+  const fin = matches.find((m) => m.final);
+  if (!fin || !fin.winner) return null;
+  const p1 = fin[fin.winner], p2 = fin[other(fin.winner)] || null;
+  let p3 = null;
+  const third = matches.find((m) => m.third);
+  if (third) {
+    if (!third.winner) return null;
+    p3 = third[third.winner];
+  } else {
+    const semi = matches.find((m) => m.round === fin.round - 1 && !m.bye && m.winner);
+    if (semi) p3 = semi[other(semi.winner)] || null;
+  }
+  return { p1, p2, p3 };
+}
+
+const roundName = (r, R) => (r === R ? 'Final' : r === R - 1 ? 'Semifinal' : r === R - 2 ? 'Cuartos de final' : r === R - 3 ? 'Octavos de final' : 'Ronda ' + r);
+const roomCodeOf = (tid, mid) => ('T' + tid + '-' + mid).toUpperCase();
+const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+/** Arma los cruces. Eliminación: llave a la potencia de 2 siguiente, con pases directos en la primera ronda y partido por el tercer puesto. Liga: todos contra todos, por fechas. */
+function buildMatches(tid, t, teams) {
+  const out = [];
+  const base = (id, extra) => ({ id, a: null, b: null, room: roomCodeOf(tid, id), winner: null, pts: null, bye: false, from: null, loser: false, final: false, third: false, wo: false, ...extra });
+  if (t.format === 'liga') {
+    const list = teams.length % 2 ? teams.concat([null]) : teams.slice();
+    const n = list.length;
+    let k = 0;
+    for (let r = 0; r < n - 1; r++) {
+      for (let i = 0; i < n / 2; i++) {
+        const A = list[i], B = list[n - 1 - i];
+        if (A && B) out.push(base('L' + (k++), { round: r + 1, idx: i, label: 'Fecha ' + (r + 1), a: A, b: B }));
+      }
+      list.splice(1, 0, list.pop());   // método del círculo
+    }
+    return out;
+  }
+  let size = 2; while (size < teams.length) size *= 2;
+  const R = Math.log2(size), m1 = size / 2, full = teams.length - m1;
+  for (let r = 1; r <= R; r++) {
+    const cnt = size / 2 ** r;
+    for (let i = 0; i < cnt; i++) {
+      const id = 'R' + r + 'M' + i;
+      const m = base(id, { round: r, idx: i, label: roundName(r, R), final: r === R });
+      if (r === 1) {
+        m.a = teams[i];
+        m.b = i < full ? teams[m1 + i] : null;
+        if (!m.b) { m.bye = true; m.winner = 'a'; }
+      } else {
+        m.from = { a: 'R' + (r - 1) + 'M' + (2 * i), b: 'R' + (r - 1) + 'M' + (2 * i + 1) };
+      }
+      out.push(m);
+    }
+  }
+  // los que pasaron directo ya quedan anotados en la segunda ronda
+  for (const m of out) {
+    if (!m.from) continue;
+    for (const s of ['a', 'b']) { const src = out.find((x) => x.id === m.from[s]); if (src && src.bye) m[s] = src.a; }
+  }
+  if (R >= 2 && teams.length >= 4) {
+    out.push(base('P3', { round: R, idx: 1, label: 'Tercer puesto', third: true, loser: true, from: { a: 'R' + (R - 1) + 'M0', b: 'R' + (R - 1) + 'M1' } }));
+  }
+  return out;
+}
+
+const tour = {
+  potOf, prizesOf, standingsOf, placesOf, CUT: T_CUT, SPLIT: T_SPLIT, cap: tCap,
+
+  /** Admin: crea un torneo abierto a inscripciones. */
+  async create(cfg) {
+    for (let k = 0; k < 6; k++) {
+      const id = newCode() + newCode();
+      const ok = await runTransaction(fs, async (tx) => {
+        if ((await tx.get(tRef(id))).exists()) return false;
+        tx.set(tRef(id), {
+          id, name: String(cfg.name || 'Torneo').slice(0, 40), theme: String(cfg.theme || '').slice(0, 60), rules: String(cfg.rules || '').slice(0, 600),
+          startAt: cfg.startAt || null, format: cfg.format === 'liga' ? 'liga' : 'ko', mode: cfg.mode === '2v2' ? '2v2' : '1v1',
+          maxTeams: +cfg.maxTeams || 8, buyIn: Math.max(0, +cfg.buyIn || 0), target: +cfg.target === 30 ? 30 : 15, flor: cfg.flor !== false,
+          cut: T_CUT, split: T_SPLIT, status: 'open', players: 0, pot: null, teams: [], places: null,
+          createdBy: me().uid, created: Date.now(), updatedAt: Date.now(),
+        });
+        return true;
+      });
+      if (ok) return id;
+    }
+    throw new Error('No se pudo crear el torneo');
+  },
+
+  watchList: (cb) => onSnapshot(query(collection(fs, 'tournaments'), orderBy('created', 'desc'), limit(30)),
+    (s) => cb(s.docs.map((d) => d.data()))),
+
+  /** Escucha un torneo con sus inscriptos y sus partidos. */
+  watch(tid, cb) {
+    const st = { t: null, entries: [], matches: [] };
+    const emit = () => cb({ ...st });
+    const un = [
+      onSnapshot(tRef(tid), (s) => { st.t = s.exists() ? s.data() : null; emit(); }),
+      onSnapshot(collection(fs, 'tournaments', tid, 'entries'), (s) => { st.entries = s.docs.map((d) => d.data()).sort((a, b) => a.at - b.at); emit(); }),
+      onSnapshot(collection(fs, 'tournaments', tid, 'matches'), (s) => { st.matches = s.docs.map((d) => d.data()).sort((a, b) => a.round - b.round || a.idx - b.idx || (a.third ? 1 : 0) - (b.third ? 1 : 0)); emit(); }),
+    ];
+    return () => un.forEach((u) => u());
+  },
+
+  /** Inscribirse. En 2v2, team es el uid de quien armó la pareja (para sumarte a ella) o nada (armás la tuya). */
+  async register(tid, { name, av, team }) {
+    const uid = me().uid;
+    return runTransaction(fs, async (tx) => {
+      const ts = await tx.get(tRef(tid));
+      if (!ts.exists()) return { ok: false, reason: 'no-existe' };
+      const t = ts.data();
+      if (t.status !== 'open') return { ok: false, reason: 'cerrado' };
+      if ((await tx.get(tEntry(tid, uid))).exists()) return { ok: false, reason: 'ya' };
+      if (t.players >= tCap(t)) return { ok: false, reason: 'lleno' };
+      let teamId = uid;
+      if (team && team !== uid) {
+        if (t.mode !== '2v2') return { ok: false, reason: 'modo' };
+        const cs = await tx.get(tEntry(tid, team));
+        if (!cs.exists() || cs.data().team !== team || cs.data().partner) return { ok: false, reason: 'pareja' };
+        teamId = team;
+        tx.update(tEntry(tid, team), { partner: uid });
+      }
+      const at = Date.now();
+      tx.set(tEntry(tid, uid), { uid, name: String(name || '').slice(0, 24), av: av || 'gaucho', team: teamId, partner: null, at });
+      tx.update(tRef(tid), { players: t.players + 1, updatedAt: at });
+      return { ok: true, at, buyIn: t.buyIn };
+    });
+  },
+
+  /** Darse de baja antes de que empiece (la interfaz devuelve la entrada). */
+  async unregister(tid) {
+    const uid = me().uid;
+    return runTransaction(fs, async (tx) => {
+      const ts = await tx.get(tRef(tid));
+      const es = await tx.get(tEntry(tid, uid));
+      if (!ts.exists() || !es.exists()) return { ok: false };
+      const t = ts.data(), e = es.data();
+      if (t.status !== 'open') return { ok: false, reason: 'empezado' };
+      if (e.team !== uid) {
+        const cs = await tx.get(tEntry(tid, e.team));
+        if (cs.exists() && cs.data().partner === uid) tx.update(tEntry(tid, e.team), { partner: null });
+      }
+      tx.delete(tEntry(tid, uid));
+      tx.update(tRef(tid), { players: Math.max(0, t.players - 1), updatedAt: Date.now() });
+      return { ok: true, at: e.at, buyIn: t.buyIn };
+    });
+  },
+
+  /** Admin: cierra la inscripción, arma las parejas que falten y sortea los cruces. */
+  async start(tid) {
+    const ts = await getDoc(tRef(tid));
+    if (!ts.exists()) return { ok: false };
+    const t = ts.data();
+    if (t.status !== 'open') return { ok: false, reason: 'empezado' };
+    const entries = (await getDocs(collection(fs, 'tournaments', tid, 'entries'))).docs.map((d) => d.data()).sort((a, b) => a.at - b.at);
+    let teams = [];
+    if (t.mode === '2v2') {
+      const groups = {};
+      for (const e of entries) (groups[e.team] = groups[e.team] || []).push(e);
+      const singles = [];
+      for (const g of Object.values(groups)) {
+        if (g.length >= 2) teams.push({ ids: g.slice(0, 2).map((e) => e.uid), names: g.slice(0, 2).map((e) => e.name), bot: false });
+        else singles.push(g[0]);
+      }
+      for (let i = 0; i < singles.length; i += 2) {
+        const pair = singles.slice(i, i + 2);
+        teams.push({ ids: pair.map((e) => e.uid), names: pair.map((e) => e.name), bot: pair.length < 2 });
+      }
+    } else {
+      teams = entries.map((e) => ({ ids: [e.uid], names: [e.name], bot: false }));
+    }
+    if (teams.length < 2) return { ok: false, reason: 'pocos' };
+    teams = shuffle(teams).slice(0, t.maxTeams);
+    const matches = buildMatches(tid, t, teams);
+    const pot = Math.floor(entries.length * t.buyIn * (100 - (t.cut ?? T_CUT)) / 100);
+    const b = writeBatch(fs);
+    for (const m of matches) b.set(tMatch(tid, m.id), { ...m, updatedAt: Date.now() });
+    b.update(tRef(tid), { status: 'running', pot, teams, startedAt: Date.now(), updatedAt: Date.now() });
+    await b.commit();
+    return { ok: true, teams: teams.length };
+  },
+
+  cancel: (tid) => updateDoc(tRef(tid), { status: 'cancelled', updatedAt: Date.now() }),
+
+  /** Admin: da por ganado un partido (por ejemplo, si alguien no se presentó). */
+  async walkover(tid, mid, winner) {
+    await updateDoc(tMatch(tid, mid), { winner, wo: true, updatedAt: Date.now() });
+    await tour.advance(tid);
+  },
+
+  /** Entra a la sala de un partido del torneo. La crea el primero que llega, con los asientos ya reservados. */
+  async openMatch(tid, mid) {
+    const uid = me().uid;
+    const [ts, msnap] = await Promise.all([getDoc(tRef(tid)), getDoc(tMatch(tid, mid))]);
+    if (!ts.exists() || !msnap.exists()) return null;
+    const t = ts.data(), m = msnap.data();
+    if (m.winner || !m.a || !m.b) return null;
+    if (!m.a.ids.includes(uid) && !m.b.ids.includes(uid)) return null;
+    const code = m.room;
+    await runTransaction(fs, async (tx) => {
+      const rs = await tx.get(roomRef(code));
+      const now = Date.now();
+      if (!rs.exists()) {
+        const n = t.mode === '2v2' ? 4 : 2;
+        const seat = (id) => (id ? { id, bot: false } : { id: null, bot: true });
+        const seats = n === 2 ? [seat(m.a.ids[0]), seat(m.b.ids[0])] : [seat(m.a.ids[0]), seat(m.b.ids[0]), seat(m.a.ids[1]), seat(m.b.ids[1])];
+        tx.set(roomRef(code), {
+          code, n, target: t.target, flor: t.flor !== false, stake: 0, diff: 'dificil', type: n === 4 ? '2v2' : '1v1',
+          host: uid, seats, playerIds: humans(seats), teams: {}, status: 'waiting',
+          gameJson: null, seq: 0, matchId: null, result: null, created: now, updatedAt: now,
+          tour: { tid, mid, name: t.name, label: m.label }, here: { [uid]: now },
+        });
+      } else if (rs.data().status === 'waiting') {
+        tx.update(roomRef(code), { here: { ...(rs.data().here || {}), [uid]: now }, updatedAt: now });
+      }
+    });
+    return code;
+  },
+
+  /** Arranca la partida del torneo cuando están todos (o, pasados 5 minutos, con la IA en lugar de los que faltan). */
+  async startMatchRoom(code, buildGame, force) {
+    const uid = me().uid;
+    return runTransaction(fs, async (tx) => {
+      const s = await tx.get(roomRef(code));
+      if (!s.exists()) return { ok: false };
+      const d = s.data();
+      if (d.status !== 'waiting' || !d.tour || !(d.playerIds || []).includes(uid)) return { ok: false };
+      const here = d.here || {};
+      const all = humans(d.seats).every((id) => here[id]);
+      if (!all && !(force && Date.now() - d.created > 5 * 60e3)) return { ok: false, reason: 'faltan' };
+      const seats = d.seats.map((x) => ({ id: x.id || null, bot: !!x.bot || !x.id }));
+      const game = buildGame(seats, d);
+      tx.update(roomRef(code), {
+        status: 'playing', seats, playerIds: humans(seats), teams: teamsOf(seats),
+        gameJson: JSON.stringify(game), seq: game.seq, matchId: game.matchId, result: null, updatedAt: Date.now(),
+      });
+      return { ok: true };
+    });
+  },
+
+  /** Abandonar una partida de torneo: el partido se da por perdido para tu equipo. */
+  async forfeit(code) {
+    const uid = me().uid;
+    return runTransaction(fs, async (tx) => {
+      const s = await tx.get(roomRef(code));
+      if (!s.exists()) return null;
+      const d = s.data();
+      if (d.status !== 'playing' || !d.tour || !(uid in (d.teams || {}))) return null;
+      const g = decodeRoom(d).game;
+      if (!g) return null;
+      const winner = 1 - d.teams[uid];
+      g.matchOver = { winner, forfeit: uid };
+      g.seq = (g.seq || 0) + 1;
+      tx.update(roomRef(code), {
+        status: 'finished', gameJson: JSON.stringify(g), seq: g.seq,
+        result: { matchId: g.matchId, winnerTeam: winner, at: Date.now(), forfeit: uid }, updatedAt: Date.now(),
+      });
+      return { winner };
+    });
+  },
+
+  /** Anota en el torneo el resultado de la sala terminada y avanza la llave. Lo puede hacer cualquiera de los jugadores; si ya está anotado, no hace nada. */
+  async reportResult(tid, mid) {
+    await runTransaction(fs, async (tx) => {
+      const ms = await tx.get(tMatch(tid, mid));
+      if (!ms.exists()) return;
+      const m = ms.data();
+      if (m.winner) return;
+      const rs = await tx.get(roomRef(m.room));
+      if (!rs.exists()) return;
+      const r = decodeRoom(rs.data());
+      if (r.status !== 'finished' || !r.result) return;
+      const winner = r.result.winnerTeam === 0 ? 'a' : 'b';
+      tx.update(tMatch(tid, mid), { winner, pts: r.game ? [r.game.scores[0], r.game.scores[1]] : [0, 0], forfeit: !!r.result.forfeit, updatedAt: Date.now() });
+    });
+    await tour.advance(tid);
+  },
+
+  /** Pasa a los ganadores a la ronda siguiente y, si ya está todo jugado, cierra el torneo con el podio. */
+  async advance(tid) {
+    const ts = await getDoc(tRef(tid));
+    if (!ts.exists() || ts.data().status !== 'running') return;
+    const t = ts.data();
+    const list = (await getDocs(collection(fs, 'tournaments', tid, 'matches'))).docs.map((d) => d.data());
+    const by = Object.fromEntries(list.map((m) => [m.id, m]));
+    for (const m of list) {
+      if (!m.from) continue;
+      for (const s of ['a', 'b']) {
+        if (m[s]) continue;
+        const src = by[m.from[s]];
+        if (!src || !src.winner) continue;
+        const val = m.loser ? src[other(src.winner)] : src[src.winner];
+        if (!val) continue;
+        await runTransaction(fs, async (tx) => {
+          const cur = await tx.get(tMatch(tid, m.id));
+          if (cur.exists() && !cur.data()[s]) tx.update(tMatch(tid, m.id), { [s]: val, updatedAt: Date.now() });
+        }).catch(() => {});
+        m[s] = val;
+      }
+    }
+    const places = placesOf(t, list);
+    if (places) {
+      await runTransaction(fs, async (tx) => {
+        const cur = await tx.get(tRef(tid));
+        if (cur.exists() && cur.data().status === 'running') tx.update(tRef(tid), { status: 'finished', places, finishedAt: Date.now(), updatedAt: Date.now() });
+      }).catch(() => {});
+    }
+  },
+
+  /** Cobrar: el premio si quedaste en el podio, o la entrada si el torneo se canceló. Se puede cobrar una sola vez. */
+  async claim(tid) {
+    const uid = me().uid;
+    return runTransaction(fs, async (tx) => {
+      const ts = await tx.get(tRef(tid));
+      if (!ts.exists()) return null;
+      const t = ts.data();
+      if (t.status !== 'finished' && t.status !== 'cancelled') return null;
+      if ((await tx.get(tClaim(tid, uid))).exists()) return null;
+      if (!(await tx.get(tEntry(tid, uid))).exists()) return null;
+      let kind = 'reintegro', place = 0, amount = t.buyIn || 0;
+      if (t.status === 'finished') {
+        kind = 'premio'; amount = 0;
+        const prizes = prizesOf(t, (t.teams || []).length);
+        ['p1', 'p2', 'p3'].forEach((p, i) => {
+          const tm = t.places && t.places[p];
+          if (tm && tm.ids.includes(uid)) { place = i + 1; amount = Math.floor((prizes[i] || 0) / tm.ids.length); }
+        });
+      }
+      tx.set(tClaim(tid, uid), { uid, kind, place, amount, at: Date.now() });
+      return { kind, place, amount };
+    });
+  },
+};
 
 /* ------------------------------------------------------------------ */
 /* Administración                                                      */
@@ -516,7 +917,7 @@ window.NET = {
   auth: { register, completeProfile, login, logout, resetPassword, resendVerification, onChange, isAdmin, loadUser, user: () => USER },
   rooms: { createRoom, updateSeats, sit, join, startRoom, commitMove, leaveRoom },
   stats: { recordMatch, recordAbandon, recordPending, watchUser },
-  admin,
+  admin, tour,
   db, usr, roomCap,
 };
 window.dispatchEvent(new Event('net-ready'));

@@ -12,7 +12,8 @@ Truco argentino con flor, en el navegador.
   - **1v1:** jugador contra jugador.
   - **2v2:** dos equipos de dos. Si la sala se lanza con lugares vacíos (por ejemplo, con 3 personas), la IA juega en esos asientos.
 - **Estadísticas por jugador:** partidas jugadas, win rate, racha actual (positiva de victorias o negativa de derrotas) y mejor racha. Se actualizan solas al terminar cada partida. Abandonar una partida en juego cuenta como derrota.
-- **Administración:** ver y cerrar salas activas, nombrar o quitar admins, dar premium.
+- **Torneos:** los crea el admin (nombre, temática, fecha, reglas, cupo, eliminación directa o liga, 1v1 o parejas). La entrada se paga en fichas y el pozo es el 90% de lo que se junta: crece con cada inscripto y se reparte 60/30/10 entre los tres primeros.
+- **Administración:** ver y cerrar salas activas, nombrar o quitar admins, dar premium, crear y manejar torneos.
 - **Reglas completas:** envido, real envido y falta envido (malas y buenas), flor, contraflor y contraflor al resto, truco, retruco y vale cuatro, pardas y mazo.
 - **La Huella:** el mapa de la Argentina por zonas, con rivales que juegan mejor cuanto más porotos tienen.
 - **Extra:** anotador con fósforos para jugar en persona, tienda, misiones, logros, tutorial y reglamento.
