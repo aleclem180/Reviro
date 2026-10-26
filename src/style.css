@@ -858,3 +858,28 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
 .game .felt::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0;transform:translateZ(0);
   box-shadow:inset 0 0 0 5px rgba(0,0,0,.22),inset 0 0 0 7px rgba(243,230,200,.14),inset 0 0 70px rgba(0,0,0,.45)}
 .game .felt>*{position:relative;z-index:1}
+
+/* ===== La mesa quieta: cada cosa tiene su lugar fijo y lo que aparece o desaparece no corre lo demás ===== */
+.game .tablerow{flex:1 1 0;min-height:0;display:flex;gap:6px}
+.game .tablerow>.felt{flex:1 1 0;min-width:0;min-height:0}
+.felt.n2>.pos-top,.felt.n2>.pos-bottom,.felt.n4>.pos-top,.felt.n4>.pos-bottom{height:calc(var(--pc) * 1.5 + 38px);justify-content:flex-start}
+.felt.n2>.pos-bottom,.felt.n4>.pos-bottom{justify-content:flex-end}
+.felt .played{height:calc(var(--pc) * 1.5);min-height:0;flex:none}
+.felt .seathead{flex-wrap:nowrap;flex:none}
+.game .center{position:relative}
+/* el registro, a la derecha */
+.glog{flex:none;width:clamp(84px,23vw,200px);display:flex;flex-direction:column;gap:6px;min-height:0;overflow:hidden;padding:8px;border:1px solid var(--line);border-radius:14px;background:rgba(0,0,0,.24)}
+.glines{flex:1 1 0;min-height:0;display:flex;flex-direction:column;justify-content:flex-end;gap:5px;overflow:hidden;font-size:.74rem;line-height:1.25;color:var(--muted);
+  -webkit-mask-image:linear-gradient(transparent,#000 35%);mask-image:linear-gradient(transparent,#000 35%)}
+.glines div{flex:none;overflow-wrap:anywhere}.glines div:last-child{color:var(--ink);font-weight:600}
+.ginfo{flex:none;display:flex;flex-direction:column;gap:3px;font-size:.76rem;color:var(--muted);border-top:1px solid var(--line);padding-top:6px}.ginfo b{color:var(--coin)}
+@media (min-width:720px){.glines{font-size:.84rem}.ginfo{font-size:.86rem}}
+/* el reloj en su lugar fijo */
+.turnslot{height:22px;flex:none;display:flex;align-items:center}.turnslot>.turnbar{flex:1}
+/* los botones crecen hacia arriba si un canto trae más opciones, sin correr la mano */
+.game .actions{justify-content:flex-start}
+.game .actions{min-height:150px}
+@media (max-height:700px){.game .actions{min-height:154px}}
+@media (min-width:720px){.game .actions{min-height:104px}}
+.game .felt>.seat{z-index:2}.game .felt>.center{z-index:1}
+@media (max-width:480px){.game .bubble{font-size:.8rem;padding:3px 8px;max-width:140px}.game .bubble .line{font-size:.7rem}.glog{width:26vw;padding:6px}}

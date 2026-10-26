@@ -226,6 +226,7 @@ function render(){const v=$('#view');routeSync();document.body.dataset.view=view
   if(view==='torneos'||view==='tour')requestAnimationFrame(animatePots);
   if(view==='game'&&FX.deal){clearTimeout(REPAINT);const hn=G&&G.handNo;REPAINT=setTimeout(()=>{if(view!=='game'||!G||G.handNo!==hn)return;document.querySelectorAll('.hand img.cart').forEach(im=>{const u=CARDIMG[im.dataset.c];if(u&&im.getAttribute('src')!==u)im.src=u});const hd=document.querySelector('.hand');if(hd){hd.style.transform='translateZ(0)';requestAnimationFrame(()=>requestAnimationFrame(()=>{hd.style.transform=''}))}},760)}
   $('#overlay').innerHTML=overlayHTML();FX={};musicUpdate();
+  if(view==='game')requestAnimationFrame(holdActions);
   if(view!=='game'){requestAnimationFrame(fitPass);clearTimeout(FITT);FITT=setTimeout(()=>{FITPASS=0;fitPass()},350)}
   {const pl=document.querySelector('.pills');if(pl)pl.style.visibility=(view==='auth'||view==='boot'||view==='login')?'hidden':'visible'}
   if(view==='room'&&T){const ids=T.seats.filter(s=>s.id).map(s=>s.id);ensureNames(ids);fetchLooks(ids)}
@@ -300,6 +301,10 @@ function morphKids(a,b){const bc=[...b.childNodes];
     morphNode(na,nb)}
   while(a.childNodes.length>bc.length)a.removeChild(a.lastChild)}
 function morphInto(el,html){const t=document.createElement('div');t.innerHTML=html;morphKids(el,t)}
+
+let ACTH={m:null,h:0};
+function holdActions(){const a=document.querySelector('.game .actions');if(!a||!G)return;if(ACTH.m!==G.matchId)ACTH={m:G.matchId,h:0};
+  a.style.minHeight='';const h=Math.ceil(a.scrollHeight);if(h>ACTH.h)ACTH.h=h;a.style.minHeight=ACTH.h+'px'}
 
 /* ---------- listas que se paginan solas: se mide cuántas entran en el lugar que queda ---------- */
 const FITN={},FITP={};let FITPASS=0,FITT=null;
@@ -514,8 +519,9 @@ function gameHTML(){if(!G)return'';const h=G.hand,me=mySeat,mt=myTeam(),a=actor(
   const hand=`<div class="hand ${L.play?'':'wait'} ${SELCARD?'picking':''}">${myCards.map((c,i)=>`<button type="button" class="${FX.deal?'deal':''} ${SELCARD===c?'sel':''}" aria-pressed="${SELCARD===c}" style="animation-delay:${i*90}ms" data-card="${c}" ${L.play&&!busy&&tutAllowed({t:'play',card:c})?'':'disabled'} aria-label="${SELCARD===c?'Tocá de nuevo para tirar':'Elegir esta carta'}">${cardHTML(c)}</button>`).join('')}</div>`;
   let info='';if(SET.help&&me>=0&&!h.ended&&h.results.length===0){const o=h.orig[me];info=G.flor&&hasFlor(o)?`<span>Tenés flor: <b>${florVal(o)}</b></span>`:`<span>Tu envido: <b>${envidoOf(o)}</b></span>`}
   if(mode==='offline'&&partnerSena&&partnerSena.handNo===G.handNo&&h.results.length===0&&!h.ended)info+=`<span>Seña del compa: <b>${esc(partnerSena.t)}</b></span>`;
-  const tk=G.log.slice(-2).map(e=>`<div>${esc(logText(e))}</div>`).join('');
-  center=center.replace('@@INFO@@',`<div class="ticker" aria-live="polite">${tk}</div>${info&&G.n===2?`<div class="handinfo">${info}</div>`:''}`);
+  /* el registro de la mano va en su columna, a la derecha del paño: así lo que pasa no mueve la mesa */
+  const glog=`<aside class="glog" aria-label="Lo que pasó en la mano"><div class="glines" aria-live="polite">${G.log.slice(-9).map(e=>`<div>${esc(logText(e))}</div>`).join('')}</div>${info?`<div class="ginfo">${info}</div>`:''}</aside>`;
+  center=center.replace('@@INFO@@','');
   const absentNote=mode==='online'&&G.seats.some((_,s)=>isAbsent(s))?(stakeTable(G)?G.seats.map((st,s)=>isAbsent(s)?`<p class="pausebar" data-pause="${(goneSince[st.id]||Date.now())+GRACE+60000}" data-who="${esc(nameOf(s))}">${pauseText(nameOf(s),(goneSince[st.id]||Date.now())+GRACE+60000)}</p>`:'').join(''):'<p class="note">Un bot difícil juega por quien se desconectó hasta que vuelva.</p>'):'';
   const coachBox=TUT&&co&&!h.ended?`<div class="coach"><small>Lección ${TUT.i+1} de ${LESSONS.length} · ${esc(LESSONS[TUT.i].title)}</small><p>${esc(co.t||'')}</p></div>`:'';
   const b0=FX.bump&&FX.bump[mt]?'bump':'',b1=FX.bump&&FX.bump[1-mt]?'bump':'';
@@ -524,8 +530,8 @@ function gameHTML(){if(!G)return'';const h=G.hand,me=mySeat,mt=myTeam(),a=actor(
     <div class="score"><div class="sc us"><span class="lbl">Nosotros</span><b class="${b0}">${sc[mt]}</b>${fosforos(sc[mt],G.target)}</div>
       <div class="mid"><b>a ${G.target}</b>${G.flor?'con flor':'sin flor'}<br>${G.stake?fmt(G.stake)+' fichas':'amistosa'}</div>
       <div class="sc them"><span class="lbl">Ellos</span><b class="${b1}">${sc[1-mt]}</b>${fosforos(sc[1-mt],G.target)}</div></div>
-    <div class="felt n${G.n} pano-${pano.id}" style="background:${panoBg(pano.id)};border-color:${pano.edge}">${seatsHTML.join('')}<div class="center">${center}</div></div>
-    ${G.n!==2&&info?`<div class="handinfo">${info}</div>`:''}${turnBarHTML()}${coachBox}
+    <div class="tablerow"><div class="felt n${G.n} pano-${pano.id}" style="background:${panoBg(pano.id)};border-color:${pano.edge}">${seatsHTML.join('')}<div class="center">${center}</div></div>${glog}</div>
+    ${turnSlotHTML()}${coachBox}
     ${hand}
     <div class="actions">${actionsHTML(L)}${TUT?'':socialHTML()}${absentNote}</div></section>`}
 function logText(e){if(e.k==='hand')return e.mano===mySeat?`Mano ${e.no}: sos mano vos`:`Mano ${e.no}: es mano ${nameOf(e.mano)}`;
@@ -1236,6 +1242,8 @@ async function fillAndStart(){if(!isHost||!tableRef)return;if(FB){startOnline();
 const TURN_MS=30000;let lastTimeout=-1;
 function turnInfo(){if(view!=='game'||mode!=='online'||!G||G.matchOver||G.hand.ended)return null;if(G.seats.filter(s=>s.id&&!s.bot).length<2)return null;const a=actor(G);if(a<0||G.seats[a].bot||isAbsent(a))return null;
   const rem=Math.max(0,TURN_MS-(Date.now()-(G.lastAct||Date.now())));return{a,rem}}
+/* el reloj tiene su lugar reservado en las partidas online, aparezca o no: así no empuja nada */
+function turnSlotHTML(){if(mode!=='online'||!G||G.seats.filter(s=>s.id&&!s.bot).length<2)return'';return `<div class="turnslot">${turnBarHTML()}</div>`}
 function turnBarHTML(){const t=turnInfo();if(!t)return'';const pct=Math.round(t.rem*100/TURN_MS);
   return `<div class="turnbar ${t.a===mySeat?'mine':''} ${t.rem<8000?'low':''}" role="timer" aria-label="Tiempo para jugar"><span class="tt" id="tbart">${esc(t.a===mySeat?'Tu turno':nameOf(t.a))} · <b>${Math.ceil(t.rem/1000)}</b> s</span><span class="tr"><i id="tbari" style="transform:scaleX(${(pct/100).toFixed(3)})"></i></span></div>`}
 function turnTick(){const t=turnInfo();if(!t)return;const i=document.getElementById('tbari'),s=document.getElementById('tbart');
