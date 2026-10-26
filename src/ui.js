@@ -495,7 +495,12 @@ function overlayHTML(){
   if(view==='game'&&G&&G.matchOver){const won=G.matchOver.winner===myTeam();const st=G.stake;const TT=mode==='online'&&T&&T.tour;const can=!TT&&(mode==='offline'||isHost);
     const rw=lastReward&&lastReward.matchId===G.matchId?lastReward.coins:null;
     let conf='';if(won&&FX.over){const suits=['O','C','E','B'];for(let i=0;i<26;i++){const s=suits[i%4];conf+=`<svg viewBox="0 0 24 24" style="left:${(Math.random()*100).toFixed(1)}%;animation-delay:${(Math.random()*.9).toFixed(2)}s;color:${SUITCOL[s]}"><use href="#s${s}"/></svg>`}}
-    return `<div class="over">${conf?`<div class="confetti" aria-hidden="true">${conf}</div>`:''}<div class="panel"><h2>${G.matchOver.cancelled?'Partida cancelada':won?'¡Ganamos!':'Perdimos'}</h2>${G.matchOver.cancelled?'<p>Alguien se fue en los primeros 30 segundos: se devolvieron todas las entradas.</p>':''}<p>${G.scores[myTeam()]} a ${G.scores[1-myTeam()]}${G.matchOver.forfeit?(won?' · el rival abandonó':' · por abandono'):''}</p>${TT?`<p class="note">${esc(T.tour.name)} · ${esc(T.tour.label||'')}: ${won?'pasás a la siguiente':'quedaste afuera de este cruce'}.</p>`:''}
+    const canc=G.matchOver.cancelled,k=canc?'nada':won?'win':'lose',dos=G.n===4,a1=G.scores[myTeam()],a2=G.scores[1-myTeam()];
+    const sub=canc?'Alguien se fue en los primeros 30 segundos: se devolvieron todas las entradas.':won?`${dos?'Ganaron':'Ganaste'} ${a1} a ${a2}${G.matchOver.forfeit?', el rival abandonó':''}`:`${dos?'Perdieron':'Perdiste'} ${a1} a ${a2}${G.matchOver.forfeit?', por abandono':''}`;
+    return `<div class="over">${conf?`<div class="confetti" aria-hidden="true">${conf}</div>`:''}<div class="panel endp ${k} ${FX.over?'anim':''}">
+      <div class="cartel ${k} ${FX.over?'anim':''}" role="status"><div class="c-rays" aria-hidden="true"></div><div class="c-av">${avatarSVG(myAv(),88,true)}</div>
+        <div class="c-rib">${VOLUTA}<b>${canc?'Cancelada':won?'¡Victoria!':'Derrota'}</b>${VOLUTA.replace('class="vol"','class="vol r"')}</div></div>
+      <p class="c-sub">${sub}</p>${TT?`<p class="note">${esc(T.tour.name)} · ${esc(T.tour.label||'')}: ${won?'pasás a la siguiente':'quedaste afuera de este cruce'}.</p>`:''}
       ${st&&mySeat>=0?`<p class="big"><i class="chip"></i>${won?'+ '+fmt(st*2):'− '+fmt(st)} fichas</p>`:''}
       ${rw?`<p class="big">${coinI}+ ${fmt(rw)} monedas</p>`:''}${CAMP?giraOverHTML():''}
       <div class="btns">${TT?`<button class="btn prim" data-a="tourback">Volver al torneo</button>`:can?`<button class="btn prim" data-a="rematch" ${st>WAL.chips?'disabled':''}>Revancha</button>`:'<p class="note">Esperando la revancha del anfitrión</p>'}<button class="btn" data-a="tomenu">${CAMP?'Volver al mapa':'Menú'}</button></div></div></div>`}
@@ -1581,6 +1586,13 @@ document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closes
   if(a&&a.startsWith('env:')){doAction({t:'envido',kind:a.slice(4)});return}
   if(a&&a.startsWith('truco:')){doAction({t:'truco',level:+a.slice(6)});return}
 });
+/* la onda dorada al tocar: va en una capa aparte, así sigue aunque la pantalla se redibuje con el toque */
+document.addEventListener('pointerdown',e=>{const el=e.target.closest('button,.btn,.rowb,.mode,.tcard,.mz,a.pill');if(!el||el.disabled||el.closest('.hand'))return;
+  try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)return}catch(err){}
+  const r=el.getBoundingClientRect();if(r.width<8)return;const w=document.createElement('div');w.className='ripple';
+  const br=getComputedStyle(el).borderRadius;w.style.cssText=`left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;border-radius:${br}`;
+  const d=Math.hypot(r.width,r.height)*2.1,i=document.createElement('i');i.style.cssText=`left:${e.clientX-r.left}px;top:${e.clientY-r.top}px;width:${d}px;height:${d}px`;
+  w.appendChild(i);document.body.appendChild(w);setTimeout(()=>w.remove(),560)},{passive:true});
 document.addEventListener('keydown',e=>{const t=e.target;if((e.key==='Enter'||e.key===' ')&&t.classList&&t.classList.contains('zp')){e.preventDefault();giraZone=t.dataset.id;if(innerWidth<720)overlayView='rivales';render()}});
 document.addEventListener('input',e=>{const vk=e.target.dataset&&e.target.dataset.vol;if(vk){SET[vk]=+e.target.value;const o=document.getElementById('vo-'+vk);if(o)o.textContent=SET[vk]+'%';musicVolume();saveSet();return}
   const k={tname:'name',ttheme:'theme',tdate:'date',trules:'rules'}[e.target.id];if(k)TN[k]=e.target.value});

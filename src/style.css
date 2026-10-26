@@ -773,3 +773,49 @@ html,body{height:100%;overflow:hidden}
 .hand.picking button:not(.sel):not(:disabled){filter:brightness(.82)}
 @media (hover:none){.hand button:not(:disabled):hover{--y:0px}.hand button.sel:hover{--y:calc(var(--hw) * -0.24)}}
 @media (prefers-reduced-motion:reduce){.hand button{transition:none}}
+
+/* ===== Al tocar: cada botón se hunde un poco y deja una onda dorada, como una ficha que cae en el paño ===== */
+button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webkit-tap-highlight-color:transparent}
+.btn,.mode,.tcard,.mz,.pill,.pgb,.pback,.kitb,.regav,.seg button,.subtabs button,.tabs button,.snd,.sw,.optline,.rowb{transition:transform .12s cubic-bezier(.3,.7,.4,1),filter .12s}
+.btn:active:not(:disabled),.mode:active,.tcard:active,.mz:active,.pill:active,.pgb:active:not(:disabled),.pback:active,.kitb:active,.regav:active,.seg button:active:not(:disabled),.subtabs button:active,.snd:active,.sw:active{transform:scale(.94);filter:brightness(1.12)}
+.tabs button:active svg{transform:translateY(2px) scale(.9)}.tabs svg{transition:transform .12s}
+.rowb:active{transform:translateX(3px)}
+.ripple{position:fixed;pointer-events:none;overflow:hidden;z-index:90}
+.ripple i{position:absolute;border-radius:50%;background:radial-gradient(circle,rgba(240,197,72,.55) 0 30%,rgba(240,197,72,.18) 55%,transparent 70%);transform:translate(-50%,-50%) scale(0);animation:rip .5s cubic-bezier(.2,.7,.3,1) forwards}
+@keyframes rip{to{transform:translate(-50%,-50%) scale(1);opacity:0}}
+.tabs button[aria-current="page"] svg{animation:tabin .3s cubic-bezier(.3,1.6,.5,1)}@keyframes tabin{from{transform:scale(.7)}}
+
+/* ===== Cartel de fin de partida ===== */
+.endp{padding-top:14px;overflow:hidden}
+.cartel{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;padding:6px 0 2px}
+.c-rays{position:absolute;left:50%;top:44px;width:360px;height:360px;margin:-180px 0 0 -180px;border-radius:50%;pointer-events:none;
+  background:repeating-conic-gradient(from 0deg,rgba(240,197,72,.22) 0 9deg,transparent 9deg 22.5deg);-webkit-mask:radial-gradient(circle,#000 20%,transparent 68%);mask:radial-gradient(circle,#000 20%,transparent 68%);animation:spin 18s linear infinite}
+.cartel.lose .c-rays,.cartel.nada .c-rays{display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.c-av{position:relative;border-radius:50%;padding:4px;background:var(--panel);box-shadow:0 0 0 3px var(--coin),0 10px 24px rgba(0,0,0,.5)}
+.c-av .av{display:block;border-radius:50%}
+.cartel.lose .c-av{box-shadow:0 0 0 3px #8a6e62,0 10px 24px rgba(0,0,0,.5);filter:saturate(.55)}
+.c-rib{position:relative;display:flex;align-items:center;justify-content:center;gap:2px;margin-top:-14px;padding:6px 18px 8px;border-radius:12px;
+  background:linear-gradient(180deg,#7a1f2e,#4d1220);border:2px solid var(--coin);box-shadow:0 8px 20px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.18)}
+.c-rib b{font-family:var(--f-display);font-style:italic;font-weight:800;font-size:clamp(2.2rem,11vw,3rem);line-height:1;color:#fff;text-shadow:2px 2px 0 #74acdf,4px 4px 0 #1d3557,4px 6px 10px rgba(0,0,0,.4);padding:0 .06em .06em}
+.c-rib .vol{width:34px;height:auto;flex:none}.c-rib .vol.r{transform:scaleX(-1)}
+.cartel.lose .c-rib{background:linear-gradient(180deg,#3d3330,#241c1a);border-color:#8a6e62}
+.cartel.lose .c-rib b{color:#e9dccb;text-shadow:2px 2px 0 #5b4a44,3px 5px 8px rgba(0,0,0,.45)}
+.cartel.lose .c-rib .vol{filter:grayscale(1) brightness(.8)}
+.cartel.nada .c-rib{background:linear-gradient(180deg,#3a2c1c,#241a10)}
+.c-sub{font-size:1.05rem;color:var(--ink)!important;font-weight:600}
+.endp.lose{border-color:#8a6e62}
+/* la entrada: la victoria cae y rebota como un sello; la derrota baja pesada y queda torcida */
+.cartel.win.anim .c-av{animation:avin .5s cubic-bezier(.3,1.5,.5,1) both}
+.cartel.win.anim .c-rib{animation:stamp .6s .15s cubic-bezier(.25,1.6,.45,1) both}
+.cartel.win.anim .c-rays{animation:raysin .8s .2s ease-out both,spin 18s linear infinite}
+@keyframes avin{from{transform:scale(.3);opacity:0}}
+@keyframes stamp{0%{transform:scale(2.2) rotate(-8deg);opacity:0}60%{transform:scale(.94) rotate(1deg);opacity:1}100%{transform:none}}
+@keyframes raysin{from{opacity:0;transform:scale(.4)}}
+.cartel.lose .c-rib{transform:rotate(-2.5deg)}
+.cartel.lose.anim .c-av{animation:avin .5s ease-out both}
+.cartel.lose.anim .c-rib{animation:drop .8s .1s cubic-bezier(.5,0,.6,1) both}
+@keyframes drop{0%{transform:translateY(-70px) rotate(0);opacity:0}55%{transform:translateY(4px) rotate(-1deg);opacity:1}75%{transform:translateY(-3px) rotate(-3.5deg)}100%{transform:rotate(-2.5deg)}}
+.endp.anim>:not(.cartel){animation:fadein .4s .45s both}@keyframes fadein{from{opacity:0;transform:translateY(6px)}}
+@media (prefers-reduced-motion:reduce){.cartel *,.c-rays,.ripple i,.endp>*{animation:none!important}.btn:active{transform:none}}
+.c-av{border-radius:20px}.c-av .av{border-radius:16px}
