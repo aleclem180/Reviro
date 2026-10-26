@@ -840,3 +840,11 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
 .felt.pano-cuero,.swatch.pano-cuero{position:relative}
 .felt.pano-cuero::after,.swatch.pano-cuero::after{content:"";position:absolute;inset:8px;border:2px dashed rgba(240,220,176,.6);border-radius:16px;pointer-events:none}
 .swatch.pano-cuero::after{inset:4px;border-width:1.5px;border-radius:10px}
+/* compartir el resultado */
+.btn.share{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border-color:rgba(240,197,72,.5);color:var(--coin)}
+.spanel{max-width:400px;max-height:94dvh;overflow:auto;align-items:stretch}.spanel h2{font-size:1.7rem!important}
+.sprev{display:block;width:auto;max-width:100%;max-height:44dvh;margin:0 auto;border-radius:12px;box-shadow:0 10px 26px rgba(0,0,0,.5)}
+.spanel>.btn.prim{display:flex;align-items:center;justify-content:center;gap:8px}
+.srow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.srow .btn{padding:9px 4px;font-size:.88rem;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:4px;text-align:center}
+.btn.fb{background:#1877f2;border-color:#1877f2;color:#fff}.btn.ig{background:linear-gradient(45deg,#f58529,#dd2a7b,#8134af);border:0;color:#fff}
+.spanel>.btn.ghost{align-self:center}
