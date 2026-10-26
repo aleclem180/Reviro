@@ -292,7 +292,7 @@ function gameHTML(){if(!G)return'';const h=G.hand,me=mySeat,mt=myTeam(),a=actor(
     else if(h.said[s]&&(Date.now()-(SAIDAT[s]||0)<3600||[h.flor.pending,h.env.pending,h.truco.pending].some(x=>x&&x.caller===s))){const sy=SAYS[s];bub=`<div class="bubble ${FX.pop&&FX.pop[s]?'pop':''}">${esc(h.said[s])}${sy&&sy.canon===h.said[s]&&sy.line?`<span class="line">${esc(sy.line)}</span>`:''}</div>`}
     const us=team(s)===mt;
     let rest='';if(s!==me){rest=h.ended?`<div class="reveal">${h.cards[s].map(c=>cardHTML(c)).join('')}</div>`:`<div class="backs" aria-label="${h.cards[s].length} cartas">${h.cards[s].map(()=>`<i style="background:${backBg(look.dorso)}"></i>`).join('')}</div>`}
-    const badge=`<div class="badge ${us?'us':''} ${a===s?'active':''}">${avatarSVG(look.av,24)}<span>${esc(nameOf(s))}${isAbsent(s)?' · bot':''}</span>${G.mano===s?'<span class="m" title="Es mano">M</span>':''}</div>`;
+    const badge=`<div class="badge ${us?'us':''} ${a===s?'active':''}">${avatarSVG(look.av,32)}<span>${esc(nameOf(s))}${isAbsent(s)?' · bot':''}</span>${G.mano===s?'<span class="m" title="Es mano">M</span>':''}</div>`;
     seatsHTML.push(`<div class="seat pos-${pos}">${pos==='bottom'?`<div class="played">${cards}</div>${badge}`:`${badge}${rest}<div class="played">${cards}</div>`}${bub}</div>`)}
   const baz=[0,1,2].map(i=>{const r=h.results[i];if(r===undefined)return'<i></i>';if(r==='P')return'<i class="p" title="parda"></i>';return r===mt?'<i class="w" title="ganada"></i>':'<i class="l" title="perdida"></i>'}).join('');
   const deck=`<div class="deck" aria-hidden="true">${'<i style="background:'+backBg(WAL.eq.dorso)+'"></i>'.repeat(3)}</div>`;

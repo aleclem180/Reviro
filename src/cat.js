@@ -90,7 +90,7 @@ const HEADT='translate(50 32) scale(.9) translate(-32 -30)';
 function avatarSVG(id,px,full){const sid=String(id),kit=sid.split(':')[1],a=AVM[sid]||AVM[sid.split(':')[0]]||AVM.gaucho,k='av'+(++AVN);
   const KT=a.id==='hincha'&&KITM[kit||'arg'],p=KT?Object.assign({},a.spec,{kit:KT.id,sleeve:KT.sleeve,k1:KT.c1,k2:KT.c2}):a.spec;
   const s=p.skin,sd=shade(s,-.2),hc=p.hc||'#2b1b12',fc=p.fc||hc,sl=p.sleeve||p.shirt,fa=p.bare?s:sl;
-  const crop=full===undefined?px<60:!full;const vb=crop?'29 9.4 42 42':'0 0 100 100';
+  const crop=full===undefined?px<60:!full;const vb=crop?'30.5 12.6 39 39':'0 0 100 100';
   const SK=`url(#${k}sk)`,HR=`url(#${k}hr)`;
   /* Sistema visual: luz desde arriba a la izquierda, sombras en el mismo tono (no negras), línea fina y cálida, fondo liso con halo. */
   let o=`<defs>
@@ -132,7 +132,8 @@ function avatarSVG(id,px,full){const sid=String(id),kit=sid.split(':')[1],a=AVM[
   o+=`<g stroke="${OL}" stroke-width=".7" stroke-linejoin="round">${hatSVG(p)}</g>`;
   if(p.hat==='gaucho'||p.hat==='fedora'||p.hat==='cap'||p.hat==='boina')o+=`<path d="M21.6 21.4Q32 24.4 42.4 21.4L42 23.6Q32 26.6 22 23.6Z" fill="${shade(s,-.6)}" fill-opacity=".16"/>`;
   o+=`</g>`;
-  o+=arms4(p,k,s,sd,sl,fa);
+  /* en tamaño chico va solo el retrato (cara y hombros), sin brazos ni objetos que se corten en el borde */
+  if(!crop)o+=arms4(p,k,s,sd,sl,fa);
   return `<svg class="av" viewBox="${vb}" width="${px}" height="${px}" role="img" aria-label="${a.name}"${crop?'':' style="border-radius:16px"'}>${o}</svg>`}
 function brows3(p,hc){const c=p.brow||shade(hc,.05),lift=p.mouth==='smirk'?-.9:0,heavy=p.eyes==='tired'||p.lid;
   const L=`<path d="M24.4 ${26.4+(heavy?.6:0)}Q27.4 ${24.4+(heavy?.8:0)} 30.6 ${25.8+(heavy?.4:0)}Q27.4 ${25.6+(heavy?.8:0)} 24.4 ${26.4+(heavy?.6:0)}Z" fill="${c}" stroke="${c}" stroke-width=".8" stroke-linejoin="round"/>`;
