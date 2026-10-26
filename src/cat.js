@@ -72,7 +72,8 @@ PANOS.push(
 const PM=Object.fromEntries(PANOS.map(p=>[p.id,p]));
 const BOSS_PRIZE={ba:['dorso','ombu'],litoral:['pano','ibera'],centro:['dorso','cuarteto'],cuyo:['pano','vinedo'],noa:['dorso','sietecolores'],nea:['pano','monte'],patagonia:['dorso','viento'],tdf:['pano','faro']};
 const prizeLabel=p=>p?(p[0]==='dorso'?'el dorso '+DM[p[1]].name:'el paño '+PM[p[1]].name):'';
-const PACKS=[{coins:500,ars:500},{coins:1100,ars:1000,tag:'+10% de regalo'},{coins:3000,ars:2500,tag:'+20% de regalo'},{coins:6500,ars:5000,tag:'+30% de regalo'}];
+/* paquetes de monedas: el más chico es de $ 1.000 */
+const PACKS=[{coins:1100,ars:1000,tag:'+10% de regalo'},{coins:3000,ars:2500,tag:'+20% de regalo'},{coins:6500,ars:5000,tag:'+30% de regalo'}];
 const SENAS={cejas:'Levanta las cejas: ancho de espada',guino:'Guiña un ojo: ancho de basto',bocader:'Tuerce la boca a la derecha: siete de espada',bocaizq:'Tuerce la boca a la izquierda: siete de oro',labio:'Se muerde el labio: tiene un tres',dos:'Tira un beso: tiene un dos',falso:'Saca la punta de la lengua: tiene un ancho falso',cachetes:'Infla los cachetes: tiene flor',ojos:'Cierra los ojos: no tiene nada',env33:'Ladea la cabeza: envido de 30 o más',env28:'Se rasca la oreja: envido de 27 a 29',env25:'Se toca la nariz: envido de 23 a 26',env0:'Niega con la cabeza: poco envido'};
 const SENA_ENV=['env33','env28','env25','env0'];const SENA_EVAL={env33:31,env28:28,env25:24.5,env0:15};
 const SENA_SHORT={cejas:'Cejas · ancho de espada',guino:'Guiño · ancho de basto',bocader:'Boca der. · 7 de espada',bocaizq:'Boca izq. · 7 de oro',labio:'Labio · un tres',dos:'Beso · un dos',falso:'Lengua · ancho falso',cachetes:'Cachetes · flor',ojos:'Ojos cerrados · nada',env33:'Cabeza · 30 o más',env28:'Oreja · 27 a 29',env25:'Nariz · 23 a 26',env0:'Niega · poco'};
