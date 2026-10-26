@@ -1371,5 +1371,8 @@
 "Solo lo ven los admins, para reconocerlo. El jugador no se entera. Vacío lo borra.": "Only admins see it, to recognize the player. The player never knows. Leave it empty to delete it.",
 "Buscar por usuario o apodo interno": "Search by username or internal nickname",
 "Apodo interno guardado": "Internal nickname saved",
-"Apodo interno borrado": "Internal nickname deleted"
+"Apodo interno borrado": "Internal nickname deleted",
+"Más fichas": "Most chips",
+"En total:": "In total:",
+"sin billetera": "no wallet"
 }

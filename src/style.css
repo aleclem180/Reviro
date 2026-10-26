@@ -980,3 +980,6 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
 #admq{width:100%;margin-bottom:8px}
 .anick.blk{display:block;width:fit-content;max-width:100%;margin:3px 0 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .flist li:has(>.anick.row2){flex-wrap:wrap;row-gap:4px}.anick.row2{flex:0 1 auto;max-width:calc(100% - 46px);margin-left:46px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.admbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 8px;flex-wrap:wrap}.admbar .seg{flex:0 0 auto}.admbar .seg button{min-width:0;padding:4px 10px;font-size:.85rem}
+.admchips{color:var(--brass);font-variant-numeric:tabular-nums;white-space:nowrap}.admchips svg{width:.95em;height:.95em;vertical-align:-2px;margin-right:2px}
+.admchips .chip{display:inline-block;width:.85em;height:.85em;margin-right:3px;vertical-align:-1px}

@@ -976,6 +976,8 @@ const admin = {
       referred: rr ? rr.docs.map((d) => ({ id: d.id, ...d.data() })) : [],
     };
   },
+  /** Saldos de todos los jugadores (solo admins pueden leer las billeteras). */
+  watchWallets: (cb) => onSnapshot(query(collection(fs, 'wallets'), limit(500)), (s) => { const m = {}; s.docs.forEach((d) => { const w = d.data() || {}; m[d.id] = { chips: +w.chips || 0, coins: +w.coins || 0 }; }); cb(m); }, () => cb(null)),
   /** Apodos internos: solo los ven y los editan los admins (colección adminNotes, cerrada para los jugadores). */
   watchNotes: (cb) => onSnapshot(collection(fs, 'adminNotes'), (s) => { const m = {}; s.docs.forEach((d) => { m[d.id] = d.data(); }); cb(m); }, () => cb({})),
   async setNote(uid, nick) {

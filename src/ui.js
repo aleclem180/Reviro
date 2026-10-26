@@ -1386,7 +1386,7 @@ function fbStatsHTML(){const s=(MYUSER&&MYUSER.stats)||NET.EMPTY_STATS;const cs=
     <div class="stat-b"><small>Racha actual</small><b class="${cs>0?'pos':cs<0?'neg':''}">${cs>0?'+'+cs:cs}</b></div>
     <div class="stat-b"><small>Mejor racha</small><b>${fmt(s.bestStreak)}</b></div>
   </div><p class="note" style="margin-top:6px">Cuentan solo las partidas online contra otras personas (1v1 y 2v2, también las de torneo). Contra la IA es práctica: no suma ni resta.</p>`}
-function subFbAdmin(){if(!FB||!isOwnerV||admUnsubs.length)return;try{admUnsubs.push(NET.admin.watchRooms(r=>{ADM_ROOMS=r;if(view==='settings')render()}));admUnsubs.push(NET.admin.watchUsers(u=>{ADM_USERS=u;if(view==='settings')render()}));admUnsubs.push(NET.admin.watchNotes(m=>{ADM_NOTES=m;if(view==='settings'||overlayView==='admuser')render()}))}catch(e){}}
+function subFbAdmin(){if(!FB||!isOwnerV||admUnsubs.length)return;try{admUnsubs.push(NET.admin.watchRooms(r=>{ADM_ROOMS=r;if(view==='settings')render()}));admUnsubs.push(NET.admin.watchUsers(u=>{ADM_USERS=u;if(view==='settings')render()}));admUnsubs.push(NET.admin.watchWallets(m=>{ADM_WAL=m;if(view==='settings')render()}));admUnsubs.push(NET.admin.watchNotes(m=>{ADM_NOTES=m;if(view==='settings'||overlayView==='admuser')render()}))}catch(e){}}
 /* apodo interno que le pone un admin a un jugador: solo lo ven los admins */
 let ADM_NOTES={};
 const admNick=id=>isOwnerV&&ADM_NOTES[id]&&ADM_NOTES[id].nick||'';
@@ -1394,11 +1394,14 @@ const admTag=id=>{const n=admNick(id);return n?` <span class="anick" translate="
 function fbAdminHTML(){return fbRoomsHTML()+fbUsersHTML()}
 function fbRoomsHTML(){if(!FB||!isOwnerV)return'';const rooms=ADM_ROOMS||[],users=ADM_USERS||[];const nm=id=>{const u=users.find(x=>x.uid===id);return (u?u.username:'—')+(admNick(id)?' ('+admNick(id)+')':'')};
   return `<section class="box admin grow">${ADM_ROOMS===null?'<p class="note">Cargando…</p>':fitList('adm-rooms',rooms,r=>`<li><span style="flex:1"><b>${esc(r.code)}</b> · ${esc(r.type||'')} · ${r.status==='playing'?'jugando':'esperando'}<small>Anfitrión: ${esc(nm(r.host))} · ${(r.playerIds||[]).length} jugador${(r.playerIds||[]).length===1?'':'es'}${r.game?' · '+r.game.scores[0]+' a '+r.game.scores[1]:''}</small></span><button class="btn sm warn" data-a="admclose" data-id="${esc(r.code)}">Cerrar</button></li>`,'flist','<p class="note">No hay salas abiertas.</p>')}</section>`}
-let ADMQ='';
+let ADMQ='',ADM_WAL=null,ADMSORT='nombre';
+const walOf=id=>ADM_WAL&&ADM_WAL[id];
 /* buscar por usuario o por apodo interno */
-const admFilter=users=>{const q=ADMQ.trim().toLowerCase();return q?users.filter(u=>(u.username||'').toLowerCase().includes(q)||admNick(u.uid).toLowerCase().includes(q)):users};
+const admFilter=users=>{const q=ADMQ.trim().toLowerCase();const r=q?users.filter(u=>(u.username||'').toLowerCase().includes(q)||admNick(u.uid).toLowerCase().includes(q)):users.slice();
+  if(ADMSORT==='fichas')r.sort((a,b)=>((walOf(b.uid)||{}).chips||0)-((walOf(a.uid)||{}).chips||0));else r.sort((a,b)=>(a.username||'').localeCompare(b.username||''));return r};
 function fbUsersHTML(){if(!FB||!isOwnerV)return'';const users=ADM_USERS||[];
-  return `<section class="box admin grow"><input class="tin" id="admq" type="search" placeholder="Buscar por usuario o apodo interno" value="${esc(ADMQ)}" autocomplete="off">${ADM_USERS===null?'<p class="note">Cargando…</p>':fitList('adm-users',admFilter(users),u=>{const s=u.stats||{};const adm=u.role==='admin';return `<li>${avatarSVG(AVM[u.avatar]?u.avatar:'gaucho',34)}<span style="flex:1">${esc(u.username||'—')}${adm?' <span class="prem">Admin</span>':''}${u.banned?' <span class="prem" style="background:var(--bad)">Suspendido</span>':''}<small>${fmt(s.played||0)} partidas · ${s.played?Math.round((s.winRate||0)*100):0}% ganadas</small></span><button class="btn sm" data-a="admuser" data-id="${esc(u.uid)}">Ver</button>${u.uid===uid?'':`<button class="btn sm ${adm?'warn':'brass'}" data-a="admrole" data-id="${esc(u.uid)}" data-v="${adm?'player':'admin'}">${adm?'Quitar admin':'Hacer admin'}</button>`}${admNick(u.uid)?`<span class="anick row2" translate="no" title="Apodo interno (solo admins)">${esc(admNick(u.uid))}</span>`:''}</li>`},'flist')}
+  return `<section class="box admin grow"><input class="tin" id="admq" type="search" placeholder="Buscar por usuario o apodo interno" value="${esc(ADMQ)}" autocomplete="off">
+    <div class="admbar"><div class="seg" role="group"><button type="button" data-a="admsort" data-v="nombre" aria-pressed="${ADMSORT==='nombre'}">A-Z</button><button type="button" data-a="admsort" data-v="fichas" aria-pressed="${ADMSORT==='fichas'}">Más fichas</button></div>${ADM_WAL?`<small class="note">En total: <b>${fmt(Object.values(ADM_WAL).reduce((t,w)=>t+w.chips,0))}</b> fichas</small>`:''}</div>${ADM_USERS===null?'<p class="note">Cargando…</p>':fitList('adm-users',admFilter(users),u=>{const s=u.stats||{};const adm=u.role==='admin';return `<li>${avatarSVG(AVM[u.avatar]?u.avatar:'gaucho',34)}<span style="flex:1">${esc(u.username||'—')}${adm?' <span class="prem">Admin</span>':''}${u.banned?' <span class="prem" style="background:var(--bad)">Suspendido</span>':''}<small>${walOf(u.uid)?`<b class="admchips" title="Fichas"><i class="chip" aria-hidden="true"></i>${fmt(walOf(u.uid).chips)}</b> · `:ADM_WAL===null?'':'sin billetera · '}${fmt(s.played||0)} partidas · ${s.played?Math.round((s.winRate||0)*100):0}% ganadas</small></span><button class="btn sm" data-a="admuser" data-id="${esc(u.uid)}">Ver</button>${u.uid===uid?'':`<button class="btn sm ${adm?'warn':'brass'}" data-a="admrole" data-id="${esc(u.uid)}" data-v="${adm?'player':'admin'}">${adm?'Quitar admin':'Hacer admin'}</button>`}${admNick(u.uid)?`<span class="anick row2" translate="no" title="Apodo interno (solo admins)">${esc(admNick(u.uid))}</span>`:''}</li>`},'flist')}
     <p class="note" style="margin:0">El admin fijo es alejandro.clemente05@gmail.com, con el mail verificado.</p></section>`}
 function fbAccountHTML(){if(!FB)return'';const ver=AUTHINFO&&AUTHINFO.emailVerified;
   return `${ver?'':`<div class="demo">Todavía no verificaste tu mail. ${NET.ADMIN_EMAILS.includes((myEmail||'').toLowerCase())?'Hasta que lo verifiques no se activan tus permisos de admin. ':''}<button class="btn sm" data-a="reverify">Reenviar mail</button></div>`}
@@ -1672,6 +1675,7 @@ document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closes
   case 'nav':overlayView=null;view=t.dataset.v;render();return;
   case 'ptab':PT[t.dataset.k]=t.dataset.v;render();return;
   case 'lang':setLang(t.dataset.v);return;
+  case 'admsort':ADMSORT=t.dataset.v;FITP['adm-users']=0;render();return;
   case 'pg':{const k=t.dataset.k;FITP[k]=Math.max(0,(FITP[k]||0)+(+t.dataset.d));render();return}
   case 'ov':overlayView=t.dataset.v;render();return;
   case 'shopgo':shopTab=t.dataset.v;view='shop';render();return;
