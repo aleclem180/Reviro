@@ -743,3 +743,20 @@ html,body{height:100%;overflow:hidden}
 @media (max-height:700px){.pg-tour .tc-theme{display:none}.pz-n{font-size:2rem!important}.pz-sp{font-size:.9rem}}
 .rv .rvi{overflow:hidden}.rv>.btn{flex:none}
 @media (max-height:700px){.gate .filete,.filete.gtitle{font-size:2.3rem}.gate .note{display:none}.gate .box{padding:12px}.regav b{font-size:.75rem}}
+/* La Huella: el mapa ocupa la hoja; los rivales se abren aparte */
+.glay{display:flex!important;flex-direction:column;gap:8px}
+.glay .mapwrap{flex:1 1 0;min-height:0;height:auto!important;padding:6px;display:flex;justify-content:center;align-items:center}
+.glay .armap{height:100%;width:auto;max-width:100%;max-height:100%}
+.glay .gtit{padding:10px 12px;gap:4px}.gtl{display:flex;align-items:baseline;gap:8px}.gtl .tag{flex:none}
+.glay .gtit .note{font-size:.85rem}
+.zbar{padding:10px 12px;gap:8px;border-width:2px}
+.glay.wide{display:grid!important;grid-template-columns:auto minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
+.glay.wide .mapwrap{height:100%!important}.gside{display:flex;flex-direction:column;gap:10px;min-height:0}
+.rpanel{border-width:2px}.rpanel .fitw{min-height:200px;max-height:58dvh}
+.paycoins{all:unset;cursor:pointer;text-align:center;color:var(--muted);font-size:.8rem;text-decoration:underline;text-underline-offset:2px}.paycoins:hover{color:var(--ink)}
+@media (max-height:700px){.glay .gtit .note{display:none}}
+.glay .mapwrap{align-self:center}
+.rpanel .fitw{flex:none;height:min(52dvh,340px)}
+.fit.flist,.fit.lb,.fit.rvl,.fit.tlist,.fit.tms,.fit.tables,.fit.stand{align-items:stretch}
+.rv .rvi small:first-of-type{white-space:nowrap}
+.lpanel,.opanel{align-items:stretch}.lpanel>*,.fitw,.fit{min-width:0}.lpanel>.btn{align-self:center}

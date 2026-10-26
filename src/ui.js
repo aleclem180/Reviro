@@ -97,7 +97,7 @@ const wet=(s,mix=.18)=>reverb(s,SR,{mix,room:.72,damp:.4});
 const RECIPES={
   card:()=>synth(.22,o=>snap(o,0,.85)),
   deal:()=>synth(.75,o=>{for(let k=0;k<12;k++)snap(o,k*.045+Math.random()*.008,.32+k*.02);addNoise(o,0,.6,.12,.08)}),
-  call:()=>wet(synth(1.2,o=>strum(o,0,[45,52,57,60,64],.55,1.1))),
+  call:()=>synth(.3,o=>{addTone(o,180,0,.08,'sine',.3);addNoise(o,0,.03,.16,.45);addTone(o,165,.12,.07,'sine',.22);addNoise(o,.12,.025,.11,.45)}),
   pts:()=>wet(synth(.45,o=>clink(o,0,1380,.32)),.12),
   buy:()=>wet(synth(.8,o=>{[0,.07,.13,.2].forEach((t,k)=>clink(o,t,1250+k*160,.26,.3))}),.15),
   win:()=>wet(synth(2.2,o=>{strum(o,0,[45,52,57,61,64],.5,1.8,.03);strum(o,.42,[52,56,59,64,68],.45,1.6,.03);strum(o,.84,[57,64,69,73,76],.55,1.4,.035);addTone(o,55,0,.5,'sine',.5);addTone(o,55,.84,.5,'sine',.45)}),.24),
@@ -147,7 +147,7 @@ function mergeWal(d){for(const k of ['chips','coins','daily','th2','nick','fcode
 async function saveWallet(){const body=JSON.parse(JSON.stringify(WAL));try{localStorage.setItem(walKey(),JSON.stringify(body))}catch(e){}
   if(walRef){try{await walRef.set(body)}catch(e){walRef=null}}}
 function applyTx(key,d){walQ=walQ.then(async()=>{if(WAL.applied.includes(key))return false;
-    if((d.coins||0)<0&&WAL.coins+d.coins<0)return false;
+    if((d.coins||0)<0&&WAL.coins+d.coins<0)return false;if(d.own&&(d.chips||0)<0&&WAL.chips+d.chips<0)return false;
     WAL.chips=Math.max(0,WAL.chips+(d.chips||0));WAL.coins=Math.max(0,WAL.coins+(d.coins||0));
     if(d.coins>0&&d.earn)WAL.stats.earned+=d.coins;
     if(d.own&&!WAL.owned.includes(d.own))WAL.owned=WAL.owned.concat(d.own);
@@ -161,8 +161,11 @@ async function writeLooks(){if(!db||!uid)return;const st=WAL.stats,body={av:myAv
 async function fetchLooks(ids){if(!db)return;const miss=ids.filter(id=>id&&!(id in LOOKS));if(!miss.length)return;miss.forEach(id=>LOOKS[id]=null);
   await Promise.all(miss.map(async id=>{try{const s=await db.doc('looks/'+id).get();LOOKS[id]=s.exists?s.data():{}}catch(e){LOOKS[id]={}}}));render()}
 function equip(type,id){WAL.eq[type]=id;if(type==='kit'&&owns('av','hincha',AVM.hincha.price))WAL.eq.av='hincha';saveWallet();writeLooks();render()}
-async function buy(type,id,price,name){const ok=await applyTx('buy-'+type+'-'+id,{coins:-price,own:type+':'+id});
-  if(ok){sfx('buy');toast('¡Compraste '+name+'!');equip(type,id)}else toast('No te alcanzan las monedas')}
+/* la tienda cobra en fichas; quien tiene monedas (ganadas o compradas) también puede pagar con ellas.
+   Al revés nunca: las monedas no se convierten en fichas. */
+const FXR=5,fPrice=p=>p*FXR,chipI='<i class="chip" aria-hidden="true"></i>';
+async function buy(type,id,price,name,cur){const coins=cur==='coins';const ok=await applyTx('buy-'+type+'-'+id,coins?{coins:-price,own:type+':'+id}:{chips:-fPrice(price),own:type+':'+id});
+  if(ok){sfx('buy');toast('¡Compraste '+name+'!');equip(type,id)}else toast(coins?'No te alcanzan las monedas':'No te alcanzan las fichas')}
 
 /* ---------- jugadores ---------- */
 const myTeam=()=>team(mySeat<0?0:mySeat);
@@ -301,7 +304,7 @@ function soloOptsHTML(){return `<div class="over" data-a="close"><div class="pan
     <div class="field"><span>Partida a</span>${seg('target',[[15,'15 puntos'],[30,'30 puntos']],SET.target)}</div>
     <div class="field"><span>Flor</span>${seg('flor',[['true','Con flor'],['false','Sin flor']],SET.flor)}</div>
     <div class="field"><span>Apuesta en fichas</span>${seg('stake',STAKES.map(v=>[v,v?fmt(v):'Sin apuesta']),SET.stake,v=>+v>WAL.chips)}</div>
-    <p class="note">Ganando sumás ${({facil:20,medio:40,dificil:80})[SET.diff]} monedas para la tienda. Contra la máquina es práctica: no cuenta en tu historial.</p>
+    <p class="note">Ganando sumás ${({facil:20,medio:40,dificil:80})[SET.diff]} monedas. Contra la máquina es práctica: no cuenta en tu historial.</p>
     <div class="btns"><button class="btn prim" data-a="solo" ${SET.stake>WAL.chips?'disabled':''}>Repartir</button><button class="btn ghost" data-a="close">Listo</button></div></div></div>`}
 /* jugar online: su propia hoja (/online) */
 function onlinePageHTML(){const on=SET.on;if(!ONSTAKES.includes(+on.stake))on.stake=0;const remembered=(()=>{try{return localStorage.getItem('reviro.table')}catch(e){return null}})();
@@ -325,7 +328,7 @@ const RULES={cartas:()=>`<p>Mazo de 40 cartas españolas, sin ochos ni nueves. T
   envido:()=>`<p><b>Envido</b> (2), <b>real envido</b> (3) y <b>falta envido</b>. Se canta solo en la primera baza, antes de tirar tu primera carta. El envido va primero: se puede cantar como respuesta a un truco todavía no querido.</p><p>No querido vale 1, o lo acumulado hasta el canto anterior.</p><p><b>El tanto</b> suma 20 más las dos cartas del mismo palo; las figuras valen 0. Si empatan, gana el mano.</p><p><b>Falta envido:</b> en las malas (a 30, cuando nadie llegó a 15) gana el partido; en las buenas da lo que le falta al que va ganando.</p>`,
   flor:()=>`<p><b>Flor</b> (tres cartas del mismo palo) vale 3 y anula el envido.</p><p>Si el otro equipo también tiene: <b>con flor me achico</b> (4 para el primero), <b>contraflor</b> (6) o <b>contraflor al resto</b> (la falta).</p><p>Con flor activada, quien la tiene debe cantarla antes de tirar.</p>`,
   truco:()=>`<p><b>Truco</b> (2), <b>retruco</b> (3) y <b>vale cuatro</b> (4). Solo sube el equipo que tiene el quiero. No querido da lo que valía antes del canto.</p><p><b>Irse al mazo</b> regala la mano; en la primera baza, sin envido cantado, el rival suma un punto más.</p>`,
-  mas:()=>`<p><b>Señas:</b> en 2 contra 2 tu compañero puede avisarte qué tiene con un gesto, y online vos también le podés hacer señas. Solo las ve tu equipo.</p><p><b>Fichas</b> para apostar y <b>monedas</b> para la tienda son cosas distintas. Las fichas son de práctica y no tienen valor en dinero.</p>`};
+  mas:()=>`<p><b>Señas:</b> en 2 contra 2 tu compañero puede avisarte qué tiene con un gesto, y online vos también le podés hacer señas. Solo las ve tu equipo.</p><p><b>Fichas:</b> sirven para las mesas con entrada, los torneos y la tienda; las ganás con misiones y logros. Son de práctica y no tienen valor en dinero. Las <b>monedas</b> son otra forma de pagar en la tienda, y nunca se cambian por fichas.</p>`};
 function rulesHTML(){return `<details class="rules"><summary>Reglamento</summary>${Object.values(RULES).map(f=>f()).join('')}</details>`}
 function rulesPageHTML(){const [tab,tabs]=ptabs('rules',[['cartas','Cartas'],['envido','Envido'],['flor','Flor'],['truco','Truco'],['mas','Más']],'cartas');
   return phd('Reglamento','','extra')+tabs+`<section class="box rbody">${RULES[tab]()}</section>`}
@@ -335,9 +338,11 @@ function buyBtn(type,id,price,name){const own=owns(type,id,price),on=WAL.eq[type
   if(it&&it.boss&&!own)return `<button class="btn" disabled>Ganale al jefe de ${esc(ZM[it.boss].name)}</button>`;
   if(on)return `<button class="btn" disabled>Usando</button>`;
   if(own)return `<button class="btn ink" data-a="equip" data-t="${type}" data-id="${id}">Usar</button>`;
-  if(WAL.coins<price)return `<button class="btn" disabled>${coinI} Faltan ${fmt(price-WAL.coins)}</button>`;
-  const k=type+':'+id;if(pendingBuy===k)return `<button class="btn prim" data-a="buy" data-t="${type}" data-id="${id}">Confirmar · ${fmt(price)}</button>`;
-  return `<button class="btn brass" data-a="prebuy" data-t="${type}" data-id="${id}">${coinI} ${fmt(price)}</button>`}
+  const fp=fPrice(price),k=type+':'+id,alt=WAL.coins>=price?`<button type="button" class="paycoins" data-a="prebuy" data-t="${type}" data-id="${id}" data-c="coins">o ${fmt(price)} monedas</button>`:'';
+  if(pendingBuy===k)return `<button class="btn prim" data-a="buy" data-t="${type}" data-id="${id}">Confirmar · ${fmt(fp)} fichas</button>`;
+  if(pendingBuy===k+':coins')return `<button class="btn prim" data-a="buy" data-t="${type}" data-id="${id}" data-c="coins">Confirmar · ${fmt(price)} monedas</button>`;
+  if(WAL.chips<fp)return `<button class="btn" disabled>${chipI} Faltan ${fmt(fp-WAL.chips)}</button>${alt}`;
+  return `<button class="btn brass" data-a="prebuy" data-t="${type}" data-id="${id}">${chipI} ${fmt(fp)}</button>${alt}`}
 let HKIT=null;
 /* La Hincha: las camisetas se eligen en su propia tarjeta */
 function hinchaItemHTML(a){const hasH=owns('av','hincha',a.price);const sel=KITM[HKIT||WAL.eq.kit]?(HKIT||WAL.eq.kit):'arg',k=KITM[sel];
@@ -355,13 +360,13 @@ function shopHTML(){const sub=[['av','Personajes'],['dorso','Dorsos'],['pano','P
       return `<div class="item ${WAL.eq.av==='hincha'?'on':''}"><div class="prev">${avatarSVG(kitAv(KITM[WAL.eq.kit]?WAL.eq.kit:'arg'),96,true)}</div><b>${esc(a.name)}</b><p>${KITS.length} camisetas para elegir.</p>${has?`<button class="btn ink" data-a="ov" data-v="kits">Camisetas</button>`:buyBtn('av','hincha',a.price,a.name)}</div>`},'items');
   if(shopTab==='dorso')body=fitList('shop-dorso',DORSOS,d=>shopItem('dorso',d,`<div class="bigback" style="background:${backBg(d.id)}"></div>`),'items');
   if(shopTab==='pano')body=fitList('shop-pano',PANOS,p=>shopItem('pano',p,`<div class="swatch" style="background:${panoBg(p.id)};border-color:${p.edge}">${cardHTML('1E')}${cardHTML('7O')}</div>`),'items');
-  const earn='Ganás monedas jugando: 20, 40 u 80 por partida ganada según la dificultad, 60 por partida online ganada, 5 por jugar aunque pierdas, 30 cada día y las misiones.';
+  const earn='Las monedas sirven también para pagar en la tienda. Se ganan jugando: 20, 40 u 80 por partida ganada según la dificultad, 60 por partida online, 5 por jugar aunque pierdas y 30 cada día.';
   if(shopTab==='coins'&&FB)body=mpShopHTML();
   else if(shopTab==='coins'&&!PREMIUM)body=premLock()+`<p class="note">${earn}</p>`;
   else if(shopTab==='coins')body=`<div class="demo"><b>Modo prueba.</b> Acá no se cobra nada: los paquetes se acreditan gratis para que veas cómo funciona la tienda.</div>
     ${fitList('shop-pk',PACKS.map((p,i)=>Object.assign({i},p)),p=>`<div class="item pack"><div class="prev">${coinI.replace('class="coin"','class="coin" style="width:26px;height:26px"')}${fmt(p.coins)}</div><b>${fmt(p.coins)} monedas</b><p>${p.tag?`<span class="tag">${p.tag}</span> `:''}<span class="ars">$ ${fmt(p.ars)}</span></p>
       ${pendingBuy==='pack:'+p.i?`<button class="btn prim" data-a="pack" data-i="${p.i}">Confirmar prueba</button>`:`<button class="btn brass" data-a="prepack" data-i="${p.i}">Simular compra</button>`}</div>`,'items')}<p class="note">${earn}</p>`;
-  return phd('Tienda',`<span class="pill">${coinI}${fmt(WAL.coins)}</span>`,'extra')+`<div class="subtabs" role="group">${sub.map(([k,l])=>`<button type="button" data-a="shoptab" data-v="${k}" aria-pressed="${shopTab===k}">${l}</button>`).join('')}</div><div class="pbody">${body}</div>`}
+  return phd('Tienda',`<span class="pill">${chipI}${fmt(WAL.chips)}</span>`,'extra')+`<div class="subtabs" role="group">${sub.map(([k,l])=>`<button type="button" data-a="shoptab" data-v="${k}" aria-pressed="${shopTab===k}">${l}</button>`).join('')}</div><div class="pbody">${body}</div>`}
 function kitsHTML(){const a=AVM.hincha;return `<div class="over" data-a="close"><div class="panel kpanel" data-stop>${hinchaItemHTML(a)}<button class="btn ghost" data-a="close">Cerrar</button></div></div>`}
 /* ---------- perfil ---------- */
 function profileHTML(){const a=AVM[WAL.eq.av]||AVM.gaucho,st=WAL.stats,pct=st.played?Math.round(st.won*100/st.played):0;
@@ -476,7 +481,7 @@ function overlayHTML(){
   if(overlayView==='terms')return `<div class="over" data-a="close"><div class="panel tpanel" data-stop><h2>Términos y condiciones</h2>${termsHTML()}<button class="btn prim" data-a="close">Cerrar</button></div></div>`;
   if(overlayView==='termsAccept')return `<div class="over"><div class="panel tpanel"><h2>Términos y condiciones</h2><p>Para seguir jugando, leé y aceptá los términos.</p>${termsHTML()}<button class="btn prim" data-a="tosaccept">Acepto los términos</button><button class="btn ghost" data-a="logout">Salir de mi cuenta</button></div></div>`;
   if(overlayView==='admuser')return admUserHTML();
-  {const OV={soloopts:soloOptsHTML,onopts:onOptsHTML,tourhow:tourHowHTML,tourfriend:tourFriendHTML,tabla:tablaHTML,kits:kitsHTML,compras:comprasHTML,
+  {const OV={soloopts:soloOptsHTML,onopts:onOptsHTML,tourhow:tourHowHTML,tourfriend:tourFriendHTML,tabla:tablaHTML,rivales:rivalesHTML,kits:kitsHTML,compras:comprasHTML,
       tourrules:()=>`<div class="over" data-a="close"><div class="panel lpanel" data-stop><h2>Reglas del torneo</h2><p style="white-space:pre-wrap;text-align:left">${esc((TV&&TV.t&&TV.t.rules)||'')}</p><button class="btn ghost" data-a="close">Cerrar</button></div></div>`};
     if(OV[overlayView]&&view!=='game')return OV[overlayView]()}
   if(INV&&INV.kind==='tour'&&view!=='game'&&view!=='room'&&view!=='register'&&view!=='welcome'){const l=LOOKS[INV.from]||{};return `<div class="over"><div class="panel">${avatarSVG(AVM[l.av]?l.av:'gaucho',72,true)}<h2>¡Te invitan!</h2><p><b>${esc(dispName(INV.from)||'Un amigo')}</b> quiere jugar con vos en pareja el torneo <b>${esc(INV.name||'')}</b>.</p><div class="btns"><button class="btn prim" data-a="invgo">Ver el torneo</button><button class="btn ghost" data-a="invno">Ahora no</button></div></div></div>`}
@@ -673,13 +678,13 @@ function ensureMissions(){const today=new Date().toLocaleDateString('en-CA');if(
   const ids=MISSIONS.map(m=>m.id);let x=dayHash(today);const pick=[];while(pick.length<3){x=(x*1103515245+12345)>>>0;const id=ids[x%ids.length];if(!pick.includes(id))pick.push(id)}
   WAL.mis={date:today,ids:pick,prog:{},done:[]}}
 function achValue(a){if(a.ev==='@streak')return Math.max(WAL.stats.best||0,WAL.stats.abest||0);if(a.ev==='@avatars')return AVS.filter(x=>owns('av',x.id,x.price)).length;return (WAL.ach.cnt[a.ev]||0)}
-function recordEvents(key,evs){walQ=walQ.then(async()=>{if(key&&WAL.evk.includes(key))return;ensureMissions();const msgs=[];let coins=0;
+function recordEvents(key,evs){walQ=walQ.then(async()=>{if(key&&WAL.evk.includes(key))return;ensureMissions();const msgs=[];let chips=0;
     for(const ev of evs){WAL.ach.cnt[ev]=(WAL.ach.cnt[ev]||0)+1;
       for(const id of WAL.mis.ids){const m=MISSIONS.find(x=>x.id===id);if(!m||m.ev!==ev||WAL.mis.done.includes(id))continue;
-        WAL.mis.prog[id]=Math.min(m.goal,(WAL.mis.prog[id]||0)+1);if(WAL.mis.prog[id]>=m.goal){WAL.mis.done.push(id);coins+=m.r;msgs.push('Misión cumplida: '+m.t+' (+'+m.r+')')}}}
-    for(const a of ACHS){if(WAL.ach.done.includes(a.id))continue;if(achValue(a)>=a.goal){WAL.ach.done.push(a.id);coins+=a.r;msgs.push('Logro: '+a.t+' (+'+a.r+')')}}
+        WAL.mis.prog[id]=Math.min(m.goal,(WAL.mis.prog[id]||0)+1);if(WAL.mis.prog[id]>=m.goal){WAL.mis.done.push(id);chips+=fPrice(m.r);msgs.push('Misión cumplida: '+m.t+' (+'+fmt(fPrice(m.r))+' fichas)')}}}
+    for(const a of ACHS){if(WAL.ach.done.includes(a.id))continue;if(achValue(a)>=a.goal){WAL.ach.done.push(a.id);chips+=fPrice(a.r);msgs.push('Logro: '+a.t+' (+'+fmt(fPrice(a.r))+' fichas)')}}
     if(key)WAL.evk=WAL.evk.concat(key).slice(-60);
-    if(coins){WAL.coins+=coins;WAL.stats.earned+=coins;sfx('buy')}renderWallet();await saveWallet();if(msgs.length)toast(msgs.join(' · '));render()});return walQ}
+    if(chips){WAL.chips+=chips;sfx('buy')}renderWallet();await saveWallet();if(msgs.length)toast(msgs.join(' · '));render()});return walQ}
 function handEvents(g){const h=g.hand,mt=myTeam(),won=h.ended&&h.ended.winner===mt,evs=[];
   if(won)evs.push('hand_won');if(won&&h.truco.level>=3)evs.push('retruco_won');if(won&&h.truco.level===4)evs.push('vale4_won');
   if(won&&h.results.includes('P'))evs.push('parda_won');
@@ -735,20 +740,21 @@ function actKey(a){if(a.startsWith('env:'))return{t:'envido',kind:a.slice(4)};if
 
 /* ---------- ranking ---------- */
 let RANK=null,unsubRank=null;
-function subRank(){if(!db||unsubRank)return;try{unsubRank=db.collection('looks').orderBy('pts','desc').limit(50).onSnapshot(s=>{RANK=s.docs.map(d=>({id:d.id,...d.data()}));if(view==='ranking')render()},()=>{unsubRank=null})}catch(e){}}
+function subRank(){if(!db||unsubRank)return;try{unsubRank=db.collection('looks').orderBy('pts','desc').limit(100).onSnapshot(s=>{RANK=s.docs.map(d=>({id:d.id,...d.data()}));if(view==='ranking')render()},()=>{unsubRank=null})}catch(e){}}
 
 /* ---------- vistas nuevas ---------- */
 function missionsHTML(){ensureMissions();const now=new Date(),mid=new Date(now);mid.setHours(24,0,0,0);const hrs=Math.max(1,Math.round((mid-now)/3600e3));
   const mis=WAL.mis.ids.map(id=>MISSIONS.find(m=>m.id===id)).filter(Boolean);const got=ACHS.filter(a=>WAL.ach.done.includes(a.id)).length;
   const [tab,tabs]=ptabs('mis',[['hoy','Misiones de hoy'],['logros',`Logros (${got} de ${ACHS.length})`]],'hoy');
   const body=tab==='hoy'?`<p class="note snote">Se renuevan en ${hrs} h.</p><div class="mislist">${mis.map(m=>{const p=WAL.mis.prog[m.id]||0,done=WAL.mis.done.includes(m.id);
-      return `<div class="mis ${done?'ok':''}"><div class="mtop"><b>${esc(m.t)}</b><span class="rw">${coinI}+${m.r}</span></div><div class="bar"><i style="width:${Math.round(p*100/m.goal)}%"></i></div><small>${done?'Cumplida':p+' de '+m.goal}</small></div>`}).join('')}</div>`
+      return `<div class="mis ${done?'ok':''}"><div class="mtop"><b>${esc(m.t)}</b><span class="rw">${chipI}+${fmt(fPrice(m.r))}</span></div><div class="bar"><i style="width:${Math.round(p*100/m.goal)}%"></i></div><small>${done?'Cumplida':p+' de '+m.goal}</small></div>`}).join('')}</div>`
     :fitList('achs',ACHS,a=>{const v=Math.min(a.goal,achValue(a)),done=WAL.ach.done.includes(a.id);
-      return `<div class="ach ${done?'ok':''}"><span class="medal" aria-hidden="true">${done?'★':'☆'}</span><div><b>${esc(a.t)}</b><small>${esc(a.d)}</small><div class="bar"><i style="width:${Math.round(v*100/a.goal)}%"></i></div><small>${done?'Conseguido':v+' de '+a.goal} · ${coinI.replace('class="coin"','class="coin" style="display:inline-block;width:11px;height:11px;vertical-align:-1px"')} ${a.r}</small></div></div>`},'achs');
+      return `<div class="ach ${done?'ok':''}"><span class="medal" aria-hidden="true">${done?'★':'☆'}</span><div><b>${esc(a.t)}</b><small>${esc(a.d)}</small><div class="bar"><i style="width:${Math.round(v*100/a.goal)}%"></i></div><small>${done?'Conseguido':v+' de '+a.goal} · ${chipI.replace('class="chip"','class="chip" style="display:inline-block;width:11px;height:11px;vertical-align:-1px"')} ${fmt(fPrice(a.r))} fichas</small></div></div>`},'achs');
   return phd('Misiones','','extra')+tabs+`<div class="pbody">${body}</div>`}
 function rankingHTML(){const head=phd('Ranking','','extra');if(!db||!uid)return head+`<section class="box"><p class="note" style="margin:0">${LOCAL?'El ranking funciona con tu cuenta en la web.':'El ranking necesita que abras Reviro con tu cuenta de claude.ai.'}</p></section>`;
   subRank();subFriends();const fs=friendSet();const rows=(RANK||[]).filter(r=>r.played>0&&(rankScope==='all'||r.id===uid||fs.has(r.id)));const ids=rows.map(r=>r.id);if(ids.length)ensureNames(ids);
-  return head+`<div class="subtabs" role="group"><button type="button" data-a="rscope" data-v="all" aria-pressed="${rankScope==='all'}">Todos</button><button type="button" data-a="rscope" data-v="friends" aria-pressed="${rankScope==='friends'}">Mis amigos (${fs.size})</button></div>
+  const myPos=rows.findIndex(r=>r.id===uid);const head2=phd(rankScope==='all'?'Los 100 mejores':'Ranking',`<span class="pill">${myPos>=0?'Vas '+(myPos+1)+'.º':'Fuera del top'}</span>`,'extra');
+  return head2+`<div class="subtabs" role="group"><button type="button" data-a="rscope" data-v="all" aria-pressed="${rankScope==='all'}">Top 100</button><button type="button" data-a="rscope" data-v="friends" aria-pressed="${rankScope==='friends'}">Mis amigos (${fs.size})</button></div>
   <div class="pbody">${RANK===null?'<p class="note">Cargando…</p>':fitList('rank-'+rankScope,rows.map((r,i)=>Object.assign({pos:i+1},r)),r=>`<li class="${r.id===uid?'me':''}"><span class="pos">${r.pos}</span>${avatarSVG(AVM[r.av]?r.av:'gaucho',36)}<span class="nm">${esc(r.id===uid?myDisp():((r.nick)||NAMES[r.id]||'Jugador'))}<small>${fmt(r.won||0)} ganadas de ${fmt(r.played||0)} · racha máx. ${r.best||0}</small></span><b>${fmt(r.pts||0)}</b></li>`,'lb',rankScope==='friends'?'<p class="note">Todavía no tenés amigos con partidas. Pasales tu link de amigo desde Perfil.</p>':'<p class="note">Todavía nadie terminó una partida. Jugá una y aparecés acá.</p>')}</div>
   <p class="note snote">Puntos: 30 por partida online ganada y 3, 8 o 15 por ganarle a la máquina en Fácil, Medio o Difícil.</p>`}
 function tutorialBoxHTML(){const done=WAL.tut||[];
@@ -948,15 +954,17 @@ function rivalCard(r){const open=zoneOpen(ZM[r.zone]),wins=(WAL.gira&&WAL.gira.b
     <button class="btn ${r.boss?'prim':'brass'} sm" data-a="girago" data-id="${r.id}" ${open?'':'disabled'}>Jugar</button></li>`}
 function giraHTML(){const c=WAL.copas||0,z=ZM[giraZone]||ZONES[0],open=zoneOpen(z);const next=ZONES.find(x=>!zoneOpen(x));
   const prevNeed=next?((ZONES[ZONES.indexOf(next)-1]||{need:0}).need):0;const pct=next?Math.round((c-prevNeed)*100/Math.max(1,next.need-prevNeed)):100;
-  const zi=ZONES.indexOf(z),zp=ZONES[(zi+ZONES.length-1)%ZONES.length],zn=ZONES[(zi+1)%ZONES.length];
-  return phd('La Huella',`<button type="button" class="pill cuppill" data-a="ov" data-v="tabla" aria-label="Ver la tabla nacional"><i class="poroto" aria-hidden="true"></i>${fmt(c)} porotos</button>`)+`<div class="glay">
+  const zi=ZONES.indexOf(z),zp=ZONES[(zi+ZONES.length-1)%ZONES.length],zn=ZONES[(zi+1)%ZONES.length],nR=RIVALS.filter(r=>r.zone===z.id).length;
+  const wide=innerWidth>=720;
+  const zhd=`<div class="zhd"><button type="button" class="pgb" data-a="zone" data-id="${zp.id}" data-keep="1" aria-label="Zona anterior: ${esc(zp.name)}">‹</button><div><h3>${open?'':'🔒︎ '}${esc(z.name)}</h3><small>${esc(z.prov)}${open?'':` · se abre con ${fmt(z.need)} porotos`}</small></div><button type="button" class="pgb" data-a="zone" data-id="${zn.id}" data-keep="1" aria-label="Zona siguiente: ${esc(zn.name)}">›</button></div>`;
+  const tit=`<section class="box gtit"><div class="gtl"><small class="tag">Tu título</small><b class="gt">${esc(titleOf(c))}</b></div>
+      ${next?`<div class="bar"><i style="width:${Math.max(3,Math.min(100,pct))}%"></i></div><p class="note" style="margin:0">Te faltan <b>${fmt(next.need-c)}</b> porotos para abrir ${esc(next.name)}.</p>`:'<p class="note" style="margin:0">Abriste todo el país. ¡Sos leyenda!</p>'}</section>`;
+  return phd('La Huella',`<button type="button" class="pill cuppill" data-a="ov" data-v="tabla" aria-label="Ver la tabla nacional"><i class="poroto" aria-hidden="true"></i>${fmt(c)} porotos</button>`)+`<div class="glay ${wide?'wide':''}">
     <div class="mapwrap">${mapSVG()}</div>
-    <section class="box gtit"><small class="tag">Tu título</small><b class="gt">${esc(titleOf(c))}</b>
-      ${next?`<div class="bar"><i style="width:${Math.max(3,Math.min(100,pct))}%"></i></div><p class="note" style="margin:0">Te faltan <b>${fmt(next.need-c)}</b> porotos para abrir ${esc(next.name)}.</p>`:'<p class="note" style="margin:0">Abriste todo el país. ¡Sos leyenda!</p>'}
-      <button type="button" class="linkb" data-a="ov" data-v="tabla">Tabla nacional</button></section>
-    <section class="box zbox" style="border-color:${open?z.col:'var(--line)'}"><div class="zhd"><button type="button" class="pgb" data-a="zone" data-id="${zp.id}" aria-label="Zona anterior: ${esc(zp.name)}">‹</button><div><h3>${open?'':'🔒︎ '}${esc(z.name)}</h3><small>${esc(z.prov)}${open?'':` · se abre con ${fmt(z.need)} porotos`}</small></div><button type="button" class="pgb" data-a="zone" data-id="${zn.id}" aria-label="Zona siguiente: ${esc(zn.name)}">›</button></div>
-      ${fitList('riv-'+z.id,RIVALS.filter(r=>r.zone===z.id),rivalCard,'rvl')}
-      ${WAL.gira&&WAL.gira.bosses.includes(z.id)?`<p class="note" style="margin:0">★ Ya le ganaste al jefe de ${esc(z.name)}.</p>`:''}</section></div>`}
+    ${wide?`<div class="gside">${tit}<section class="box zbox grow" style="border-color:${open?z.col:'var(--line)'}">${zhd}${giraRivalsHTML(z)}</section></div>`
+      :`${tit}<section class="box zbar" style="border-color:${open?z.col:'var(--line)'}">${zhd}<button type="button" class="btn ${open?'prim':''}" data-a="ov" data-v="rivales">Ver los ${nR} rivales de ${esc(z.short||z.name)}</button></section>`}</div>`}
+function giraRivalsHTML(z){return fitList('riv-'+z.id,RIVALS.filter(r=>r.zone===z.id),rivalCard,'rvl')+(WAL.gira&&WAL.gira.bosses.includes(z.id)?`<p class="note" style="margin:0">★ Ya le ganaste al jefe de ${esc(z.name)}.</p>`:'')}
+function rivalesHTML(){const z=ZM[giraZone]||ZONES[0],open=zoneOpen(z);return `<div class="over" data-a="close"><div class="panel lpanel rpanel" data-stop style="border-color:${open?z.col:'var(--line)'}"><h2>${esc(z.name)}</h2><p class="note" style="margin:0">${esc(z.prov)}${open?'':` · se abre con ${fmt(z.need)} porotos`}</p>${giraRivalsHTML(z)}<button class="btn ghost" data-a="close">Volver al mapa</button></div></div>`}
 function tablaHTML(){const c=WAL.copas||0;const table=RIVALS.map(r=>({n:r.name,c:r.copas,av:r.av})).concat({n:myDisp()+' (vos)',c,av:myAv(),me:1}).sort((a,b)=>b.c-a.c);const myPos=table.findIndex(x=>x.me);
   const win=table.slice(Math.max(0,myPos-3),myPos+4);
   return `<div class="over" data-a="close"><div class="panel lpanel" data-stop><h2>Tabla nacional</h2><p class="note" style="margin:0">Vas ${myPos+1}.º de ${table.length}.</p><ol class="lb">${win.map(x=>`<li class="${x.me?'me':''}"><span class="pos">${table.indexOf(x)+1}</span>${avatarSVG(x.av,30)}<span class="nm">${esc(x.n)}</span><b>${fmt(x.c)}</b></li>`).join('')}</ol><button class="btn ghost" data-a="close">Cerrar</button></div></div>`}
@@ -1083,7 +1091,7 @@ const EXTRA_SUB=['anotador','shop','missions','ranking','rules','tutorial'];
 const backX=()=>`<div class="backx"><button type="button" class="btn ghost sm" data-a="nav" data-v="extra">← Extra</button></div>`;
 function extraHTML(){const done=(WAL.tut||[]).length,mis=(()=>{ensureMissions();return WAL.mis.done.length})();
   return phd('Extra')+`<div class="xtiles">
-    ${modeTile('data-a="nav" data-v="shop"','10O','Tienda',`${fmt(WAL.coins)} monedas · personajes, dorsos y paños`)}
+    ${modeTile('data-a="nav" data-v="shop"','10O','Tienda',`Personajes, dorsos y paños, con tus ${fmt(WAL.chips)} fichas`)}
     ${modeTile('data-a="nav" data-v="missions"','11B','Misiones y logros',`${mis} de 3 misiones hoy`)}
     ${modeTile('data-a="nav" data-v="ranking"','12E','Ranking','Vos contra todos y contra tus amigos')}
     ${modeTile('data-a="nav" data-v="tutorial"','10E','Tutorial',`${done} de ${LESSONS.length} lecciones hechas`)}
@@ -1396,8 +1404,8 @@ function tourRoomHTML(){const here=T.here||{};const wait=Math.max(0,5*60e3-(Date
 /* ---------- términos y condiciones ---------- */
 const TERMS_TXT=[
  ['Qué es Reviro','Reviro es un juego de truco para jugar con amigos. Usarlo es gratis.'],
- ['Fichas','Las fichas no tienen valor en dinero: no se compran, no se venden y no se cambian por plata ni por monedas. Se usan para las mesas con entrada y los torneos. En las mesas con entrada y en los torneos, Reviro retiene el 10% de las fichas del pozo; el 90% restante es el premio que se muestra en pantalla.'],
- ['Monedas','Las monedas se ganan jugando o se compran con Mercado Pago. Sirven solo para la tienda (personajes, camisetas, dorsos y paños). No se cambian por fichas ni por dinero, no se transfieren a otras cuentas y no se reintegran, salvo que la compra no se haya acreditado.'],
+ ['Fichas','Las fichas no tienen valor en dinero: no se compran, no se venden y no se cambian por plata ni por monedas. Se ganan con las misiones y los logros, y se usan para las mesas con entrada, los torneos y la tienda. En las mesas con entrada y en los torneos, Reviro retiene el 10% de las fichas del pozo; el 90% restante es el premio que se muestra en pantalla.'],
+ ['Monedas','Las monedas se ganan jugando o se compran con Mercado Pago. Sirven solo como otra forma de pago en la tienda (personajes, camisetas, dorsos y paños). No se cambian por fichas ni por dinero, no se transfieren a otras cuentas y no se reintegran, salvo que la compra no se haya acreditado.'],
  ['Abandonos','Abandonar una partida online cuenta como derrota. En las mesas con entrada, si alguien se va en los primeros 30 segundos, la partida se cancela y se devuelven todas las entradas. Después de eso, si alguien se desconecta, la partida espera 60 segundos: si no vuelve, pierde su entrada, que se reparte entre los rivales, y a su compañero se le devuelve la suya.'],
  ['Referidos','Si alguien se registra con tu link y juega su primera partida online, ganás monedas. Cada persona cuenta una sola vez. Crear cuentas falsas para cobrar referidos está prohibido.'],
  ['Conducta','No se permiten trampas, cuentas múltiples para sacar ventaja ni insultos. El administrador puede suspender cuentas y corregir saldos ante fraudes o errores, y esas acciones quedan registradas.'],
@@ -1455,7 +1463,7 @@ function subPay(){if(!FB||payUnsubs.length)return;try{
     if(view==='shop')render()}));
   if(isOwnerV)payUnsubs.push(NET.pay.watchPending(l=>{PENDPUR=l;if(view==='settings')render()}))}catch(e){}}
 function mpShopHTML(){const links=(PAYCFG&&PAYCFG.links)||[],alias=PAYCFG&&PAYCFG.alias;
-  return `<p class="note snote">Las monedas son para la tienda: se pagan con Mercado Pago y se acreditan cuando se confirma el pago. No se cambian por fichas ni por plata.</p>
+  return `<p class="note snote">Con monedas también se paga en la tienda. Se compran con Mercado Pago y se acreditan cuando se confirma el pago. No se cambian por fichas ni por plata.</p>
     ${fitList('shop-mp',PACKS.map((p,i)=>Object.assign({i},p)),p=>{const i=p.i,link=links[i];return `<div class="item pack"><div class="prev">${coinI.replace('class="coin"','class="coin" style="width:26px;height:26px"')}${fmt(p.coins)}</div><b>${fmt(p.coins)} monedas</b><p>${p.tag?`<span class="tag">${p.tag}</span> `:''}<span class="ars">$ ${fmt(p.ars)}</span></p>
       ${PAYSTEP===i?`<button class="btn prim" data-a="mpdone" data-i="${i}">Ya pagué</button><button class="btn ghost sm" data-a="mpcancel">Cancelar</button>`
        :link?`<a class="btn mp" href="${esc(link)}" target="_blank" rel="noopener" data-a="mppay" data-i="${i}">Mercado Pago</a>`
@@ -1507,8 +1515,8 @@ document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closes
   case 'mpok':case 'mpno':NET.pay.decide(t.dataset.id,a==='mpok').then(()=>toast(a==='mpok'?'Monedas acreditadas':'Pago rechazado')).catch(()=>toast('No se pudo'));return;
   case 'hkit':HKIT=t.dataset.id;render();return;
   case 'shoptab':shopTab=t.dataset.v;render();return;
-  case 'prebuy':pendingBuy=t.dataset.t+':'+t.dataset.id;render();return;
-  case 'buy':{const ty=t.dataset.t,id=t.dataset.id,list=ty==='av'?AVM:ty==='dorso'?DM:ty==='kit'?KITM:PM,it=list[id];pendingBuy=null;if(it)buy(ty,id,it.price,it.name);return}
+  case 'prebuy':pendingBuy=t.dataset.t+':'+t.dataset.id+(t.dataset.c?':coins':'');render();return;
+  case 'buy':{const ty=t.dataset.t,id=t.dataset.id,list=ty==='av'?AVM:ty==='dorso'?DM:ty==='kit'?KITM:PM,it=list[id];pendingBuy=null;if(it)buy(ty,id,it.price,it.name,t.dataset.c);return}
   case 'equip':equip(t.dataset.t,t.dataset.id);return;
   case 'prepack':if(!PREMIUM){toast('Solo para cuentas premium');return}pendingBuy='pack:'+t.dataset.i;render();return;
   case 'pack':{if(!PREMIUM){toast('Solo para cuentas premium');return}const p=PACKS[+t.dataset.i];pendingBuy=null;if(p){applyTx('pack-'+Date.now(),{coins:p.coins}).then(()=>{sfx('buy');toast('Compra de prueba: +'+fmt(p.coins)+' monedas, sin cobro')})}return}
@@ -1543,7 +1551,7 @@ document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closes
   case 'invgo':acceptInvite(true);return;
   case 'invno':acceptInvite(false);return;
   case 'welcome':if(t.dataset.v==='learn'){startLesson(0)}else if(t.dataset.v==='tut'){view='tutorial';render()}else{view='menu';render()}return;
-  case 'zone':giraZone=t.dataset.id;FITP['riv-'+giraZone]=0;render();return;
+  case 'zone':giraZone=t.dataset.id;FITP['riv-'+giraZone]=0;if(!t.dataset.keep&&innerWidth<720)overlayView='rivales';render();return;
   case 'girago':startGira(t.dataset.id);return;
   case 'regav':regAv=t.dataset.id;render();return;
   case 'authv':AUTHV=t.dataset.v;AUTHERR='';render();return;
@@ -1570,7 +1578,7 @@ document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closes
   if(a&&a.startsWith('env:')){doAction({t:'envido',kind:a.slice(4)});return}
   if(a&&a.startsWith('truco:')){doAction({t:'truco',level:+a.slice(6)});return}
 });
-document.addEventListener('keydown',e=>{const t=e.target;if((e.key==='Enter'||e.key===' ')&&t.classList&&t.classList.contains('zp')){e.preventDefault();giraZone=t.dataset.id;render()}});
+document.addEventListener('keydown',e=>{const t=e.target;if((e.key==='Enter'||e.key===' ')&&t.classList&&t.classList.contains('zp')){e.preventDefault();giraZone=t.dataset.id;if(innerWidth<720)overlayView='rivales';render()}});
 document.addEventListener('input',e=>{const vk=e.target.dataset&&e.target.dataset.vol;if(vk){SET[vk]=+e.target.value;const o=document.getElementById('vo-'+vk);if(o)o.textContent=SET[vk]+'%';musicVolume();saveSet();return}
   const k={tname:'name',ttheme:'theme',tdate:'date',trules:'rules'}[e.target.id];if(k)TN[k]=e.target.value});
 document.addEventListener('change',e=>{if(e.target.dataset&&e.target.dataset.vol){sfx('pts');return}
