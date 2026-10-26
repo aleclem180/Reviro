@@ -87,11 +87,19 @@ service cloud.firestore {
           let d = request.resource.data;
           let room = get(/databases/$(database)/documents/rooms/$(d.roomId)).data;
           return d.matchId == matchId
-            && room.status == 'finished'
-            && room.result.matchId == matchId
             && uid in room.teams
             && d.team == room.teams[uid]
-            && d.won == (room.result.winnerTeam == room.teams[uid]);
+            && (
+              // partida terminada: el resultado tiene que coincidir con el de la sala
+              (room.status == 'finished'
+                && room.result.matchId == matchId
+                && d.won == (room.result.winnerTeam == room.teams[uid]))
+              // abandono: salir de una partida en juego cuenta como derrota
+              || (room.status == 'playing'
+                && room.matchId == matchId
+                && d.abandoned == true
+                && d.won == false)
+            );
         }
       }
 

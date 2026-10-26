@@ -68,6 +68,8 @@ Garantiza que no haya dos usuarios con el mismo nombre. Se crea en la misma tran
 
 Se crea una sola vez por partida y por jugador. Si ya existe, la partida no se vuelve a contar.
 
+**Abandono:** si un jugador sale de una partida que sigue en juego, se crea el registro en ese momento con `"won": false, "abandoned": true` y se le suma una derrota (corta la racha). Cuando la partida termina con la IA en su lugar, ya no se le vuelve a contar. Una partida contra la IA que quedó a medias más de 15 minutos (por ejemplo, se cerró la pestaña) también se cuenta como abandono la próxima vez que inicia sesión. Las reglas solo aceptan `abandoned` si la sala sigue en `playing` con ese `matchId`.
+
 ### `users/{uid}/private/account`
 
 ```json

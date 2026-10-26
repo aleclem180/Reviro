@@ -138,7 +138,8 @@ function envWinProb(g,s,N){const h=g.hand;let w=0;for(let i=0;i<N;i++){const hs=
 function decideEnvidoCall(g,s,d,myE){const R=Math.random;
   if(d==='facil')return R()<0.2?{t:'envido',kind:'envido'}:null;
   if(d==='medio'){if(myE>=31)return{t:'envido',kind:'real'};if(myE>=27)return{t:'envido',kind:'envido'};return null}
-  const p=envWinProb(g,s,Math.round(200*SMUL));
+  const ph=(AIHINT&&AIHINT.env&&team(AIHINT.seat)===team(s)&&AIHINT.env>envidoOf(g.hand.orig[s]))?Math.max(0,Math.min(.97,(AIHINT.env-21)/12)):null;
+  const p=ph!==null?ph:envWinProb(g,s,Math.round(200*SMUL));
   if(p>0.9&&faltaFor(g,team(s))<=4)return{t:'envido',kind:'falta'};
   if(p>0.82)return{t:'envido',kind:'real'};if(p>0.6)return{t:'envido',kind:'envido'};
   if(R()<0.07)return{t:'envido',kind:'envido'};return null}
@@ -149,8 +150,8 @@ let SMUL=1;
 function aiAct(g,s,dOver,hint){AIHINT=hint&&hint.seat!==s?hint:null;let d=dOver||g.diff||'medio';SMUL=1;
   if(!dOver&&typeof g.skill==='number'&&g.seats[s]&&g.seats[s].bot){const k=g.skill,r=Math.random();d=r<k?'dificil':r<Math.min(1,k+.5)?'medio':'facil';SMUL=.45+k*1.1}
   try{return aiCore(g,s,d)}finally{AIHINT=null;SMUL=1}}
-function aiCore(g,s,d){const L=legal(g,s),h=g.hand,R=Math.random,Q={t:'quiero'},NQ={t:'noquiero'};
-  const myE=envidoOf(h.orig[s]),opp=1-team(s);
+function aiCore(g,s,d){const L=legal(g,s),h=g.hand,ENVH=(AIHINT&&AIHINT.env&&team(AIHINT.seat)===team(s))?AIHINT.env:0,R=Math.random,Q={t:'quiero'},NQ={t:'noquiero'};
+  const myE=Math.max(envidoOf(h.orig[s]),Math.floor(ENVH)),opp=1-team(s);const envP=()=>ENVH>envidoOf(h.orig[s])?Math.max(0,Math.min(.97,(ENVH-21)/12)):null;
   if(L.respond==='flor'){const fv=florVal(h.orig[s]),st=h.flor.pending.stage;
     if(d==='facil'){if(st==='flor')return{t:R()<.5?'achico':'contra'};return R()<.5?Q:NQ}
     const th=d==='dificil'?[30,33,35]:[29,32,34];
@@ -164,7 +165,7 @@ function aiCore(g,s,d){const L=legal(g,s),h=g.hand,R=Math.random,Q={t:'quiero'},
     if(d==='medio'){const need=chain.includes('falta')?30:chain.length>1?29:chain[0]==='real'?28:26;
       if(myE>=33&&L.envido.includes('falta')&&!chain.includes('falta'))return{t:'envido',kind:'falta'};
       if(myE>=31&&L.envido.includes('real'))return{t:'envido',kind:'real'};return myE>=need?Q:NQ}
-    let p=envWinProb(g,s,Math.round(250*SMUL))*0.86;
+    let p=(envP()!==null?envP():envWinProb(g,s,Math.round(250*SMUL)))*0.86;
     if(p>0.8&&L.envido.length){const k=L.envido.includes('real')?'real':L.envido.includes('falta')&&faltaFor(g,team(s))<=8?'falta':null;if(k)return{t:'envido',kind:k}}
     return (2*p-1)*W>-N+0.3?Q:NQ}
   if(L.respond==='truco'){

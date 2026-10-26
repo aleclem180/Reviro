@@ -304,20 +304,49 @@ async function recordMatch(code) {
     const uRef = doc(fs, 'users', uid);
     const us = await tx.get(uRef);
     if (!us.exists()) return null;
-    const o = { ...EMPTY_STATS, ...(us.data().stats || {}) };
     const won = room.result.winnerTeam === room.teams[uid];
-    const played = o.played + 1;
-    const wins = o.wins + (won ? 1 : 0);
-    const currentStreak = won ? (o.currentStreak > 0 ? o.currentStreak + 1 : 1) : (o.currentStreak < 0 ? o.currentStreak - 1 : -1);
-    const stats = {
-      played, wins, losses: o.losses + (won ? 0 : 1),
-      winRate: wins / played,
-      currentStreak,
-      bestStreak: Math.max(o.bestStreak, currentStreak),
-    };
+    const stats = nextStats(us.data().stats, won);
     tx.set(recRef, { roomId: room.code, matchId, type: room.type, won, team: room.teams[uid], at: serverTimestamp() });
     tx.update(uRef, { stats, lastMatchId: matchId });
     return { won, stats };
+  });
+}
+
+/** Cuenta nueva después de una partida: jugadas +1, ganada o perdida, racha y mejor racha. */
+function nextStats(prev, won) {
+  const o = { ...EMPTY_STATS, ...(prev || {}) };
+  const played = o.played + 1;
+  const wins = o.wins + (won ? 1 : 0);
+  const currentStreak = won ? (o.currentStreak > 0 ? o.currentStreak + 1 : 1) : (o.currentStreak < 0 ? o.currentStreak - 1 : -1);
+  return {
+    played, wins, losses: o.losses + (won ? 0 : 1),
+    winRate: wins / played,
+    currentStreak,
+    bestStreak: Math.max(o.bestStreak, currentStreak),
+  };
+}
+
+/**
+  Abandonar cuenta como derrota: si salís de una partida que sigue en juego, se registra una
+  derrota en ese momento. Cuando la partida termine (la IA sigue en tu lugar), ya no se vuelve a contar.
+*/
+async function recordAbandon(code) {
+  const uid = me().uid;
+  return runTransaction(fs, async (tx) => {
+    const rs = await tx.get(roomRef(code));
+    if (!rs.exists()) return null;
+    const room = rs.data();
+    if (room.status !== 'playing' || !room.matchId || !(uid in (room.teams || {}))) return null;
+    const matchId = room.matchId;
+    const recRef = doc(fs, 'users', uid, 'matches', matchId);
+    if ((await tx.get(recRef)).exists()) return null;
+    const uRef = doc(fs, 'users', uid);
+    const us = await tx.get(uRef);
+    if (!us.exists()) return null;
+    const stats = nextStats(us.data().stats, false);
+    tx.set(recRef, { roomId: room.code, matchId, type: room.type, won: false, team: room.teams[uid], abandoned: true, at: serverTimestamp() });
+    tx.update(uRef, { stats, lastMatchId: matchId });
+    return { won: false, stats };
   });
 }
 
@@ -328,7 +357,13 @@ async function recordPending() {
   const q = query(collection(fs, 'rooms'), where('playerIds', 'array-contains', uid), limit(30));
   const snap = await getDocs(q);
   for (const d of snap.docs) {
-    if (d.data().status === 'finished') await recordMatch(d.id).catch(() => null);
+    const r = d.data();
+    if (r.status === 'finished') await recordMatch(d.id).catch(() => null);
+    // partida contra la IA que quedó colgada (se cerró la pestaña sin salir): cuenta como abandono
+    else if (r.status === 'playing' && humans(r.seats || []).length === 1 && Date.now() - (r.updatedAt || 0) > 15 * 60e3) {
+      await recordAbandon(d.id).catch(() => null);
+      await leaveRoom(d.id).catch(() => null);
+    }
   }
 }
 
@@ -480,7 +515,7 @@ window.NET = {
   ADMIN_EMAILS, EMPTY_STATS, decodeRoom,
   auth: { register, completeProfile, login, logout, resetPassword, resendVerification, onChange, isAdmin, loadUser, user: () => USER },
   rooms: { createRoom, updateSeats, sit, join, startRoom, commitMove, leaveRoom },
-  stats: { recordMatch, recordPending, watchUser },
+  stats: { recordMatch, recordAbandon, recordPending, watchUser },
   admin,
   db, usr, roomCap,
 };

@@ -177,9 +177,9 @@ details.rules summary{font-family:var(--f-display);font-size:1.2rem;cursor:point
 @keyframes bump{40%{transform:scale(1.4);color:var(--brass)}}
 .mid{display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.78rem;color:var(--muted);text-align:center;line-height:1.25}
 .mid b{color:var(--ink);font-size:.9rem}
-.felt{position:relative;flex:1;min-height:300px;border-radius:22px;border:1px solid;box-shadow:inset 0 0 0 6px rgba(0,0,0,.18), inset 0 0 60px rgba(0,0,0,.35);display:grid;gap:6px;padding:10px;--pc:46px}
+.felt{position:relative;flex:1;min-height:340px;border-radius:22px;border:1px solid;box-shadow:inset 0 0 0 6px rgba(0,0,0,.18), inset 0 0 60px rgba(0,0,0,.35);display:grid;gap:6px;padding:10px;--pc:66px}
 .felt.n2{grid-template-areas:"top" "center" "bottom";grid-template-rows:auto 1fr auto}
-.felt.n4{grid-template-areas:". top ." "left center right" ". bottom .";grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) minmax(0,1fr);grid-template-rows:auto 1fr auto;--pc:40px}
+.felt.n4{grid-template-areas:". top ." "left center right" ". bottom .";grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) minmax(0,1fr);grid-template-rows:auto 1fr auto;--pc:52px}
 .pos-top{grid-area:top}.pos-left{grid-area:left}.pos-right{grid-area:right}.pos-bottom{grid-area:bottom}.center{grid-area:center}
 .seat{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;position:relative}
 .badge{display:flex;align-items:center;gap:7px;background:rgba(0,0,0,.36);border:1px solid var(--line);border-radius:999px;padding:2px 10px 2px 2px;max-width:100%;font-size:.86rem;font-weight:600}
@@ -193,7 +193,7 @@ details.rules summary{font-family:var(--f-display);font-size:1.2rem;cursor:point
 .reveal{display:flex}
 .reveal .card{width:30px;margin-right:-8px}
 .played{display:flex;justify-content:center;min-height:calc(var(--pc) * 1.5)}
-.played .card{width:var(--pc);margin-right:calc(var(--pc) * -0.42)}
+.played .card{width:var(--pc);margin-right:calc(var(--pc) * -0.34)}
 .played .card:last-child{margin-right:0}
 .played .card.lost{filter:saturate(.35) brightness(.72)}
 .played .card.win svg{filter:drop-shadow(0 0 5px rgba(220,170,72,.95))}
@@ -231,8 +231,8 @@ details.rules summary{font-family:var(--f-display);font-size:1.2rem;cursor:point
 .handinfo{display:flex;justify-content:center;flex-wrap:wrap;gap:6px;min-height:22px;text-align:center}
 .handinfo span{font-size:.78rem;font-weight:700;letter-spacing:.06em;border:1px solid var(--line);border-radius:999px;padding:1px 10px;color:var(--muted)}
 .handinfo span b{color:var(--brass)}
-.hand{display:flex;justify-content:center;gap:8px;min-height:calc(min(26vw,96px) * 1.5)}
-.hand button{background:none;border:0;padding:0;width:min(26vw,96px);transition:transform .15s ease;border-radius:8px}
+.hand{display:flex;justify-content:center;gap:8px;min-height:calc(min(29vw,124px) * 1.5)}
+.hand button{background:none;border:0;padding:0;width:min(29vw,124px);transition:transform .15s ease;border-radius:8px}
 .hand button:not(:disabled):hover{transform:translateY(-6px)}
 .hand button:disabled{cursor:default}
 .hand.wait button{filter:brightness(.82)}
@@ -250,7 +250,7 @@ details.rules summary{font-family:var(--f-display);font-size:1.2rem;cursor:point
 .chips button:hover{border-color:var(--brass)}
 .card{display:block;aspect-ratio:2/3;max-width:100%;border-radius:7%/4.7%}
 .card svg{display:block;width:100%;height:100%;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
-.cnum{font-family:var(--f-display);font-size:13px}
+.cnum{font-family:var(--f-display);font-size:11.5px}
 .cfig{font-family:var(--f-body);font-size:7px;font-weight:700;letter-spacing:.12em}
 .av{border-radius:50%;display:block}
 .over{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:rgba(15,3,8,.72);padding:24px max(16px, env(safe-area-inset-right, 0px)) 24px max(16px, env(safe-area-inset-left, 0px))}
@@ -378,16 +378,34 @@ input.plain{text-transform:none;letter-spacing:normal}
 .stat-b b.pos{color:var(--good)}
 .stat-b b.neg{color:var(--bad)}
 .gate input[type=email],.gate input[type=password]{background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--ink);font:inherit}
+
+.chiph{width:100%;text-align:center;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-@media (max-width:420px){.felt.n4{--pc:34px}.felt.n2{--pc:42px}.sc b{font-size:1.5rem}.brand{font-size:1.3rem}.pill{padding:3px 8px 3px 5px;font-size:.85rem}}
+@media (max-width:420px){.felt.n4{--pc:44px}.felt.n2{--pc:58px}.sc b{font-size:1.5rem}.brand{font-size:1.3rem}.pill{padding:3px 8px 3px 5px;font-size:.85rem}}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
-    <symbol id="sO" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.5" fill="currentColor"/><circle cx="12" cy="12" r="7" fill="none" stroke="#fff" stroke-opacity=".45" stroke-width="1.3"/><circle cx="12" cy="12" r="2.6" fill="#fff" fill-opacity=".5"/></symbol>
-    <symbol id="sC" viewBox="0 0 24 24"><path fill="currentColor" d="M4.5 2.5h15c.3 6.2-2.8 9.6-6 10.3v5.2h3.5v3.5h-10v-3.5h3.5v-5.2C7.3 12.1 4.2 8.7 4.5 2.5z"/><path d="M6.8 5h10.4" stroke="#fff" stroke-opacity=".5" stroke-width="1.2"/></symbol>
-    <symbol id="sE" viewBox="0 0 24 24"><path fill="currentColor" d="M12 .6l2.1 3.2v11.7H9.9V3.8z"/><rect x="5" y="15.2" width="14" height="2.4" rx="1.2" fill="currentColor"/><rect x="10.9" y="17.4" width="2.2" height="4" fill="currentColor"/><circle cx="12" cy="22.2" r="1.6" fill="currentColor"/><path d="M12 3.2v11.4" stroke="#fff" stroke-opacity=".45" stroke-width=".8"/></symbol>
-    <symbol id="sB" viewBox="0 0 24 24"><path fill="currentColor" d="M9.6 23.2c-.7-6.5-.3-13.6 1-20.4.5-2 3.8-2.2 4.4.2.9 6.7.4 13.6-.9 20.2z"/><circle cx="10.2" cy="8" r="1.4" fill="currentColor"/><circle cx="15.3" cy="12.5" r="1.4" fill="currentColor"/><circle cx="10" cy="16.8" r="1.3" fill="currentColor"/></symbol>
+    <linearGradient id="gPapel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fdf9ee"/><stop offset="1" stop-color="#efe5cf"/></linearGradient>
+    <linearGradient id="gOro" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6d77a"/><stop offset=".55" stop-color="#d9a521"/><stop offset="1" stop-color="#a8760f"/></linearGradient>
+    <linearGradient id="gHoja" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e9eef5"/><stop offset=".5" stop-color="#b9c6d6"/><stop offset="1" stop-color="#7f93ad"/></linearGradient>
+    <linearGradient id="gCopa" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#d9473c"/><stop offset=".6" stop-color="#b3271f"/><stop offset="1" stop-color="#7f1a14"/></linearGradient>
+    <linearGradient id="gBasto" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7fae4f"/><stop offset=".5" stop-color="#4f8a35"/><stop offset="1" stop-color="#2f5e22"/></linearGradient>
+    <symbol id="sO" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.8" fill="url(#gOro)" stroke="#8a5d0c" stroke-width=".7"/><circle cx="12" cy="12" r="8.4" fill="none" stroke="#8a5d0c" stroke-width=".45"/>
+      <g stroke="#a8760f" stroke-width=".55" stroke-linecap="round"><path d="M12 4.6v2.2M12 17.2v2.2M4.6 12h2.2M17.2 12h2.2M6.8 6.8l1.5 1.5M15.7 15.7l1.5 1.5M17.2 6.8l-1.5 1.5M8.3 15.7l-1.5 1.5"/></g>
+      <circle cx="12" cy="12" r="4.2" fill="#f2cc5c" stroke="#8a5d0c" stroke-width=".5"/><circle cx="10.6" cy="11.3" r=".55" fill="#8a5d0c"/><circle cx="13.4" cy="11.3" r=".55" fill="#8a5d0c"/><path d="M10.4 13.4q1.6 1.2 3.2 0" stroke="#8a5d0c" stroke-width=".5" fill="none" stroke-linecap="round"/>
+      <path d="M6.4 8.2a7 7 0 0 1 4.4-3.6" stroke="#fff6d6" stroke-width=".7" fill="none" stroke-linecap="round" opacity=".8"/></symbol>
+    <symbol id="sC" viewBox="0 0 24 24"><path d="M5 3.2h14c.2 5.6-2.4 9-5.6 9.8v4.2H10.6V13C7.4 12.2 4.8 8.8 5 3.2z" fill="url(#gCopa)" stroke="#6b130e" stroke-width=".6" stroke-linejoin="round"/>
+      <path d="M4.6 2.4h14.8v1.8H4.6z" fill="url(#gOro)" stroke="#8a5d0c" stroke-width=".45"/><path d="M6.6 6.2h10.8" stroke="#e0b23a" stroke-width=".9"/><circle cx="12" cy="8.8" r="1.1" fill="#e0b23a" stroke="#8a5d0c" stroke-width=".35"/>
+      <path d="M10.4 14.6h3.2l.4 1.6h-4z" fill="url(#gOro)" stroke="#8a5d0c" stroke-width=".4"/><path d="M7.4 21.8q.4-3.4 4.6-4.2q4.2.8 4.6 4.2z" fill="url(#gOro)" stroke="#8a5d0c" stroke-width=".5"/>
+      <path d="M7.2 4.8q.2 3.6 2.4 5.6" stroke="#fff" stroke-opacity=".45" stroke-width=".7" fill="none" stroke-linecap="round"/></symbol>
+    <symbol id="sE" viewBox="0 0 24 24"><path d="M12 .4l1.9 2.6v12.6h-3.8V3z" fill="url(#gHoja)" stroke="#2c4a72" stroke-width=".5" stroke-linejoin="round"/><path d="M12 1.4v13.8" stroke="#5f7894" stroke-width=".4"/>
+      <path d="M5.4 15.2q6.6-1.4 13.2 0v1.6q-6.6 1.4-13.2 0z" fill="url(#gOro)" stroke="#8a5d0c" stroke-width=".45"/><circle cx="5.2" cy="16" r=".9" fill="url(#gOro)" stroke="#8a5d0c" stroke-width=".35"/><circle cx="18.8" cy="16" r=".9" fill="url(#gOro)" stroke="#8a5d0c" stroke-width=".35"/>
+      <rect x="10.9" y="17" width="2.2" height="4" rx=".5" fill="#2b5b9c" stroke="#1a3a66" stroke-width=".35"/><path d="M10.9 18.2h2.2M10.9 19.6h2.2" stroke="#9ab4d8" stroke-width=".3"/><circle cx="12" cy="22.3" r="1.4" fill="url(#gOro)" stroke="#8a5d0c" stroke-width=".4"/></symbol>
+    <symbol id="sB" viewBox="0 0 24 24"><path d="M9.2 23.4c-.8-6.6-.4-13.8 1.2-20.4.7-2.4 4.4-2.6 5 .2 1 6.8.4 13.8-1 20.2z" fill="url(#gBasto)" stroke="#23461a" stroke-width=".55" stroke-linejoin="round"/>
+      <g fill="#c9822b" stroke="#7a4512" stroke-width=".35"><ellipse cx="10.3" cy="7.6" rx="1.5" ry="1.1"/><ellipse cx="15.6" cy="11.8" rx="1.5" ry="1.1"/><ellipse cx="10.1" cy="15.6" rx="1.4" ry="1"/><ellipse cx="14.6" cy="19.2" rx="1.3" ry=".95"/></g>
+      <path d="M11.4 4q-1.4 8.4-.6 18" stroke="#b5d68f" stroke-opacity=".6" stroke-width=".6" fill="none" stroke-linecap="round"/></symbol>
+
   </defs>
 </svg>
 
@@ -547,7 +565,8 @@ function envWinProb(g,s,N){const h=g.hand;let w=0;for(let i=0;i<N;i++){const hs=
 function decideEnvidoCall(g,s,d,myE){const R=Math.random;
   if(d==='facil')return R()<0.2?{t:'envido',kind:'envido'}:null;
   if(d==='medio'){if(myE>=31)return{t:'envido',kind:'real'};if(myE>=27)return{t:'envido',kind:'envido'};return null}
-  const p=envWinProb(g,s,Math.round(200*SMUL));
+  const ph=(AIHINT&&AIHINT.env&&team(AIHINT.seat)===team(s)&&AIHINT.env>envidoOf(g.hand.orig[s]))?Math.max(0,Math.min(.97,(AIHINT.env-21)/12)):null;
+  const p=ph!==null?ph:envWinProb(g,s,Math.round(200*SMUL));
   if(p>0.9&&faltaFor(g,team(s))<=4)return{t:'envido',kind:'falta'};
   if(p>0.82)return{t:'envido',kind:'real'};if(p>0.6)return{t:'envido',kind:'envido'};
   if(R()<0.07)return{t:'envido',kind:'envido'};return null}
@@ -558,8 +577,8 @@ let SMUL=1;
 function aiAct(g,s,dOver,hint){AIHINT=hint&&hint.seat!==s?hint:null;let d=dOver||g.diff||'medio';SMUL=1;
   if(!dOver&&typeof g.skill==='number'&&g.seats[s]&&g.seats[s].bot){const k=g.skill,r=Math.random();d=r<k?'dificil':r<Math.min(1,k+.5)?'medio':'facil';SMUL=.45+k*1.1}
   try{return aiCore(g,s,d)}finally{AIHINT=null;SMUL=1}}
-function aiCore(g,s,d){const L=legal(g,s),h=g.hand,R=Math.random,Q={t:'quiero'},NQ={t:'noquiero'};
-  const myE=envidoOf(h.orig[s]),opp=1-team(s);
+function aiCore(g,s,d){const L=legal(g,s),h=g.hand,ENVH=(AIHINT&&AIHINT.env&&team(AIHINT.seat)===team(s))?AIHINT.env:0,R=Math.random,Q={t:'quiero'},NQ={t:'noquiero'};
+  const myE=Math.max(envidoOf(h.orig[s]),Math.floor(ENVH)),opp=1-team(s);const envP=()=>ENVH>envidoOf(h.orig[s])?Math.max(0,Math.min(.97,(ENVH-21)/12)):null;
   if(L.respond==='flor'){const fv=florVal(h.orig[s]),st=h.flor.pending.stage;
     if(d==='facil'){if(st==='flor')return{t:R()<.5?'achico':'contra'};return R()<.5?Q:NQ}
     const th=d==='dificil'?[30,33,35]:[29,32,34];
@@ -573,7 +592,7 @@ function aiCore(g,s,d){const L=legal(g,s),h=g.hand,R=Math.random,Q={t:'quiero'},
     if(d==='medio'){const need=chain.includes('falta')?30:chain.length>1?29:chain[0]==='real'?28:26;
       if(myE>=33&&L.envido.includes('falta')&&!chain.includes('falta'))return{t:'envido',kind:'falta'};
       if(myE>=31&&L.envido.includes('real'))return{t:'envido',kind:'real'};return myE>=need?Q:NQ}
-    let p=envWinProb(g,s,Math.round(250*SMUL))*0.86;
+    let p=(envP()!==null?envP():envWinProb(g,s,Math.round(250*SMUL)))*0.86;
     if(p>0.8&&L.envido.length){const k=L.envido.includes('real')?'real':L.envido.includes('falta')&&faltaFor(g,team(s))<=8?'falta':null;if(k)return{t:'envido',kind:k}}
     return (2*p-1)*W>-N+0.3?Q:NQ}
   if(L.respond==='truco'){
@@ -673,8 +692,9 @@ const PM=Object.fromEntries(PANOS.map(p=>[p.id,p]));
 const BOSS_PRIZE={ba:['dorso','ombu'],litoral:['pano','ibera'],centro:['dorso','cuarteto'],cuyo:['pano','vinedo'],noa:['dorso','sietecolores'],nea:['pano','monte'],patagonia:['dorso','viento'],tdf:['pano','faro']};
 const prizeLabel=p=>p?(p[0]==='dorso'?'el dorso '+DM[p[1]].name:'el paño '+PM[p[1]].name):'';
 const PACKS=[{coins:500,ars:500},{coins:1100,ars:1000,tag:'+10% de regalo'},{coins:3000,ars:2500,tag:'+20% de regalo'},{coins:6500,ars:5000,tag:'+30% de regalo'}];
-const SENAS={cejas:'Levanta las cejas: ancho de espada',guino:'Guiña un ojo: ancho de basto',bocader:'Tuerce la boca a la derecha: siete de espada',bocaizq:'Tuerce la boca a la izquierda: siete de oro',labio:'Se muerde el labio: tiene un tres',cachetes:'Infla los cachetes: tiene flor',ojos:'Cierra los ojos: no tiene nada'};
-const SENA_SHORT={cejas:'Cejas · ancho de espada',guino:'Guiño · ancho de basto',bocader:'Boca der. · 7 de espada',bocaizq:'Boca izq. · 7 de oro',labio:'Labio · un tres',cachetes:'Cachetes · flor',ojos:'Ojos cerrados · nada'};
+const SENAS={cejas:'Levanta las cejas: ancho de espada',guino:'Guiña un ojo: ancho de basto',bocader:'Tuerce la boca a la derecha: siete de espada',bocaizq:'Tuerce la boca a la izquierda: siete de oro',labio:'Se muerde el labio: tiene un tres',dos:'Tira un beso: tiene un dos',falso:'Saca la punta de la lengua: tiene un ancho falso',cachetes:'Infla los cachetes: tiene flor',ojos:'Cierra los ojos: no tiene nada',env33:'Ladea la cabeza: envido de 30 o más',env28:'Se rasca la oreja: envido de 27 a 29',env25:'Se toca la nariz: envido de 23 a 26',env0:'Niega con la cabeza: poco envido'};
+const SENA_ENV=['env33','env28','env25','env0'];const SENA_EVAL={env33:31,env28:28,env25:24.5,env0:15};
+const SENA_SHORT={cejas:'Cejas · ancho de espada',guino:'Guiño · ancho de basto',bocader:'Boca der. · 7 de espada',bocaizq:'Boca izq. · 7 de oro',labio:'Labio · un tres',dos:'Beso · un dos',falso:'Lengua · ancho falso',cachetes:'Cachetes · flor',ojos:'Ojos cerrados · nada',env33:'Cabeza · 30 o más',env28:'Oreja · 27 a 29',env25:'Nariz · 23 a 26',env0:'Niega · poco'};
 const REACTS={vamos:'¡Vamos!',mentiroso:'¡Mentiroso!',quemano:'¡Qué mano!',buenas:'Son buenas…',uff:'¡Uff!',juga:'¡Jugá, che!'};
 const BOT_REPLIES=['¡Ja! Ya vas a ver','Tranquilo, pibe','Se viene el retruco','Esa no te la creo','Mirá vos…'];
 
@@ -981,16 +1001,51 @@ const GAPS={O:0,C:1,E:2,B:3};
 const FIG={10:'SOTA',11:'CABALLO',12:'REY'};
 const PIPS={2:[[30,28],[30,62]],3:[[30,24],[30,45],[30,66]],4:[[20,28],[40,28],[20,62],[40,62]],5:[[20,26],[40,26],[30,45],[20,64],[40,64]],
   6:[[20,24],[40,24],[20,45],[40,45],[20,66],[40,66]],7:[[20,22],[40,22],[30,34],[20,47],[40,47],[20,68],[40,68]]};
-function cardHTML(c,cls='',style=''){const n=cn(c),s=cs(c),col=SUITCOL[s],g=GAPS[s];let fr='';const x0=8,x1=52,gw=4,sw=(x1-x0-g*gw)/(g+1);
-  for(const y of [5.5,84.5])for(let i=0;i<=g;i++){const a=x0+i*(sw+gw);fr+=`<line x1="${a}" x2="${a+sw}" y1="${y}" y2="${y}" stroke="${col}" stroke-width="2.2" stroke-linecap="round"/>`}
-  const u=(x,y,z)=>`<use href="#s${s}" x="${x-z/2}" y="${y-z/2}" width="${z}" height="${z}" style="color:${col}"/>`;
+/* Baraja española: papel crema, pintas arriba y abajo (oros sin corte, copas 1, espadas 2, bastos 3),
+   números en las esquinas, palos con detalle y figuras de sota, caballo y rey. */
+const FIGPAL={O:['#2b5b9c','#c0392b'],C:['#b5302a','#2b5b9c'],E:['#3d7a38','#b5302a'],B:['#2b5b9c','#d9a521']};
+const PIPS2={2:[[30,24],[30,66]],3:[[30,22],[30,45],[30,68]],4:[[20,25],[40,25],[20,65],[40,65]],5:[[20,24],[40,24],[30,45],[20,66],[40,66]],
+  6:[[20,22],[40,22],[20,45],[40,45],[20,68],[40,68]],7:[[20,20],[40,20],[30,33],[20,46],[40,46],[20,70],[40,70]]};
+function figSVG(n,s){const [robe,acc]=FIGPAL[s],SK='#f1cfa8',ST='stroke="#3a2a20" stroke-width=".45" stroke-linejoin="round"',G='#e0b23a';
+  const sym=(x,y,z,r)=>`<use href="#s${s}" x="${x-z/2}" y="${y-z/2}" width="${z}" height="${z}"${r?` transform="rotate(${r} ${x} ${y})"`:''}/>`;
+  const long=s==='E'||s==='B';
+  let o=`<rect x="11" y="15.6" width="38" height="63" rx="2" fill="#f7f0de" stroke="${robe}" stroke-width=".6"/>`;
+  if(n===12){
+    o+=`<path d="M13.6 77.4Q13.6 56 30 50Q46.4 56 46.4 77.4Z" fill="${robe}" ${ST}/><path d="M18 63Q30 71 42 63L42.4 67Q30 75 17.6 67Z" fill="${acc}" ${ST}/>
+      <path d="M23.4 50.6Q30 55.4 36.6 50.6L37.6 53.8Q30 58.6 22.4 53.8Z" fill="#fff" ${ST}/><path d="M25 52.4h.01M28 54h.01M31.6 54h.01M35 52.4h.01" stroke="#222" stroke-width=".9" stroke-linecap="round"/>
+      <ellipse cx="30" cy="40" rx="5.6" ry="6.6" fill="${SK}" ${ST}/><path d="M24.6 41.4Q25 49.2 30 50.2Q35 49.2 35.4 41.4Q33 44.6 30 44.6Q27 44.6 24.6 41.4Z" fill="#d8d0c2" ${ST}/>
+      <path d="M27.6 43q2.4-1.2 4.8 0" stroke="#8d8578" stroke-width=".6" fill="none"/><circle cx="27.8" cy="38.8" r=".55" fill="#3a2a20"/><circle cx="32.2" cy="38.8" r=".55" fill="#3a2a20"/>
+      <path d="M23.4 34.2L24.4 26.4L27.4 30.4L30 25.2L32.6 30.4L35.6 26.4L36.6 34.2Z" fill="${G}" stroke="#8a5d0c" stroke-width=".45" stroke-linejoin="round"/><circle cx="30" cy="31.4" r=".9" fill="#c0392b"/><circle cx="26" cy="32" r=".6" fill="#2b5b9c"/><circle cx="34" cy="32" r=".6" fill="#2b5b9c"/>`
+      +sym(long?40:39.6,long?58:60,long?17:12,long?(s==='E'?-8:10):0);
+  }else if(n===11){
+    o+=`<path d="M11.6 77.4Q11.6 62 17.6 56Q20.2 50.4 18.2 45.4Q17.2 40.6 21 38.2L25.4 36.2Q28.6 37 28.4 41.2Q27.4 46.4 30.2 50.4Q34.6 56.2 36.4 64.4L38.4 77.4Z" fill="#d9b48a" ${ST}/>
+      <path d="M25.4 36.2Q22.6 40 22 46.4Q21.6 51 24 55" stroke="#7a5230" stroke-width="2.2" fill="none" stroke-linecap="round"/><circle cx="23.4" cy="39.4" r=".55" fill="#3a2a20"/><path d="M24.4 36.4l1.4-2.8 1 3" fill="#d9b48a" ${ST}/>
+      <path d="M18.4 43.6Q22.4 44.8 27.2 42.4" stroke="${acc}" stroke-width=".8" fill="none"/>
+      <path d="M30 57Q31 46.4 38 44.4Q45 46.4 46 57L45.2 71H30.8Z" fill="${robe}" ${ST}/><path d="M31 63h14" stroke="${G}" stroke-width="1"/>
+      <ellipse cx="38" cy="38.6" rx="4.6" ry="5.4" fill="${SK}" ${ST}/><circle cx="36.6" cy="38" r=".5" fill="#3a2a20"/><circle cx="39.6" cy="38" r=".5" fill="#3a2a20"/>
+      <ellipse cx="38" cy="33.6" rx="6.4" ry="1.6" fill="${acc}" ${ST}/><path d="M34 33.6Q34.4 28.8 38 28.6Q41.6 28.8 42 33.6Z" fill="${acc}" ${ST}/><path d="M41 30q3.6-2.8 4.2-6" stroke="${G}" stroke-width=".9" fill="none" stroke-linecap="round"/>`
+      +sym(long?44:43,long?56:58,long?16:11,long?(s==='E'?-12:14):0);
+  }else{
+    o+=`<rect x="25.6" y="62" width="3.6" height="15" rx="1" fill="${acc}" ${ST}/><rect x="30.8" y="62" width="3.6" height="15" rx="1" fill="${acc}" ${ST}/>
+      <path d="M21.4 65Q21.4 50.4 30 47.4Q38.6 50.4 38.6 65Z" fill="${robe}" ${ST}/><path d="M22 58.6h16" stroke="${G}" stroke-width="1.2"/><path d="M30 48v17" stroke="#3a2a20" stroke-opacity=".35" stroke-width=".4"/>
+      <ellipse cx="30" cy="40.4" rx="4.6" ry="5.4" fill="${SK}" ${ST}/><path d="M25.6 41q-.6-5 2.6-6M34.4 41q.6-5-2.6-6" stroke="#5a3a22" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+      <circle cx="28.6" cy="40" r=".5" fill="#3a2a20"/><circle cx="31.4" cy="40" r=".5" fill="#3a2a20"/>
+      <path d="M24.6 36.4Q25 31.6 30 31.4Q35 31.6 35.4 36.4Z" fill="${acc}" ${ST}/><path d="M34.6 33q4-2.6 5-6.4" stroke="${G}" stroke-width="1" fill="none" stroke-linecap="round"/>
+      <path d="M22 52q-4.4-2.4-6.2-6" stroke="${robe}" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="16" cy="45.6" r="1.6" fill="${SK}" ${ST}/>`
+      +sym(long?16:16,long?36:38,long?18:12,long?(s==='E'?-6:12):0);
+  }
+  return o}
+function cardHTML(c,cls='',style=''){const n=cn(c),s=cs(c),col=SUITCOL[s],g=GAPS[s];let fr='';const x0=9,x1=51,gw=3.6,sw=(x1-x0-g*gw)/(g+1);
+  for(const y of [4.4,85.6])for(let i=0;i<=g;i++){const a=x0+i*(sw+gw);fr+=`<line x1="${a.toFixed(2)}" x2="${(a+sw).toFixed(2)}" y1="${y}" y2="${y}" stroke="${col}" stroke-width="1.5" stroke-linecap="round"/>`}
+  const long=s==='E'||s==='B';
+  const u=(x,y,z,r)=>`<use href="#s${s}" x="${x-z/2}" y="${y-z/2}" width="${z}" height="${z}"${r?` transform="rotate(${r} ${x} ${y})"`:''}/>`;
   let mid='';
-  if(n===1)mid=u(30,45,(s==='E'||s==='B')?42:30);
-  else if(n<=7)mid=PIPS[n].map(([x,y])=>u(x,y,12)).join('');
-  else mid=`<rect x="13" y="15" width="34" height="60" rx="3" fill="none" stroke="${col}" stroke-opacity=".45"/>`+u(30,40,26)+`<text x="30" y="67" text-anchor="middle" class="cfig" fill="${col}">${FIG[n]}</text>`;
+  if(n===1){const big=long?50:34;mid=(c==='1E'||c==='1B')?`<ellipse cx="30" cy="45" rx="19" ry="27" fill="none" stroke="${col}" stroke-opacity=".35" stroke-width=".6" stroke-dasharray="1.2 1.4"/>`:'';mid+=u(30,45,big,0)}
+  else if(n<=7)mid=PIPS2[n].map(([x,y],i)=>u(x,y,long?15:13,long?(i%2?14:-14):0)).join('');
+  else mid=figSVG(n,s);
   const label=`${n} de ${({O:'oro',C:'copa',E:'espada',B:'basto'})[s]}`;
-  return `<span class="card ${cls}" ${style?`style="${style}"`:''} role="img" aria-label="${label}"><svg viewBox="0 0 60 90"><rect x=".6" y=".6" width="58.8" height="88.8" rx="5" fill="var(--card)" stroke="var(--card-edge)"/>${fr}
-    <text x="6" y="17" class="cnum" fill="${col}">${n}</text><text x="6" y="17" class="cnum" fill="${col}" transform="rotate(180 30 45)">${n}</text>${mid}</svg></span>`}
+  return `<span class="card ${cls}" ${style?`style="${style}"`:''} role="img" aria-label="${label}"><svg viewBox="0 0 60 90"><rect x=".5" y=".5" width="59" height="89" rx="4.6" fill="url(#gPapel)" stroke="#b9a27a" stroke-width=".7"/>${fr}
+    <text x="4.6" y="14.6" class="cnum" fill="${col}">${n}</text><text x="4.6" y="14.6" class="cnum" fill="${col}" transform="rotate(180 30 45)">${n}</text>${mid}</svg></span>`}
 function fosforos(score,target){const groups=target/5,pitch=17,sz=12;let o='';
   for(let gi=0;gi<groups;gi++){const v=Math.max(0,Math.min(5,score-gi*5));const x=gi*pitch+(target===30&&gi>=3?6:0)+2,y=3;
     const L=[[x,y,x+sz,y],[x+sz,y,x+sz,y+sz],[x+sz,y+sz,x,y+sz],[x,y+sz,x,y],[x,y,x+sz,y+sz]];
@@ -1108,9 +1163,12 @@ function setG(ng){const p=G;G=ng;FX={};if(!ng)return;
   if(TUT&&p&&p.handNo===ng.handNo&&!p.hand.ended&&ng.hand.ended)finishLesson();
   if(!TUT&&p&&p.matchId===ng.matchId&&p.handNo===ng.handNo&&!p.hand.ended&&ng.hand.ended&&!ng.matchOver&&Math.random()<.65){const others=[...Array(ng.n).keys()].filter(s=>s!==mySeat);const s=others[Math.floor(Math.random()*others.length)];const cat=team(s)===ng.hand.ended.winner?'win':'lose';setTimeout(()=>{if(view==='game'&&G&&G.handNo===ng.handNo)showTransient(s,pickLine(seatLook(s).av,cat),'react',3200)},650)}
   if(ng.matchOver&&(!p||!p.matchOver||p.matchId!==ng.matchId)){FX.over=true;const w=ng.matchOver.winner===myTeam();setTimeout(()=>sfx(w?'win':'lose'),350)}}
-function computeSena(g){partnerSena=null;if(mode!=='offline'||g.n!==4||Math.random()>.8)return;const c=g.hand.orig[2];
-  let k='ojos';if(g.flor&&hasFlor(c))k='cachetes';else if(c.includes('1E'))k='cejas';else if(c.includes('1B'))k='guino';else if(c.includes('7E'))k='bocader';else if(c.includes('7O'))k='bocaizq';else if(c.some(x=>cn(x)===3))k='labio';
-  partnerSena={handNo:g.handNo,t:SENAS[k]}}
+function cardSenaKey(c,flor){if(flor&&hasFlor(c))return'cachetes';if(c.includes('1E'))return'cejas';if(c.includes('1B'))return'guino';if(c.includes('7E'))return'bocader';if(c.includes('7O'))return'bocaizq';
+  if(c.some(x=>cn(x)===3))return'labio';if(c.some(x=>cn(x)===2))return'dos';if(c.includes('1C')||c.includes('1O'))return'falso';return'ojos'}
+function envSenaKey(e){return e>=30?'env33':e>=27?'env28':e>=23?'env25':'env0'}
+function computeSena(g){partnerSena=null;if(mode!=='offline'||g.n!==4||Math.random()>.85)return;const c=g.hand.orig[2];
+  const ks=[cardSenaKey(c,g.flor)];if(!(g.flor&&hasFlor(c)))ks.push(envSenaKey(envidoOf(c)));
+  partnerSena={handNo:g.handNo,t:ks.map(k=>SENAS[k]).join(' · ')}}
 
 /* ---------- vistas ---------- */
 function render(){const v=$('#view');
@@ -1284,7 +1342,7 @@ function gameHTML(){if(!G)return'';const h=G.hand,me=mySeat,mt=myTeam(),a=actor(
   const coachBox=TUT&&co&&!h.ended?`<div class="coach"><small>Lección ${TUT.i+1} de ${LESSONS.length} · ${esc(LESSONS[TUT.i].title)}</small><p>${esc(co.t||'')}</p></div>`:'';
   const b0=FX.bump&&FX.bump[mt]?'bump':'',b1=FX.bump&&FX.bump[1-mt]?'bump':'';
   return `<section class="game">
-    <div class="gtop"><button class="btn ${confirmExit?'warn':'ghost'}" data-a="exit">${confirmExit?(mode==='offline'&&G.stake&&!G.matchOver?'Salir y perder la apuesta':'Confirmar salida'):'Salir'}</button>${mode==='online'?`<span class="note">Mesa ${esc(T?T.code:'')}</span>`:`<span class="note">${({facil:'Fácil',medio:'Medio',dificil:'Difícil'})[G.diff]}</span>`}</div>
+    <div class="gtop"><button class="btn ${confirmExit?'warn':'ghost'}" data-a="exit">${confirmExit?(inProgress()?(G.stake?'Salir: derrota y perdés la apuesta':'Salir: cuenta como derrota'):'Confirmar salida'):'Salir'}</button>${mode==='online'?`<span class="note">Mesa ${esc(T?T.code:'')}</span>`:`<span class="note">${({facil:'Fácil',medio:'Medio',dificil:'Difícil'})[G.diff]}</span>`}</div>
     <div class="score"><div class="sc us"><span class="lbl">Nosotros</span><b class="${b0}">${sc[mt]}</b>${fosforos(sc[mt],G.target)}</div>
       <div class="mid"><b>a ${G.target}</b>${G.flor?'con flor':'sin flor'}<br>${G.stake?fmt(G.stake)+' fichas':'amistosa'}</div>
       <div class="sc them"><span class="lbl">Ellos</span><b class="${b1}">${sc[1-mt]}</b>${fosforos(sc[1-mt],G.target)}</div></div>
@@ -1321,7 +1379,9 @@ function socialHTML(){if(!G||G.matchOver||mySeat<0)return'';const canReact=mode=
   const sena=partnerHuman()&&!G.hand.ended;
   let o=`<div class="social"><button class="btn sm ${panel==='react'?'ink':'ghost'}" data-a="panel" data-v="react">Reaccionar</button>${sena?`<button class="btn sm ${panel==='sena'?'ink':'ghost'}" data-a="panel" data-v="sena">Hacer seña</button>`:''}</div>`;
   if(panel==='react')o+=`<div class="chips">${Object.entries(REACTS).map(([k,t])=>`<button type="button" data-a="react" data-k="${k}">${t}</button>`).join('')}</div>`;
-  if(panel==='sena'&&sena)o+=`<div class="chips">${Object.entries(SENA_SHORT).map(([k,t])=>`<button type="button" data-a="sena" data-k="${k}">${t}</button>`).join('')}</div><p class="note">Solo la ve tu compañero.</p>`;
+  if(panel==='sena'&&sena){const btn=([k,t])=>`<button type="button" data-a="sena" data-k="${k}">${t}</button>`;const all=Object.entries(SENA_SHORT);
+    o+=`<div class="chips"><span class="chiph">Cartas</span>${all.filter(([k])=>!SENA_ENV.includes(k)).map(btn).join('')}</div><div class="chips"><span class="chiph">Envido</span>${all.filter(([k])=>SENA_ENV.includes(k)).map(btn).join('')}</div>`;o+=`<p class="note">Solo la ve tu compañero. Podés hacer una de cartas y una de envido.</p>`}
+  if(false)o+=`<p class="note">Solo la ve tu compañero.</p>`;
   return o}
 function overlayHTML(){
   if(INV&&view!=='game'&&view!=='room'&&view!=='register'&&view!=='welcome'){const l=LOOKS[INV.from]||{};return `<div class="over"><div class="panel">${avatarSVG(AVM[l.av]?l.av:'gaucho',72,true)}<h2>¡Te invitan!</h2><p><b>${esc(dispName(INV.from)||'Un amigo')}</b> te invita a su mesa <b>${esc(INV.code)}</b>.</p><div class="btns"><button class="btn prim" data-a="invgo">Ir a la mesa</button><button class="btn ghost" data-a="invno">Ahora no</button></div></div></div>`}
@@ -1369,7 +1429,7 @@ function drive(){clearTimeout(driveT);if(!G||view!=='game')return;const ctrl=mod
   const a=actor(G);if(a<0)return;const absent=isAbsent(a);if(!G.seats[a].bot&&!absent)return;const seq=G.seq;
   driveT=setTimeout(()=>{if(!G||G.seq!==seq)return;let ac=null;
     if(TUT){const sc=LESSONS[TUT.i].script[TUT.step];if(sc){try{act(G,a,sc);ac=sc;TUT.step++}catch(e){}}}
-    let hint=null;if(mode==='offline'&&G.n===4&&a===2&&mySena&&mySena.handNo===G.handNo)hint=senaHint(G,mySena.k,0);
+    let hint=null;if(mode==='offline'&&G.n===4&&a===2&&mySena&&mySena.handNo===G.handNo)hint=senaHint(G,mySena.ks,0);
     try{if(!ac)ac=aiAct(G,a,absent?'dificil':undefined,hint);commit(act(G,a,ac))}catch(e){console.error(e)}},850+Math.random()*700)}
 function doAction(ac){if(busy||!G||mySeat<0||actor(G)!==mySeat)return;if(TUT&&!tutAllowed(ac)){toast('Seguí la indicación de la lección');return}try{commit(act(G,mySeat,ac))}catch(e){console.error(e);toast('Esa jugada no es válida ahora')}}
 function showTransient(s,t,cls,ms=3600){transient[s]={t,cls,until:Date.now()+ms};render();setTimeout(()=>{if(transient[s]&&transient[s].until<=Date.now()){delete transient[s];if(view==='game')render()}},ms+50)}
@@ -1377,7 +1437,7 @@ function sendReact(k){if(!REACTS[k]||mySeat<0)return;panel=null;showTransient(my
   if(mode==='online'&&R)R.emit('react',{seat:mySeat,k}).catch(()=>{});
   if(mode==='offline'&&Math.random()<.45){const others=[...Array(G.n).keys()].filter(s=>s!==mySeat);const s=others[Math.floor(Math.random()*others.length)];
     setTimeout(()=>{if(view==='game'&&G)showTransient(s,pickLine(seatLook(s).av,'reply')||'¡Ja!','react')},1100)}}
-function sendSena(k){if(!SENAS[k]||mySeat<0)return;if(mode==='offline'){panel=null;mySena={handNo:G.handNo,k};toast('Tu compañero vio la seña');render();return}if(!R)return;panel=null;R.emit('sena',{seat:mySeat,k}).catch(()=>{});toast('Le hiciste la seña a tu compañero');render()}
+function sendSena(k){if(!SENAS[k]||mySeat<0)return;if(mode==='offline'){panel=null;const prev=mySena&&mySena.handNo===G.handNo?mySena.ks:[];const isEnv=SENA_ENV.includes(k);mySena={handNo:G.handNo,ks:prev.filter(x=>SENA_ENV.includes(x)!==isEnv).concat(k)};toast('Tu compañero vio la seña');render();return}if(!R)return;panel=null;R.emit('sena',{seat:mySeat,k}).catch(()=>{});toast('Le hiciste la seña a tu compañero');render()}
 function validSender(msg,seat){if(!G||typeof seat!=='number'||seat<0||seat>=G.n)return false;const st=G.seats[seat];return !msg.by||!st.id||st.id===msg.by}
 function onReactMsg(msg){const d=msg.data||{};if(msg.isMe&&msg.sameTab)return;if(!validSender(msg,d.seat)||!REACTS[d.k])return;showTransient(d.seat,REACTS[d.k],'react')}
 function onSenaMsg(msg){const d=msg.data||{};if(msg.isMe)return;if(!validSender(msg,d.seat)||!SENAS[d.k])return;if(d.seat===mySeat||team(d.seat)!==myTeam())return;showTransient(d.seat,SENAS[d.k],'sena',6000)}
@@ -1418,9 +1478,17 @@ async function startOnline(){if(!T)return;
   const g=newMatch({n:T.n,target:T.target,stake:T.stake,flor:T.flor!==false,seats:T.seats.map(s=>({id:s.id,bot:!!s.bot})),matchId:T.code+'-'+Date.now().toString(36),diff:'medio'});
   try{await tableRef.update({status:'playing',game:g})}catch(e){toast('No se pudo empezar la partida')}}
 async function leaveTable(silent){const ref=tableRef,t=T;if(unsubTable){unsubTable();unsubTable=null}if(R){R.leave().catch(()=>{});R=null}
-  if(FB&&t){NET.rooms.leaveRoom(t.code).catch(()=>{})}
+  if(FB&&t){const c=t.code;abandonP.finally(()=>NET.rooms.leaveRoom(c)).catch(()=>{});abandonP=Promise.resolve()}
   else if(!silent&&ref&&t&&t.status==='waiting'){try{if(t.host===uid)await ref.update({status:'closed'});else{if(await getLease(ref)){const s=await ref.get();if(s.exists)await ref.update({seats:s.data().seats.map(x=>x.id===uid?{id:null,bot:false}:x)})}}}catch(e){}}
   try{localStorage.removeItem('reviro.table')}catch(e){}T=null;tableRef=null;G=null;mode=null;view='menu';panel=null;clearTimeout(driveT);render()}
+/* abandonar una partida en juego cuenta como derrota (en el historial y, en La Huella, en los porotos) */
+let abandonP=Promise.resolve();
+const inProgress=()=>!!(G&&!G.matchOver&&mySeat>=0&&!TUT);
+function abandonCurrent(){if(!inProgress())return;const g=G;
+  applyTx(g.matchId+':done',{stat:'l'}).then(()=>{recordEvents(g.matchId+':m',['match_played']);writeLooks()});
+  if(CAMP)settleGira(Object.assign({},g,{matchOver:{winner:1}}));
+  if(FB&&mode==='online'&&T)abandonP=NET.stats.recordAbandon(T.code).then(r=>{if(r&&r.stats)MYUSER=Object.assign({},MYUSER,{stats:r.stats})}).catch(()=>{});
+  toast('Abandonaste la partida: cuenta como derrota')}
 function toMenu(){TUT=null;mySena=null;const wasCamp=!!CAMP;CAMP=null;if(mode==='online')leaveTable(true);else{G=null;mode=null;view=wasCamp?'gira':'menu';panel=null;clearTimeout(driveT);render()}}
 
 /* ---------- presencia online: quién está y quién maneja la mesa ---------- */
@@ -1442,10 +1510,13 @@ function presenceTick(){if(view!=='game'||mode!=='online'||!G)return;refreshPres
 
 /* ---------- señas al compañero máquina ---------- */
 let mySena=null;
-function senaHint(g,k,from){const map={cejas:['1E'],guino:['1B'],bocader:['7E'],bocaizq:['7O']};
-  if(map[k])return{seat:from,cards:map[k]};
-  if(k==='labio'){const t=deck().find(c=>cn(c)===3&&g.hand.orig[from].includes(c));return t?{seat:from,cards:[t]}:null}
-  if(k==='ojos')return{seat:from,weak:true};return null}
+function senaHint(g,ks,from){const map={cejas:['1E'],guino:['1B'],bocader:['7E'],bocaizq:['7O']};const H={seat:from},o=g.hand.orig[from];ks=[].concat(ks||[]);
+  for(const k of ks){if(map[k])H.cards=(H.cards||[]).concat(map[k]);
+    else if(k==='labio'||k==='dos'){const t=o.find(c=>cn(c)===(k==='labio'?3:2));if(t)H.cards=(H.cards||[]).concat(t)}
+    else if(k==='falso'){const t=o.find(c=>c==='1C'||c==='1O');if(t)H.cards=(H.cards||[]).concat(t)}
+    else if(k==='ojos')H.weak=true;
+    else if(SENA_EVAL[k])H.env=SENA_EVAL[k]}
+  return H.cards||H.weak||H.env?H:null}
 
 /* ---------- misiones y logros ---------- */
 const MISSIONS=[
@@ -1738,13 +1809,13 @@ function startGira(rid){const r=RM[rid];if(!r||!zoneOpen(ZM[r.zone]))return;TUT=
   botLooks={1:{av:r.av,dorso:['pampa','cuero','marino','noche','celeste','oro','fileteado','bordo'][ZONES.findIndex(z=>z.id===r.zone)]||'pampa'}};
   mode='offline';mySeat=0;view='game';confirmExit=false;panel=null;
   const gm=newMatch({...cfg,seats:[{me:true},{bot:true}],matchId:'gira-'+rid+'-'+Date.now().toString(36)});gm.skill=r.skill;setG(gm);render();drive()}
-function settleGira(g){if(!CAMP||!g.matchOver||CAMP.done===g.matchId)return;CAMP.done=g.matchId;const r=RM[CAMP.rid];const won=g.matchOver.winner===0;
+function settleGira(g){if(!CAMP||!g.matchOver||CAMP.done===g.matchId)return;const C=CAMP;C.done=g.matchId;const r=RM[C.rid];const won=g.matchOver.winner===0;
   const my=WAL.copas||0,d=copasDelta(my,r.copas,won);const opened0=ZONES.filter(zoneOpen).map(z=>z.id);
   walQ=walQ.then(async()=>{if(WAL.applied.includes('gira-'+g.matchId))return;WAL.applied=WAL.applied.concat('gira-'+g.matchId).slice(-80);
     WAL.copas=Math.max(0,my+d);WAL.gira=WAL.gira||{beat:{},bosses:[]};let bonus=0;
     let prize=null;if(won){WAL.gira.beat[r.id]=(WAL.gira.beat[r.id]||0)+1;if(r.boss&&!WAL.gira.bosses.includes(r.zone)){WAL.gira.bosses.push(r.zone);bonus=100;WAL.coins+=bonus;WAL.stats.earned+=bonus;prize=BOSS_PRIZE[r.zone]}}
     const newly=ZONES.filter(z=>zoneOpen(z)&&!opened0.includes(z.id));
-    CAMP.res={d,bonus,newly:newly.map(z=>z.name),name:r.name,prize};
+    C.res={d,bonus,newly:newly.map(z=>z.name),name:r.name,prize};
     renderWallet();await saveWallet();writeLooks();render()})}
 function giraOverHTML(){if(!CAMP||!CAMP.res)return'';const x=CAMP.res;
   return `<p class="big"><i class="poroto" aria-hidden="true"></i>${x.d>0?'+':''}${x.d} porotos</p>${x.bonus?`<p class="big">${coinI}+ ${x.bonus} por vencer al jefe</p>`:''}${x.prize?`<p class="unlock">¡Ganaste ${esc(prizeLabel(x.prize))}!</p><p class="note">Lo encontrás en la Tienda, listo para usar.</p>`:''}${x.newly.length?`<p class="unlock">¡Se abrió ${esc(x.newly.join(' y '))}!</p>`:''}`}
@@ -2057,7 +2128,7 @@ document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closes
   case 'panel':panel=panel===t.dataset.v?null:t.dataset.v;render();return;
   case 'react':sendReact(t.dataset.k);return;
   case 'sena':sendSena(t.dataset.k);return;
-  case 'exit':if(!confirmExit){confirmExit=true;render();return}confirmExit=false;toMenu();return;
+  case 'exit':if(!confirmExit){confirmExit=true;render();return}confirmExit=false;abandonCurrent();toMenu();return;
   case 'tomenu':toMenu();return;
   case 'rematch':if(CAMP){startGira(CAMP.rid);return}if(mode==='offline'){Object.assign(SET,{n:cfg.n,target:cfg.target,stake:cfg.stake,diff:cfg.diff,flor:cfg.flor});startSolo()}else if(isHost)startOnline();return;
   }
