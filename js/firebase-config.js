@@ -1,12 +1,12 @@
-// Configuración de Firebase para Reviro.
-// Pegá acá el objeto que te da Firebase Console > Configuración del proyecto > Tus apps > App web.
-// Mientras apiKey esté vacío, Reviro funciona en modo local (sin cuentas ni online).
-// Estos datos no son secretos: la seguridad la ponen las reglas de firestore.rules.
+// Configuración de Firebase para Reviro (proyecto reviro-e2336).
+// Estos datos no son secretos: están pensados para ir en el navegador.
+// La seguridad de la base la ponen las reglas de firestore.rules.
 window.REVIRO_FIREBASE = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
+  apiKey: "AIzaSyCchpPIdeUdtwvKPy_YnHamQaWiwg7QAds",
+  authDomain: "reviro-e2336.firebaseapp.com",
+  projectId: "reviro-e2336",
+  storageBucket: "reviro-e2336.firebasestorage.app",
+  messagingSenderId: "566578535492",
+  appId: "1:566578535492:web:c8699abe7ba66df1ff7011",
+  measurementId: "G-04X0CT012X"
 };
