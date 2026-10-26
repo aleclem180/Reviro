@@ -887,9 +887,28 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
 .game .actions{justify-content:flex-start}
 .game .actions{min-height:150px}
 @media (max-height:700px){.game .actions{min-height:154px}}
-@media (min-width:720px){.game .actions{min-height:104px}}
+@media (min-width:720px){.game .actions{min-height:146px}}
 .game .felt>.seat{z-index:2}.game .felt>.center{z-index:1}
 @media (max-width:480px){.game .bubble{font-size:.8rem;padding:3px 8px;max-width:140px}.game .bubble .line{font-size:.7rem}.glog{width:26vw;padding:6px}}
+
+/* ===== El registro no le quita lugar al paño =====
+   En pantallas anchas va afuera, a la derecha de la mesa. En el celular queda una línea fina arriba del paño
+   con lo último que pasó (y tu envido), sin achicar nada. */
+.game .tablerow{position:relative;flex-direction:column;gap:4px}
+.game .tablerow>.felt{flex:1 1 0;width:100%}
+.game .glog{order:-1;width:auto;flex:none;height:20px;flex-direction:row;align-items:center;gap:10px;padding:0 6px;border:0;background:none;border-radius:0}
+.game .glines{-webkit-mask-image:none;mask-image:none;flex:1 1 0;min-width:0;display:block;height:20px;overflow:hidden}
+.game .glines div{display:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:20px;font-size:.8rem}
+.game .glines div:last-child{display:block}
+.game .ginfo{flex-direction:row;border:0;padding:0;gap:10px;white-space:nowrap;font-size:.8rem}
+@media (min-width:1180px){
+  .game .tablerow{flex-direction:row}
+  .game .glog{order:0;position:absolute;left:calc(100% + 14px);top:0;bottom:0;height:auto;width:210px;flex-direction:column;align-items:stretch;padding:10px;border:1px solid var(--line);border-radius:14px;background:rgba(0,0,0,.24)}
+  .game .glines{display:flex;height:auto;-webkit-mask-image:linear-gradient(transparent,#000 35%);mask-image:linear-gradient(transparent,#000 35%)}
+  .game .glines div{display:block;white-space:normal;line-height:1.3;font-size:.86rem}
+  .game .ginfo{flex-direction:column;border-top:1px solid var(--line);padding-top:6px;white-space:normal;font-size:.86rem}
+}
+@media (min-width:1180px){body[data-view=game] #view,body[data-view=game] .game,body[data-view=game] .tablerow{overflow:visible}}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
