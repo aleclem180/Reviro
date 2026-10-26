@@ -63,6 +63,7 @@ const PANOS=[
  {id:'azul',name:'Azul medianoche',price:700,bio:'Con luna y estrellas, para las partidas que terminan tarde.',bg:'radial-gradient(90% 70% at 50% 45%, #1f3a6e, #10203f)',edge:'rgba(160,190,240,.45)'},
  {id:'petroleo',name:'Petróleo',price:700,bio:'Un verde azulado profundo con un rombo dorado, tranquilo para la vista.',bg:'radial-gradient(90% 70% at 50% 45%, #1a5d66, #0d3236)',edge:'rgba(220,170,72,.4)'},
  {id:'bodegon',name:'Mesa de bodegón',price:1000,bio:'El mantel a cuadros de la esquina, con la mancha del vino de la casa.',bg:'repeating-linear-gradient(92deg, rgba(0,0,0,.14) 0 3px, transparent 3px 11px, rgba(255,255,255,.04) 11px 13px, transparent 13px 22px), linear-gradient(180deg, #6b4224, #4a2c17)',edge:'rgba(30,15,5,.8)'},
+ {id:'cuero',name:'Cuero curtido',price:1100,bio:'Cuero de suela repujado a mano, con costura de tiento alrededor.',bg:'#6e4024',edge:'#2a170b'},
  {id:'fileteado',name:'Negro fileteado',price:1200,bio:'Negro brillante con volutas de filete en las esquinas.',bg:'radial-gradient(90% 70% at 50% 45%, #2a2426, #121012)',edge:'#e9c46a'},
 ];
 PANOS.push(

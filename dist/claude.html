@@ -829,6 +829,24 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
 .gbtn{display:flex;align-items:center;justify-content:center;gap:10px;background:#f6f1e7;color:#2a1d12;border-color:#d8cdb8;font-weight:700}
 .gbtn:hover:not(:disabled){background:#fff}
 .ordiv{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.85rem}.ordiv::before,.ordiv::after{content:"";flex:1;height:1px;background:var(--line)}
+/* reloj de la jugada (online) */
+.turnbar{display:flex;align-items:center;gap:10px;padding:2px 4px;flex:none}
+.turnbar .tt{font-size:.82rem;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}.turnbar .tt b{color:var(--ink);font-size:.95rem}
+.turnbar .tr{flex:1;height:6px;border-radius:99px;background:rgba(0,0,0,.4);overflow:hidden;box-shadow:inset 0 0 0 1px rgba(243,230,200,.08)}
+.turnbar .tr i{display:block;height:100%;width:100%;transform-origin:left center;background:linear-gradient(90deg,var(--brass),var(--coin));border-radius:99px;transition:transform .5s linear}
+.turnbar.mine .tt{color:var(--coin)}.turnbar.mine .tt b{color:var(--coin)}
+.turnbar.low .tr i{background:var(--bad)}.turnbar.low .tt b{color:var(--bad)}
+.turnbar.low.mine .tt{animation:hotpulse 1s ease-in-out infinite}
+/* La Huella en el celular: el mapa toma todo el alto libre; su tamaño exacto lo pone sizeMap() */
+.glay .mapwrap{container-type:size;width:100%;align-self:stretch}
+.glay .armap{height:min(100cqh,calc(100cqw * 440 / 236));width:auto;max-width:none;max-height:none}
+.glay.wide .mapwrap{width:auto;align-self:stretch}
+.glay.wide{grid-template-columns:minmax(0,44%) minmax(0,1fr)!important}
+.glay.wide .mapwrap{width:100%}
+/* paño de cuero: costura de tiento alrededor */
+.felt.pano-cuero,.swatch.pano-cuero{position:relative}
+.felt.pano-cuero::after,.swatch.pano-cuero::after{content:"";position:absolute;inset:8px;border:2px dashed rgba(240,220,176,.6);border-radius:16px;pointer-events:none}
+.swatch.pano-cuero::after{inset:4px;border-width:1.5px;border-radius:10px}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -1148,6 +1166,7 @@ const PANOS=[
  {id:'azul',name:'Azul medianoche',price:700,bio:'Con luna y estrellas, para las partidas que terminan tarde.',bg:'radial-gradient(90% 70% at 50% 45%, #1f3a6e, #10203f)',edge:'rgba(160,190,240,.45)'},
  {id:'petroleo',name:'Petróleo',price:700,bio:'Un verde azulado profundo con un rombo dorado, tranquilo para la vista.',bg:'radial-gradient(90% 70% at 50% 45%, #1a5d66, #0d3236)',edge:'rgba(220,170,72,.4)'},
  {id:'bodegon',name:'Mesa de bodegón',price:1000,bio:'El mantel a cuadros de la esquina, con la mancha del vino de la casa.',bg:'repeating-linear-gradient(92deg, rgba(0,0,0,.14) 0 3px, transparent 3px 11px, rgba(255,255,255,.04) 11px 13px, transparent 13px 22px), linear-gradient(180deg, #6b4224, #4a2c17)',edge:'rgba(30,15,5,.8)'},
+ {id:'cuero',name:'Cuero curtido',price:1100,bio:'Cuero de suela repujado a mano, con costura de tiento alrededor.',bg:'#6e4024',edge:'#2a170b'},
  {id:'fileteado',name:'Negro fileteado',price:1200,bio:'Negro brillante con volutas de filete en las esquinas.',bg:'radial-gradient(90% 70% at 50% 45%, #2a2426, #121012)',edge:'#e9c46a'},
 ];
 PANOS.push(
@@ -1600,7 +1619,7 @@ const DORSO_ART={
 
 };
 /* en los dorsos oscuros, el dibujo va también debajo en color pleno, así el lápiz suma textura sin lavar los tonos */
-const DSOLID={cruzsur:.85,bordo:.8,marino:.8,cuero:.7,noche:.85,oro:.6,fileteado:.85,cuarteto:.7};
+const PSOLID={cuero:.7};const DSOLID={cruzsur:.85,bordo:.8,marino:.8,cuero:.7,noche:.85,oro:.6,fileteado:.85,cuarteto:.7};
 function dorsoSVG(id){const D=(DORSO_ART[id]||DORSO_ART.pampa)();if(DSOLID[id])D.base+=`<g opacity="${DSOLID[id]}">${D.art}</g>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 90" width="240" height="360"><defs>${cardDefs()}<clipPath id="bkc"><rect x="${FX0}" y="${FY0}" width="${FW}" height="${FH}" rx="2.4"/></clipPath>${D.defs||''}</defs>
     <rect x=".5" y=".5" width="59" height="89" rx="4.6" fill="url(#gPapel)" stroke="#b9a27a" stroke-width=".7"/>
@@ -1633,6 +1652,14 @@ const PANO_ART={
     o+=`<circle cx="146" cy="54" r="14" fill="none" stroke="#6b1a33" stroke-width="2.4" opacity=".5"/><path d="M134 50A13 13 0 0 1 158 46" fill="none" stroke="#6b1a33" stroke-width="1.2" opacity=".35" transform="translate(4 9)"/>`;
     for(let i=0;i<14;i++)o+=`<circle cx="${(40+rn()*120).toFixed(1)}" cy="${(120+rn()*60).toFixed(1)}" r="${(.6+rn()*1.1).toFixed(2)}" fill="#b98a4a"/>`;
     return{base:`${P0} fill="#efe6d6"/>`,art:o}},
+  cuero(){const rn=srand(53);let o=`${P0} fill="#7a4a28"/>`;
+    for(let i=0;i<46;i++)o+=`<path d="${blob(rn()*200,rn()*200,6+rn()*18,rn,8,.6)}" fill="${rn()<.5?'#5e3519':'#8f5a32'}" opacity="${(.18+rn()*.3).toFixed(2)}"/>`;
+    for(let i=0;i<16;i++){const x=rn()*200,y=rn()*200;o+=`<path d="M${x.toFixed(1)} ${y.toFixed(1)}q${(8+rn()*14).toFixed(1)} ${(rn()*6-3).toFixed(1)} ${(18+rn()*20).toFixed(1)} ${(rn()*8-4).toFixed(1)}" stroke="#3f2310" stroke-width=".6" fill="none" opacity=".45"/>`}
+    /* repujado: una flor de cardo con volutas en el centro, hundida en el cuero */
+    let r='';for(let i=0;i<8;i++){const a=i*Math.PI/4;r+=`<path d="M100 100Q${(100+Math.cos(a-.35)*26).toFixed(1)} ${(100+Math.sin(a-.35)*26).toFixed(1)} ${(100+Math.cos(a)*34).toFixed(1)} ${(100+Math.sin(a)*34).toFixed(1)}Q${(100+Math.cos(a+.35)*26).toFixed(1)} ${(100+Math.sin(a+.35)*26).toFixed(1)} 100 100Z" fill="#5a3218" opacity=".55"/>`}
+    r+=`<circle cx="100" cy="100" r="9" fill="#4a2a12" opacity=".6"/><circle cx="100" cy="100" r="44" fill="none" stroke="#4a2a12" stroke-width="1.6" opacity=".45"/><circle cx="100" cy="100" r="48" fill="none" stroke="#a8754a" stroke-width=".7" opacity=".35"/>`;
+    for(const [x,y,t] of [[60,100,''],[140,100,'scale(-1 1)']])r+=`<g transform="translate(${x} ${y}) ${t}"><path d="M0 0C-14-2-22-14-16-24C-11-31-2-27-4-20C-6-15-12-16-11-20" fill="none" stroke="#4a2a12" stroke-width="1.6" opacity=".5"/><path d="M0 0C-14 2-22 14-16 24C-11 31-2 27-4 20C-6 15-12 16-11 20" fill="none" stroke="#4a2a12" stroke-width="1.6" opacity=".5"/></g>`;
+    return{base:`${P0} fill="#6e4024"/>`,art:o+r}},
   fileteado(){const v=[[30,30,''],[170,30,'scale(-1 1)'],[30,170,'scale(1 -1)'],[170,170,'scale(-1 -1)']].map(([x,y,t])=>`<g transform="translate(${x} ${y}) ${t} scale(1.9)">${VOLU}</g>`).join('');
     return{base:`${P0} fill="#121012"/>`,art:`${P0} fill="#1b1719"/>${v}<circle cx="100" cy="100" r="16" fill="none" stroke="#e9c46a" stroke-opacity=".35" stroke-width="1.4"/><circle cx="100" cy="100" r="10" fill="none" stroke="#c0392b" stroke-opacity=".35" stroke-width="1.4"/>`}},
   ibera(){const rn=srand(17);let o=`${P0} fill="#1f6b6b"/>`;for(let i=0;i<40;i++){const x=rn()*200,y=rn()*200;o+=`<path d="M${x.toFixed(1)} ${y.toFixed(1)}q4 -2 8 0" stroke="#5aa7a0" stroke-width=".7" fill="none" opacity=".6"/>`}
@@ -1653,7 +1680,7 @@ const PANO_ART={
       <path d="M144 92L146.6 48H153.4L156 92Z" fill="#f4efe6"/><path d="M145.2 72H154.8L155.4 82H144.6ZM146 56H154L154.4 64H145.6Z" fill="#c0392b"/><rect x="145" y="42" width="10" height="6" fill="#fff0b4"/><path d="M144 42L150 36L156 42Z" fill="#2a2a3a"/><path d="M136 96Q150 88 164 96Z" fill="#2a2a3a"/>`;
     return{base:`${P0} fill="#0a1428"/>`,art:o}},
 };
-function panoSVG(id){const D=(PANO_ART[id]||PANO_ART.quincho)();
+function panoSVG(id){const D=(PANO_ART[id]||PANO_ART.quincho)();if(PSOLID[id])D.base+=`<g opacity="${PSOLID[id]}">${D.art}</g>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="600" height="600"><defs>${cardDefs()}${D.defs||''}</defs>${D.base}${PEN(100,100,D.art)}${P0} fill="#fff" filter="url(#fGrano)" opacity=".16"/></svg>`}
 
 /* se pasan a mapa de bits de a uno, con un respiro entre cada uno para no trabar la pantalla.
@@ -1674,7 +1701,7 @@ function artPump(){if(ARTBUSY||!ARTQ.length)return;ARTBUSY=true;const [k,kind,id
 const backBg=id=>{const d=DM[id]?id:'pampa';return `${artVar('dorso',d)} center/100% 100% no-repeat, ${DBASE[d]||'#6e1f33'}`};
 const panoBg=id=>{const p=PM[id]?id:'quincho';return `${artVar('pano',p)} center/cover no-repeat, ${PBASE[p]||'#3a2416'}`};
 const DBASE={pampa:'#efe0bf',bordo:'#6e1f33',marino:'#1d2f57',cuero:'#8a5530',celeste:'#74acdf',noche:'#0f1638',oro:'#d9a84a',fileteado:'#141113',ombu:'#cfe3f0',cuarteto:'#7a3fa0',sietecolores:'#d9822b',viento:'#dde9f1',cruzsur:'#13254a'};
-const PBASE={quincho:'#6b4224',cuerovaca:'#e6dccb',bordo:'#561a2e',verde:'#1a5e3e',azul:'#1c3566',petroleo:'#17545c',bodegon:'#efe6d6',fileteado:'#121012',ibera:'#195a5a',vinedo:'#5e3624',monte:'#1e3010',faro:'#0a1428'};
+const PBASE={cuero:'#6e4024',quincho:'#6b4224',cuerovaca:'#e6dccb',bordo:'#561a2e',verde:'#1a5e3e',azul:'#1c3566',petroleo:'#17545c',bodegon:'#efe6d6',fileteado:'#121012',ibera:'#195a5a',vinedo:'#5e3624',monte:'#1e3010',faro:'#0a1428'};
 
 /* ---------- utilidades y cartas ---------- */
 const $=s=>document.querySelector(s);
@@ -1892,10 +1919,10 @@ function pageBody(){switch(view){
   case 'torneos':return toursPageHTML();case 'tour':return tourHTML();case 'tournew':return tourNewHTML();case 'shop':return shopHTML();
   case 'profile':return profileHTML();case 'missions':return missionsHTML();case 'ranking':return rankingHTML();case 'room':return roomHTML()}return''}
 function render(){const v=$('#view');routeSync();document.body.dataset.view=view;
-  if(view==='game')v.innerHTML=gameHTML();
+  if(view==='game'){if(v.firstElementChild&&v.firstElementChild.classList.contains('game'))morphInto(v,gameHTML());else v.innerHTML=gameHTML()}
   else v.innerHTML=(GATES.includes(view)||view==='room'?'':tabsHTML())+`<div class="page pg-${view}">${pageBody()}</div>`;
   if(view==='torneos'||view==='tour')requestAnimationFrame(animatePots);
-  if(view==='game'&&FX.deal){clearTimeout(REPAINT);const hn=G&&G.handNo;REPAINT=setTimeout(()=>{if(view==='game'&&G&&G.handNo===hn)render()},760)}
+  if(view==='game'&&FX.deal){clearTimeout(REPAINT);const hn=G&&G.handNo;REPAINT=setTimeout(()=>{if(view!=='game'||!G||G.handNo!==hn)return;document.querySelectorAll('.hand img.cart').forEach(im=>{const u=CARDIMG[im.dataset.c];if(u&&im.getAttribute('src')!==u)im.src=u});const hd=document.querySelector('.hand');if(hd){hd.style.transform='translateZ(0)';requestAnimationFrame(()=>requestAnimationFrame(()=>{hd.style.transform=''}))}},760)}
   $('#overlay').innerHTML=overlayHTML();FX={};musicUpdate();
   if(view!=='game'){requestAnimationFrame(fitPass);clearTimeout(FITT);FITT=setTimeout(()=>{FITPASS=0;fitPass()},350)}
   {const pl=document.querySelector('.pills');if(pl)pl.style.visibility=(view==='auth'||view==='boot'||view==='login')?'hidden':'visible'}
@@ -1903,12 +1930,34 @@ function render(){const v=$('#view');routeSync();document.body.dataset.view=view
   if(view==='game'&&mode==='online'&&G){const ids=G.seats.filter(s=>s.id).map(s=>s.id);ensureNames(ids);fetchLooks(ids)}
   if(view==='online'&&lobby.length)ensureNames(lobby.map(t=>t.host))}
 
+/* ---------- la mesa se actualiza en el lugar ----------
+   En vez de borrar y volver a armar todo en cada jugada (lo que hacía parpadear las cartas y daba tirones en el celular),
+   se compara lo nuevo con lo que hay y se cambia solo lo distinto. Las cartas se reconocen por su valor, así no se recargan. */
+const mkey=n=>n.nodeType===1?(n.getAttribute('data-card')||(n.classList.contains('card')&&n.querySelector('img.cart')?'c:'+n.querySelector('img.cart').getAttribute('data-c'):null)):null;
+function morphNode(a,b){if(a.nodeType!==b.nodeType||a.nodeName!==b.nodeName){a.replaceWith(b);return}
+  if(a.nodeType!==1){if(a.nodeValue!==b.nodeValue)a.nodeValue=b.nodeValue;return}
+  for(const at of [...a.attributes])if(!b.hasAttribute(at.name))a.removeAttribute(at.name);
+  for(const at of [...b.attributes])if(a.getAttribute(at.name)!==at.value)a.setAttribute(at.name,at.value);
+  if((a.nodeName==='INPUT'||a.nodeName==='TEXTAREA')&&a!==document.activeElement&&a.value!==b.value)a.value=b.value;
+  morphKids(a,b)}
+function morphKids(a,b){const bc=[...b.childNodes];
+  for(let i=0;i<bc.length;i++){const nb=bc[i];let na=a.childNodes[i];const kb=mkey(nb);
+    if(kb&&(!na||mkey(na)!==kb)){const m=[...a.childNodes].slice(i).find(x=>mkey(x)===kb);if(m){a.insertBefore(m,na||null);na=m}else{a.insertBefore(nb,na||null);continue}}
+    if(!na){a.appendChild(nb);continue}
+    morphNode(na,nb)}
+  while(a.childNodes.length>bc.length)a.removeChild(a.lastChild)}
+function morphInto(el,html){const t=document.createElement('div');t.innerHTML=html;morphKids(el,t)}
+
 /* ---------- listas que se paginan solas: se mide cuántas entran en el lugar que queda ---------- */
 const FITN={},FITP={};let FITPASS=0,FITT=null;
 function fitList(key,arr,fn,cls='',empty=''){const n=arr.length;if(!n)return empty;const per=Math.max(1,Math.min(n,FITN[key]||4));const pages=Math.ceil(n/per);const p=Math.min(FITP[key]||0,pages-1);FITP[key]=p;
   const tg=/\b(flist|rvl)\b/.test(cls)?'ul':/\blb\b/.test(cls)?'ol':'div';
   return `<div class="fitw"><${tg} class="fit ${cls}" data-fit="${key}" data-n="${n}">${arr.slice(p*per,p*per+per).map(fn).join('')}</${tg}>${pages>1?`<div class="pager" role="group" aria-label="Páginas"><button type="button" class="pgb" data-a="pg" data-k="${key}" data-d="-1" ${p?'':'disabled'} aria-label="Página anterior">‹</button><span>${p+1} de ${pages}</span><button type="button" class="pgb" data-a="pg" data-k="${key}" data-d="1" ${p<pages-1?'':'disabled'} aria-label="Página siguiente">›</button></div>`:''}</div>`}
-function fitPass(){let ch=false;const nw={};document.querySelectorAll('[data-fit]').forEach(box=>{const k=box.dataset.fit,n=+box.dataset.n,kids=[...box.children];if(!kids.length)return;
+/* el mapa de La Huella se dimensiona en píxeles con el lugar que queda (en Safari los altos en % dentro de flex no siempre funcionan) */
+function sizeMap(){const w=document.querySelector('.glay .mapwrap'),m=w&&w.querySelector('.armap');if(!m)return;const cs=getComputedStyle(w);
+  const W=w.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight),H=w.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom);if(W<20||H<20)return;
+  const r=236/440,h=Math.min(H,W/r);m.style.height=Math.floor(h)+'px';m.style.width=Math.floor(h*r)+'px'}
+function fitPass(){sizeMap();let ch=false;const nw={};document.querySelectorAll('[data-fit]').forEach(box=>{const k=box.dataset.fit,n=+box.dataset.n,kids=[...box.children];if(!kids.length)return;
     const H=box.clientHeight;if(H<8)return;const cs=getComputedStyle(box),rg=parseFloat(cs.rowGap)||0;
     let cols=1;if(cs.display.includes('grid'))cols=Math.max(1,cs.gridTemplateColumns.split(' ').filter(Boolean).length);
     /* filas que ya se ven enteras */
@@ -2039,7 +2088,7 @@ function shopHTML(){const sub=[['av','Personajes'],['dorso','Dorsos'],['pano','P
   if(shopTab==='av')body=fitList('shop-av',AVS,a=>{if(a.id!=='hincha')return shopItem('av',a,avatarSVG(a.id,96,true));const has=owns('av','hincha',a.price);
       return `<div class="item ${WAL.eq.av==='hincha'?'on':''}"><div class="prev">${avatarSVG(kitAv(KITM[WAL.eq.kit]?WAL.eq.kit:'arg'),96,true)}</div><b>${esc(a.name)}</b><p>${KITS.length} camisetas para elegir.</p>${has?`<button class="btn ink" data-a="ov" data-v="kits">Camisetas</button>`:buyBtn('av','hincha',a.price,a.name)}</div>`},'items');
   if(shopTab==='dorso')body=fitList('shop-dorso',DORSOS,d=>shopItem('dorso',d,`<div class="bigback" style="background:${backBg(d.id)}"></div>`),'items');
-  if(shopTab==='pano')body=fitList('shop-pano',PANOS,p=>shopItem('pano',p,`<div class="swatch" style="background:${panoBg(p.id)};border-color:${p.edge}">${cardHTML('1E')}${cardHTML('7O')}</div>`),'items');
+  if(shopTab==='pano')body=fitList('shop-pano',PANOS,p=>shopItem('pano',p,`<div class="swatch pano-${p.id}" style="background:${panoBg(p.id)};border-color:${p.edge}">${cardHTML('1E')}${cardHTML('7O')}</div>`),'items');
   const earn='Las monedas sirven también para pagar en la tienda. Se ganan jugando: 20, 40 u 80 por partida ganada según la dificultad, 60 por partida online, 5 por jugar aunque pierdas y 30 cada día.';
   if(shopTab==='coins'&&FB)body=mpShopHTML();
   else if(shopTab==='coins'&&!PREMIUM)body=premLock()+`<p class="note">${earn}</p>`;
@@ -2058,7 +2107,7 @@ function profileHTML(){const a=AVM[WAL.eq.av]||AVM.gaucho,st=WAL.stats,pct=st.pl
   const mesa=`<section class="box grow mesa"><div class="mesa3">
       <button type="button" class="mz" data-a="shopgo" data-v="av">${avatarSVG(myAv(),84,true)}<b>${esc(a.name)}</b><small>Personaje</small></button>
       <button type="button" class="mz" data-a="shopgo" data-v="dorso"><span class="bigback" style="background:${backBg(D.id)}"></span><b>${esc(D.name)}</b><small>Dorso</small></button>
-      <button type="button" class="mz" data-a="shopgo" data-v="pano"><span class="swatch" style="background:${panoBg(Pn.id)};border-color:${Pn.edge}">${cardHTML('3O')}</span><b>${esc(Pn.name)}</b><small>Paño</small></button></div>
+      <button type="button" class="mz" data-a="shopgo" data-v="pano"><span class="swatch pano-${Pn.id}" style="background:${panoBg(Pn.id)};border-color:${Pn.edge}">${cardHTML('3O')}</span><b>${esc(Pn.name)}</b><small>Paño</small></button></div>
     <button class="btn" data-a="nav" data-v="shop">Ir a la tienda</button></section>`;
   return phd('Perfil','<button type="button" class="btn sm ghost" data-a="nav" data-v="settings">Ajustes</button>')+`
   <section class="prof">${avatarSVG(myAv(),84,true)}<div><h2>${esc(myDisp())}${PREMIUM?' <span class="prem">Premium</span>':''}</h2><p>${esc(a.name)}${myEmail?' · '+esc(myEmail):''}</p>
@@ -2122,7 +2171,7 @@ function gameHTML(){if(!G)return'';const h=G.hand,me=mySeat,mt=myTeam(),a=actor(
     <div class="score"><div class="sc us"><span class="lbl">Nosotros</span><b class="${b0}">${sc[mt]}</b>${fosforos(sc[mt],G.target)}</div>
       <div class="mid"><b>a ${G.target}</b>${G.flor?'con flor':'sin flor'}<br>${G.stake?fmt(G.stake)+' fichas':'amistosa'}</div>
       <div class="sc them"><span class="lbl">Ellos</span><b class="${b1}">${sc[1-mt]}</b>${fosforos(sc[1-mt],G.target)}</div></div>
-    <div class="felt n${G.n}" style="background:${panoBg(pano.id)};border-color:${pano.edge}">${seatsHTML.join('')}<div class="center">${center}</div></div>
+    <div class="felt n${G.n} pano-${pano.id}" style="background:${panoBg(pano.id)};border-color:${pano.edge}">${seatsHTML.join('')}<div class="center">${center}</div></div>
     ${G.n!==2&&info?`<div class="handinfo">${info}</div>`:''}${turnBarHTML()}${coachBox}
     ${hand}
     <div class="actions">${actionsHTML(L)}${TUT?'':socialHTML()}${absentNote}</div></section>`}
@@ -2834,9 +2883,9 @@ const TURN_MS=30000;let lastTimeout=-1;
 function turnInfo(){if(view!=='game'||mode!=='online'||!G||G.matchOver||G.hand.ended)return null;if(G.seats.filter(s=>s.id&&!s.bot).length<2)return null;const a=actor(G);if(a<0||G.seats[a].bot||isAbsent(a))return null;
   const rem=Math.max(0,TURN_MS-(Date.now()-(G.lastAct||Date.now())));return{a,rem}}
 function turnBarHTML(){const t=turnInfo();if(!t)return'';const pct=Math.round(t.rem*100/TURN_MS);
-  return `<div class="tbar ${t.a===mySeat?'mine':''}" aria-hidden="true"><i id="tbari" style="width:${pct}%"></i><span id="tbart">${Math.ceil(t.rem/1000)} s · ${esc(t.a===mySeat?'tu turno':nameOf(t.a))}</span></div>`}
+  return `<div class="turnbar ${t.a===mySeat?'mine':''} ${t.rem<8000?'low':''}" role="timer" aria-label="Tiempo para jugar"><span class="tt" id="tbart">${esc(t.a===mySeat?'Tu turno':nameOf(t.a))} · <b>${Math.ceil(t.rem/1000)}</b> s</span><span class="tr"><i id="tbari" style="transform:scaleX(${(pct/100).toFixed(3)})"></i></span></div>`}
 function turnTick(){const t=turnInfo();if(!t)return;const i=document.getElementById('tbari'),s=document.getElementById('tbart');
-  if(i){i.style.width=Math.round(t.rem*100/TURN_MS)+'%';i.parentElement.classList.toggle('low',t.rem<8000)}if(s)s.textContent=Math.ceil(t.rem/1000)+' s · '+(t.a===mySeat?'tu turno':nameOf(t.a));
+  if(i){i.style.transform=`scaleX(${(t.rem/TURN_MS).toFixed(3)})`;const bar=i.closest('.turnbar');if(bar)bar.classList.toggle('low',t.rem<8000)}if(s)s.innerHTML=esc(t.a===mySeat?'Tu turno':nameOf(t.a))+' · <b>'+Math.ceil(t.rem/1000)+'</b> s';
   if(t.rem<=0&&controllerSeat()===mySeat&&lastTimeout!==G.seq&&!busy){lastTimeout=G.seq;const who=nameOf(t.a);
     try{commit(act(G,t.a,aiAct(G,t.a,'medio')));toast('Se acabó el tiempo: el bot jugó por '+(t.a===mySeat?'vos':who))}catch(e){}}}
 

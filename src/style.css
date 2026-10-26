@@ -822,3 +822,21 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
 .gbtn{display:flex;align-items:center;justify-content:center;gap:10px;background:#f6f1e7;color:#2a1d12;border-color:#d8cdb8;font-weight:700}
 .gbtn:hover:not(:disabled){background:#fff}
 .ordiv{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.85rem}.ordiv::before,.ordiv::after{content:"";flex:1;height:1px;background:var(--line)}
+/* reloj de la jugada (online) */
+.turnbar{display:flex;align-items:center;gap:10px;padding:2px 4px;flex:none}
+.turnbar .tt{font-size:.82rem;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}.turnbar .tt b{color:var(--ink);font-size:.95rem}
+.turnbar .tr{flex:1;height:6px;border-radius:99px;background:rgba(0,0,0,.4);overflow:hidden;box-shadow:inset 0 0 0 1px rgba(243,230,200,.08)}
+.turnbar .tr i{display:block;height:100%;width:100%;transform-origin:left center;background:linear-gradient(90deg,var(--brass),var(--coin));border-radius:99px;transition:transform .5s linear}
+.turnbar.mine .tt{color:var(--coin)}.turnbar.mine .tt b{color:var(--coin)}
+.turnbar.low .tr i{background:var(--bad)}.turnbar.low .tt b{color:var(--bad)}
+.turnbar.low.mine .tt{animation:hotpulse 1s ease-in-out infinite}
+/* La Huella en el celular: el mapa toma todo el alto libre; su tamaño exacto lo pone sizeMap() */
+.glay .mapwrap{container-type:size;width:100%;align-self:stretch}
+.glay .armap{height:min(100cqh,calc(100cqw * 440 / 236));width:auto;max-width:none;max-height:none}
+.glay.wide .mapwrap{width:auto;align-self:stretch}
+.glay.wide{grid-template-columns:minmax(0,44%) minmax(0,1fr)!important}
+.glay.wide .mapwrap{width:100%}
+/* paño de cuero: costura de tiento alrededor */
+.felt.pano-cuero,.swatch.pano-cuero{position:relative}
+.felt.pano-cuero::after,.swatch.pano-cuero::after{content:"";position:absolute;inset:8px;border:2px dashed rgba(240,220,176,.6);border-radius:16px;pointer-events:none}
+.swatch.pano-cuero::after{inset:4px;border-width:1.5px;border-radius:10px}

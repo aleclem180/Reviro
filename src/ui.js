@@ -214,10 +214,10 @@ function pageBody(){switch(view){
   case 'torneos':return toursPageHTML();case 'tour':return tourHTML();case 'tournew':return tourNewHTML();case 'shop':return shopHTML();
   case 'profile':return profileHTML();case 'missions':return missionsHTML();case 'ranking':return rankingHTML();case 'room':return roomHTML()}return''}
 function render(){const v=$('#view');routeSync();document.body.dataset.view=view;
-  if(view==='game')v.innerHTML=gameHTML();
+  if(view==='game'){if(v.firstElementChild&&v.firstElementChild.classList.contains('game'))morphInto(v,gameHTML());else v.innerHTML=gameHTML()}
   else v.innerHTML=(GATES.includes(view)||view==='room'?'':tabsHTML())+`<div class="page pg-${view}">${pageBody()}</div>`;
   if(view==='torneos'||view==='tour')requestAnimationFrame(animatePots);
-  if(view==='game'&&FX.deal){clearTimeout(REPAINT);const hn=G&&G.handNo;REPAINT=setTimeout(()=>{if(view==='game'&&G&&G.handNo===hn)render()},760)}
+  if(view==='game'&&FX.deal){clearTimeout(REPAINT);const hn=G&&G.handNo;REPAINT=setTimeout(()=>{if(view!=='game'||!G||G.handNo!==hn)return;document.querySelectorAll('.hand img.cart').forEach(im=>{const u=CARDIMG[im.dataset.c];if(u&&im.getAttribute('src')!==u)im.src=u});const hd=document.querySelector('.hand');if(hd){hd.style.transform='translateZ(0)';requestAnimationFrame(()=>requestAnimationFrame(()=>{hd.style.transform=''}))}},760)}
   $('#overlay').innerHTML=overlayHTML();FX={};musicUpdate();
   if(view!=='game'){requestAnimationFrame(fitPass);clearTimeout(FITT);FITT=setTimeout(()=>{FITPASS=0;fitPass()},350)}
   {const pl=document.querySelector('.pills');if(pl)pl.style.visibility=(view==='auth'||view==='boot'||view==='login')?'hidden':'visible'}
@@ -225,12 +225,34 @@ function render(){const v=$('#view');routeSync();document.body.dataset.view=view
   if(view==='game'&&mode==='online'&&G){const ids=G.seats.filter(s=>s.id).map(s=>s.id);ensureNames(ids);fetchLooks(ids)}
   if(view==='online'&&lobby.length)ensureNames(lobby.map(t=>t.host))}
 
+/* ---------- la mesa se actualiza en el lugar ----------
+   En vez de borrar y volver a armar todo en cada jugada (lo que hacía parpadear las cartas y daba tirones en el celular),
+   se compara lo nuevo con lo que hay y se cambia solo lo distinto. Las cartas se reconocen por su valor, así no se recargan. */
+const mkey=n=>n.nodeType===1?(n.getAttribute('data-card')||(n.classList.contains('card')&&n.querySelector('img.cart')?'c:'+n.querySelector('img.cart').getAttribute('data-c'):null)):null;
+function morphNode(a,b){if(a.nodeType!==b.nodeType||a.nodeName!==b.nodeName){a.replaceWith(b);return}
+  if(a.nodeType!==1){if(a.nodeValue!==b.nodeValue)a.nodeValue=b.nodeValue;return}
+  for(const at of [...a.attributes])if(!b.hasAttribute(at.name))a.removeAttribute(at.name);
+  for(const at of [...b.attributes])if(a.getAttribute(at.name)!==at.value)a.setAttribute(at.name,at.value);
+  if((a.nodeName==='INPUT'||a.nodeName==='TEXTAREA')&&a!==document.activeElement&&a.value!==b.value)a.value=b.value;
+  morphKids(a,b)}
+function morphKids(a,b){const bc=[...b.childNodes];
+  for(let i=0;i<bc.length;i++){const nb=bc[i];let na=a.childNodes[i];const kb=mkey(nb);
+    if(kb&&(!na||mkey(na)!==kb)){const m=[...a.childNodes].slice(i).find(x=>mkey(x)===kb);if(m){a.insertBefore(m,na||null);na=m}else{a.insertBefore(nb,na||null);continue}}
+    if(!na){a.appendChild(nb);continue}
+    morphNode(na,nb)}
+  while(a.childNodes.length>bc.length)a.removeChild(a.lastChild)}
+function morphInto(el,html){const t=document.createElement('div');t.innerHTML=html;morphKids(el,t)}
+
 /* ---------- listas que se paginan solas: se mide cuántas entran en el lugar que queda ---------- */
 const FITN={},FITP={};let FITPASS=0,FITT=null;
 function fitList(key,arr,fn,cls='',empty=''){const n=arr.length;if(!n)return empty;const per=Math.max(1,Math.min(n,FITN[key]||4));const pages=Math.ceil(n/per);const p=Math.min(FITP[key]||0,pages-1);FITP[key]=p;
   const tg=/\b(flist|rvl)\b/.test(cls)?'ul':/\blb\b/.test(cls)?'ol':'div';
   return `<div class="fitw"><${tg} class="fit ${cls}" data-fit="${key}" data-n="${n}">${arr.slice(p*per,p*per+per).map(fn).join('')}</${tg}>${pages>1?`<div class="pager" role="group" aria-label="Páginas"><button type="button" class="pgb" data-a="pg" data-k="${key}" data-d="-1" ${p?'':'disabled'} aria-label="Página anterior">‹</button><span>${p+1} de ${pages}</span><button type="button" class="pgb" data-a="pg" data-k="${key}" data-d="1" ${p<pages-1?'':'disabled'} aria-label="Página siguiente">›</button></div>`:''}</div>`}
-function fitPass(){let ch=false;const nw={};document.querySelectorAll('[data-fit]').forEach(box=>{const k=box.dataset.fit,n=+box.dataset.n,kids=[...box.children];if(!kids.length)return;
+/* el mapa de La Huella se dimensiona en píxeles con el lugar que queda (en Safari los altos en % dentro de flex no siempre funcionan) */
+function sizeMap(){const w=document.querySelector('.glay .mapwrap'),m=w&&w.querySelector('.armap');if(!m)return;const cs=getComputedStyle(w);
+  const W=w.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight),H=w.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom);if(W<20||H<20)return;
+  const r=236/440,h=Math.min(H,W/r);m.style.height=Math.floor(h)+'px';m.style.width=Math.floor(h*r)+'px'}
+function fitPass(){sizeMap();let ch=false;const nw={};document.querySelectorAll('[data-fit]').forEach(box=>{const k=box.dataset.fit,n=+box.dataset.n,kids=[...box.children];if(!kids.length)return;
     const H=box.clientHeight;if(H<8)return;const cs=getComputedStyle(box),rg=parseFloat(cs.rowGap)||0;
     let cols=1;if(cs.display.includes('grid'))cols=Math.max(1,cs.gridTemplateColumns.split(' ').filter(Boolean).length);
     /* filas que ya se ven enteras */
@@ -361,7 +383,7 @@ function shopHTML(){const sub=[['av','Personajes'],['dorso','Dorsos'],['pano','P
   if(shopTab==='av')body=fitList('shop-av',AVS,a=>{if(a.id!=='hincha')return shopItem('av',a,avatarSVG(a.id,96,true));const has=owns('av','hincha',a.price);
       return `<div class="item ${WAL.eq.av==='hincha'?'on':''}"><div class="prev">${avatarSVG(kitAv(KITM[WAL.eq.kit]?WAL.eq.kit:'arg'),96,true)}</div><b>${esc(a.name)}</b><p>${KITS.length} camisetas para elegir.</p>${has?`<button class="btn ink" data-a="ov" data-v="kits">Camisetas</button>`:buyBtn('av','hincha',a.price,a.name)}</div>`},'items');
   if(shopTab==='dorso')body=fitList('shop-dorso',DORSOS,d=>shopItem('dorso',d,`<div class="bigback" style="background:${backBg(d.id)}"></div>`),'items');
-  if(shopTab==='pano')body=fitList('shop-pano',PANOS,p=>shopItem('pano',p,`<div class="swatch" style="background:${panoBg(p.id)};border-color:${p.edge}">${cardHTML('1E')}${cardHTML('7O')}</div>`),'items');
+  if(shopTab==='pano')body=fitList('shop-pano',PANOS,p=>shopItem('pano',p,`<div class="swatch pano-${p.id}" style="background:${panoBg(p.id)};border-color:${p.edge}">${cardHTML('1E')}${cardHTML('7O')}</div>`),'items');
   const earn='Las monedas sirven también para pagar en la tienda. Se ganan jugando: 20, 40 u 80 por partida ganada según la dificultad, 60 por partida online, 5 por jugar aunque pierdas y 30 cada día.';
   if(shopTab==='coins'&&FB)body=mpShopHTML();
   else if(shopTab==='coins'&&!PREMIUM)body=premLock()+`<p class="note">${earn}</p>`;
@@ -380,7 +402,7 @@ function profileHTML(){const a=AVM[WAL.eq.av]||AVM.gaucho,st=WAL.stats,pct=st.pl
   const mesa=`<section class="box grow mesa"><div class="mesa3">
       <button type="button" class="mz" data-a="shopgo" data-v="av">${avatarSVG(myAv(),84,true)}<b>${esc(a.name)}</b><small>Personaje</small></button>
       <button type="button" class="mz" data-a="shopgo" data-v="dorso"><span class="bigback" style="background:${backBg(D.id)}"></span><b>${esc(D.name)}</b><small>Dorso</small></button>
-      <button type="button" class="mz" data-a="shopgo" data-v="pano"><span class="swatch" style="background:${panoBg(Pn.id)};border-color:${Pn.edge}">${cardHTML('3O')}</span><b>${esc(Pn.name)}</b><small>Paño</small></button></div>
+      <button type="button" class="mz" data-a="shopgo" data-v="pano"><span class="swatch pano-${Pn.id}" style="background:${panoBg(Pn.id)};border-color:${Pn.edge}">${cardHTML('3O')}</span><b>${esc(Pn.name)}</b><small>Paño</small></button></div>
     <button class="btn" data-a="nav" data-v="shop">Ir a la tienda</button></section>`;
   return phd('Perfil','<button type="button" class="btn sm ghost" data-a="nav" data-v="settings">Ajustes</button>')+`
   <section class="prof">${avatarSVG(myAv(),84,true)}<div><h2>${esc(myDisp())}${PREMIUM?' <span class="prem">Premium</span>':''}</h2><p>${esc(a.name)}${myEmail?' · '+esc(myEmail):''}</p>
@@ -444,7 +466,7 @@ function gameHTML(){if(!G)return'';const h=G.hand,me=mySeat,mt=myTeam(),a=actor(
     <div class="score"><div class="sc us"><span class="lbl">Nosotros</span><b class="${b0}">${sc[mt]}</b>${fosforos(sc[mt],G.target)}</div>
       <div class="mid"><b>a ${G.target}</b>${G.flor?'con flor':'sin flor'}<br>${G.stake?fmt(G.stake)+' fichas':'amistosa'}</div>
       <div class="sc them"><span class="lbl">Ellos</span><b class="${b1}">${sc[1-mt]}</b>${fosforos(sc[1-mt],G.target)}</div></div>
-    <div class="felt n${G.n}" style="background:${panoBg(pano.id)};border-color:${pano.edge}">${seatsHTML.join('')}<div class="center">${center}</div></div>
+    <div class="felt n${G.n} pano-${pano.id}" style="background:${panoBg(pano.id)};border-color:${pano.edge}">${seatsHTML.join('')}<div class="center">${center}</div></div>
     ${G.n!==2&&info?`<div class="handinfo">${info}</div>`:''}${turnBarHTML()}${coachBox}
     ${hand}
     <div class="actions">${actionsHTML(L)}${TUT?'':socialHTML()}${absentNote}</div></section>`}
@@ -1156,9 +1178,9 @@ const TURN_MS=30000;let lastTimeout=-1;
 function turnInfo(){if(view!=='game'||mode!=='online'||!G||G.matchOver||G.hand.ended)return null;if(G.seats.filter(s=>s.id&&!s.bot).length<2)return null;const a=actor(G);if(a<0||G.seats[a].bot||isAbsent(a))return null;
   const rem=Math.max(0,TURN_MS-(Date.now()-(G.lastAct||Date.now())));return{a,rem}}
 function turnBarHTML(){const t=turnInfo();if(!t)return'';const pct=Math.round(t.rem*100/TURN_MS);
-  return `<div class="tbar ${t.a===mySeat?'mine':''}" aria-hidden="true"><i id="tbari" style="width:${pct}%"></i><span id="tbart">${Math.ceil(t.rem/1000)} s · ${esc(t.a===mySeat?'tu turno':nameOf(t.a))}</span></div>`}
+  return `<div class="turnbar ${t.a===mySeat?'mine':''} ${t.rem<8000?'low':''}" role="timer" aria-label="Tiempo para jugar"><span class="tt" id="tbart">${esc(t.a===mySeat?'Tu turno':nameOf(t.a))} · <b>${Math.ceil(t.rem/1000)}</b> s</span><span class="tr"><i id="tbari" style="transform:scaleX(${(pct/100).toFixed(3)})"></i></span></div>`}
 function turnTick(){const t=turnInfo();if(!t)return;const i=document.getElementById('tbari'),s=document.getElementById('tbart');
-  if(i){i.style.width=Math.round(t.rem*100/TURN_MS)+'%';i.parentElement.classList.toggle('low',t.rem<8000)}if(s)s.textContent=Math.ceil(t.rem/1000)+' s · '+(t.a===mySeat?'tu turno':nameOf(t.a));
+  if(i){i.style.transform=`scaleX(${(t.rem/TURN_MS).toFixed(3)})`;const bar=i.closest('.turnbar');if(bar)bar.classList.toggle('low',t.rem<8000)}if(s)s.innerHTML=esc(t.a===mySeat?'Tu turno':nameOf(t.a))+' · <b>'+Math.ceil(t.rem/1000)+'</b> s';
   if(t.rem<=0&&controllerSeat()===mySeat&&lastTimeout!==G.seq&&!busy){lastTimeout=G.seq;const who=nameOf(t.a);
     try{commit(act(G,t.a,aiAct(G,t.a,'medio')));toast('Se acabó el tiempo: el bot jugó por '+(t.a===mySeat?'vos':who))}catch(e){}}}
 

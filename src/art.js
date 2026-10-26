@@ -93,7 +93,7 @@ const DORSO_ART={
 
 };
 /* en los dorsos oscuros, el dibujo va también debajo en color pleno, así el lápiz suma textura sin lavar los tonos */
-const DSOLID={cruzsur:.85,bordo:.8,marino:.8,cuero:.7,noche:.85,oro:.6,fileteado:.85,cuarteto:.7};
+const PSOLID={cuero:.7};const DSOLID={cruzsur:.85,bordo:.8,marino:.8,cuero:.7,noche:.85,oro:.6,fileteado:.85,cuarteto:.7};
 function dorsoSVG(id){const D=(DORSO_ART[id]||DORSO_ART.pampa)();if(DSOLID[id])D.base+=`<g opacity="${DSOLID[id]}">${D.art}</g>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 90" width="240" height="360"><defs>${cardDefs()}<clipPath id="bkc"><rect x="${FX0}" y="${FY0}" width="${FW}" height="${FH}" rx="2.4"/></clipPath>${D.defs||''}</defs>
     <rect x=".5" y=".5" width="59" height="89" rx="4.6" fill="url(#gPapel)" stroke="#b9a27a" stroke-width=".7"/>
@@ -126,6 +126,14 @@ const PANO_ART={
     o+=`<circle cx="146" cy="54" r="14" fill="none" stroke="#6b1a33" stroke-width="2.4" opacity=".5"/><path d="M134 50A13 13 0 0 1 158 46" fill="none" stroke="#6b1a33" stroke-width="1.2" opacity=".35" transform="translate(4 9)"/>`;
     for(let i=0;i<14;i++)o+=`<circle cx="${(40+rn()*120).toFixed(1)}" cy="${(120+rn()*60).toFixed(1)}" r="${(.6+rn()*1.1).toFixed(2)}" fill="#b98a4a"/>`;
     return{base:`${P0} fill="#efe6d6"/>`,art:o}},
+  cuero(){const rn=srand(53);let o=`${P0} fill="#7a4a28"/>`;
+    for(let i=0;i<46;i++)o+=`<path d="${blob(rn()*200,rn()*200,6+rn()*18,rn,8,.6)}" fill="${rn()<.5?'#5e3519':'#8f5a32'}" opacity="${(.18+rn()*.3).toFixed(2)}"/>`;
+    for(let i=0;i<16;i++){const x=rn()*200,y=rn()*200;o+=`<path d="M${x.toFixed(1)} ${y.toFixed(1)}q${(8+rn()*14).toFixed(1)} ${(rn()*6-3).toFixed(1)} ${(18+rn()*20).toFixed(1)} ${(rn()*8-4).toFixed(1)}" stroke="#3f2310" stroke-width=".6" fill="none" opacity=".45"/>`}
+    /* repujado: una flor de cardo con volutas en el centro, hundida en el cuero */
+    let r='';for(let i=0;i<8;i++){const a=i*Math.PI/4;r+=`<path d="M100 100Q${(100+Math.cos(a-.35)*26).toFixed(1)} ${(100+Math.sin(a-.35)*26).toFixed(1)} ${(100+Math.cos(a)*34).toFixed(1)} ${(100+Math.sin(a)*34).toFixed(1)}Q${(100+Math.cos(a+.35)*26).toFixed(1)} ${(100+Math.sin(a+.35)*26).toFixed(1)} 100 100Z" fill="#5a3218" opacity=".55"/>`}
+    r+=`<circle cx="100" cy="100" r="9" fill="#4a2a12" opacity=".6"/><circle cx="100" cy="100" r="44" fill="none" stroke="#4a2a12" stroke-width="1.6" opacity=".45"/><circle cx="100" cy="100" r="48" fill="none" stroke="#a8754a" stroke-width=".7" opacity=".35"/>`;
+    for(const [x,y,t] of [[60,100,''],[140,100,'scale(-1 1)']])r+=`<g transform="translate(${x} ${y}) ${t}"><path d="M0 0C-14-2-22-14-16-24C-11-31-2-27-4-20C-6-15-12-16-11-20" fill="none" stroke="#4a2a12" stroke-width="1.6" opacity=".5"/><path d="M0 0C-14 2-22 14-16 24C-11 31-2 27-4 20C-6 15-12 16-11 20" fill="none" stroke="#4a2a12" stroke-width="1.6" opacity=".5"/></g>`;
+    return{base:`${P0} fill="#6e4024"/>`,art:o+r}},
   fileteado(){const v=[[30,30,''],[170,30,'scale(-1 1)'],[30,170,'scale(1 -1)'],[170,170,'scale(-1 -1)']].map(([x,y,t])=>`<g transform="translate(${x} ${y}) ${t} scale(1.9)">${VOLU}</g>`).join('');
     return{base:`${P0} fill="#121012"/>`,art:`${P0} fill="#1b1719"/>${v}<circle cx="100" cy="100" r="16" fill="none" stroke="#e9c46a" stroke-opacity=".35" stroke-width="1.4"/><circle cx="100" cy="100" r="10" fill="none" stroke="#c0392b" stroke-opacity=".35" stroke-width="1.4"/>`}},
   ibera(){const rn=srand(17);let o=`${P0} fill="#1f6b6b"/>`;for(let i=0;i<40;i++){const x=rn()*200,y=rn()*200;o+=`<path d="M${x.toFixed(1)} ${y.toFixed(1)}q4 -2 8 0" stroke="#5aa7a0" stroke-width=".7" fill="none" opacity=".6"/>`}
@@ -146,7 +154,7 @@ const PANO_ART={
       <path d="M144 92L146.6 48H153.4L156 92Z" fill="#f4efe6"/><path d="M145.2 72H154.8L155.4 82H144.6ZM146 56H154L154.4 64H145.6Z" fill="#c0392b"/><rect x="145" y="42" width="10" height="6" fill="#fff0b4"/><path d="M144 42L150 36L156 42Z" fill="#2a2a3a"/><path d="M136 96Q150 88 164 96Z" fill="#2a2a3a"/>`;
     return{base:`${P0} fill="#0a1428"/>`,art:o}},
 };
-function panoSVG(id){const D=(PANO_ART[id]||PANO_ART.quincho)();
+function panoSVG(id){const D=(PANO_ART[id]||PANO_ART.quincho)();if(PSOLID[id])D.base+=`<g opacity="${PSOLID[id]}">${D.art}</g>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="600" height="600"><defs>${cardDefs()}${D.defs||''}</defs>${D.base}${PEN(100,100,D.art)}${P0} fill="#fff" filter="url(#fGrano)" opacity=".16"/></svg>`}
 
 /* se pasan a mapa de bits de a uno, con un respiro entre cada uno para no trabar la pantalla.
@@ -167,4 +175,4 @@ function artPump(){if(ARTBUSY||!ARTQ.length)return;ARTBUSY=true;const [k,kind,id
 const backBg=id=>{const d=DM[id]?id:'pampa';return `${artVar('dorso',d)} center/100% 100% no-repeat, ${DBASE[d]||'#6e1f33'}`};
 const panoBg=id=>{const p=PM[id]?id:'quincho';return `${artVar('pano',p)} center/cover no-repeat, ${PBASE[p]||'#3a2416'}`};
 const DBASE={pampa:'#efe0bf',bordo:'#6e1f33',marino:'#1d2f57',cuero:'#8a5530',celeste:'#74acdf',noche:'#0f1638',oro:'#d9a84a',fileteado:'#141113',ombu:'#cfe3f0',cuarteto:'#7a3fa0',sietecolores:'#d9822b',viento:'#dde9f1',cruzsur:'#13254a'};
-const PBASE={quincho:'#6b4224',cuerovaca:'#e6dccb',bordo:'#561a2e',verde:'#1a5e3e',azul:'#1c3566',petroleo:'#17545c',bodegon:'#efe6d6',fileteado:'#121012',ibera:'#195a5a',vinedo:'#5e3624',monte:'#1e3010',faro:'#0a1428'};
+const PBASE={cuero:'#6e4024',quincho:'#6b4224',cuerovaca:'#e6dccb',bordo:'#561a2e',verde:'#1a5e3e',azul:'#1c3566',petroleo:'#17545c',bodegon:'#efe6d6',fileteado:'#121012',ibera:'#195a5a',vinedo:'#5e3624',monte:'#1e3010',faro:'#0a1428'};
