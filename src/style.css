@@ -961,3 +961,10 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
 .game .felt>.center{z-index:auto}
 .game .center .result{animation:respop .3s ease-out}
 @keyframes respop{from{transform:translate(-50%,-50%) scale(.8);opacity:0}to{transform:translate(-50%,-50%);opacity:1}}
+/* ---------- selector de idioma ---------- */
+.langseg button{min-width:0}
+.langseg.mini{justify-content:center;gap:4px;margin:-4px auto 2px;flex-wrap:nowrap}
+.langseg.mini button{flex:0 0 auto;padding:3px 10px;font-size:12px;border-radius:999px;border-color:rgba(255,255,255,.18);color:inherit}
+.langseg.mini button[aria-pressed="true"]{background:var(--ink);color:var(--felt)}
+/* en pantallas muy bajas el reglamento achica la letra (en portugués e inglés los textos son más largos) */
+@media (max-height:700px){.rbody{font-size:clamp(.82rem,2.05dvh,.95rem);line-height:1.38;gap:8px}}

@@ -2,7 +2,7 @@
 
 - servidor(): levanta la carpeta del proyecto en un puerto local, como la sirve GitHub Pages.
 - motor(js): corre código JavaScript contra el motor del juego (src/engine.js) con Node y devuelve el resultado.
-- pagina(): abre Reviro en Chromium (Playwright), en modo local (sin Firebase), ya registrado.
+- pagina(): abre Reviro en Chromium (Playwright), en modo local (sin Firebase), ya registrado y en el idioma pedido.
 """
 import contextlib, json, socket, subprocess, sys, time
 from pathlib import Path
@@ -41,8 +41,10 @@ def motor(js):
     return json.loads(r.stdout)
 
 
-async def pagina(browser, base, ancho=390, alto=844, ruta="index.html"):
+async def pagina(browser, base, ancho=390, alto=844, ruta="index.html", idioma="es"):
     pg = await browser.new_page(viewport={"width": ancho, "height": alto})
+    # el idioma se elige antes de cargar, como si el jugador ya lo hubiera elegido
+    await pg.add_init_script("try{if(!localStorage.getItem('reviro.set'))localStorage.setItem('reviro.set',JSON.stringify({lang:'%s'}))}catch(e){}" % idioma)
     pg.errores = []
     pg.on("pageerror", lambda e: pg.errores.append(str(e)))
     await pg.route("**/js/firebase-config.js*",

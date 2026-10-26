@@ -1,7 +1,7 @@
 /* ---------- utilidades y cartas ---------- */
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const fmt=n=>Number(n).toLocaleString('es-AR');
+const fmt=n=>Number(n).toLocaleString(fmtLoc());
 const SUITCOL={O:'var(--oro)',C:'var(--copa)',E:'var(--espada)',B:'var(--basto)'};
 const GAPS={O:0,C:1,E:2,B:3};
 const FIG={10:'SOTA',11:'CABALLO',12:'REY'};
@@ -73,6 +73,15 @@ let confirmMazo=false,confirmExit=false,overlayView=null,shopTab='av',pendingBuy
 const SET={diff:'medio',n:2,target:30,stake:0,flor:true,sound:true,music:true,mute:false,track:'zamba',vol:80,volMusic:60,volFx:90,hflor:true,help:true,tap2:true,notif:{on:false,tours:true,start:true,inv:true},on:{n:2,target:30,stake:0,flor:true}};
 try{const s=JSON.parse(localStorage.getItem('reviro.set')||'{}');Object.assign(SET,s);SET.on=Object.assign({n:2,target:30,stake:0,flor:true},s.on||{})}catch(e){}
 function saveSet(){try{localStorage.setItem('reviro.set',JSON.stringify(SET))}catch(e){}}
+setLangNow(SET.lang||guessLang());i18nWatch();
+/* cambiar de idioma: queda en este dispositivo y en la cuenta, y se aplica en el momento */
+function setLang(l){if(!LOCALES[l])return;SET.lang=l;SET.langAt=Date.now();saveSet();if(walReady){WAL.lang=l;WAL.langAt=SET.langAt;saveWallet()}
+  const keep={};document.querySelectorAll('input[id],textarea[id]').forEach(el=>{keep[el.id]=el.type==='checkbox'?el.checked:el.value});
+  setLangNow(l);renderSnd();renderWallet();render();
+  for(const id in keep){const el=document.getElementById(id);if(el){if(el.type==='checkbox')el.checked=keep[id];else el.value=keep[id]}}}
+/* al cargar la cuenta: gana la elección más nueva entre este dispositivo y la cuenta */
+function syncLang(){if(WAL.lang&&LOCALES[WAL.lang]&&(WAL.langAt||0)>=(SET.langAt||0)){if(WAL.lang!==LANG){SET.lang=WAL.lang;SET.langAt=WAL.langAt||0;saveSet();setLangNow(WAL.lang)}return false}
+  WAL.lang=LANG;WAL.langAt=SET.langAt||0;return true}
 function toast(t){const el=$('#toast');el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,3200)}
 
 /* ---------- sonido: muestras pregeneradas, reproducidas con <audio> (suena aunque el iPhone esté en silencio) y respaldo Web Audio ---------- */
@@ -146,10 +155,11 @@ async function loadWallet(){try{const l=JSON.parse(localStorage.getItem(walKey()
   const today=new Date().toLocaleDateString('en-CA');
   /* premio del día: 30 monedas y, si te quedaste corto, las fichas se completan hasta 1.000 */
   if(WAL.daily!==today){WAL.daily=today;const top=Math.max(0,1000-WAL.chips);await applyTx('daily-'+today,{coins:30,chips:top});toast('Premio del día: +30 monedas'+(top?` y tus fichas vuelven a 1.000`:''))}
+  if(syncLang())saveWallet();
   if(!WAL.fcode){WAL.fcode=genFriendCode();saveWallet()}
   if(!WAL.th2){WAL.th2=1;if(WAL.eq.pano==='bordo')WAL.eq.pano='quincho';if(WAL.eq.dorso==='bordo')WAL.eq.dorso='pampa';saveWallet()}
   ensureMissions();writeLooks();render()}
-function mergeWal(d){for(const k of ['chips','coins','daily','th2','nick','fcode','registered','copas'])if(d[k]!==undefined)WAL[k]=d[k];
+function mergeWal(d){for(const k of ['chips','coins','daily','th2','nick','fcode','registered','copas','lang','langAt'])if(d[k]!==undefined)WAL[k]=d[k];
   if(Array.isArray(d.owned))WAL.owned=d.owned;if(d.mis)WAL.mis=d.mis;if(d.ach)WAL.ach={cnt:d.ach.cnt||{},done:d.ach.done||[]};if(Array.isArray(d.evk))WAL.evk=d.evk;if(Array.isArray(d.tut))WAL.tut=d.tut;if(Array.isArray(d.friends))WAL.friends=d.friends;if(d.gira)WAL.gira={beat:d.gira.beat||{},bosses:d.gira.bosses||[]};if(d.tours&&typeof d.tours==='object')WAL.tours=d.tours;if(Array.isArray(d.applied))WAL.applied=d.applied;
   if(d.eq)WAL.eq=Object.assign({},WAL.eq,d.eq);if(d.stats)WAL.stats=Object.assign({},WAL.stats,d.stats)}
 async function saveWallet(){const body=JSON.parse(JSON.stringify(WAL));try{localStorage.setItem(walKey(),JSON.stringify(body))}catch(e){}
@@ -226,6 +236,7 @@ function render(){const v=$('#view');routeSync();document.body.dataset.view=view
   if(view==='torneos'||view==='tour')requestAnimationFrame(animatePots);
   if(view==='game'&&FX.deal){clearTimeout(REPAINT);const hn=G&&G.handNo;REPAINT=setTimeout(()=>{if(view!=='game'||!G||G.handNo!==hn)return;document.querySelectorAll('.hand img.cart').forEach(im=>{const u=CARDIMG[im.dataset.c];if(u&&im.getAttribute('src')!==u)im.src=u});const hd=document.querySelector('.hand');if(hd){hd.style.transform='translateZ(0)';requestAnimationFrame(()=>requestAnimationFrame(()=>{hd.style.transform=''}))}},760)}
   $('#overlay').innerHTML=overlayHTML();FX={};musicUpdate();
+  if(LANG!=='es'){if(view!=='game')trTree(v);trTree($('#overlay'))}
   if(view==='game')requestAnimationFrame(holdActions);
   if(view!=='game'){requestAnimationFrame(fitPass);clearTimeout(FITT);FITT=setTimeout(()=>{FITPASS=0;fitPass()},350)}
   {const pl=document.querySelector('.pills');if(pl)pl.style.visibility=(view==='auth'||view==='boot'||view==='login')?'hidden':'visible'}
@@ -262,12 +273,12 @@ async function shareCanvas(){const I=shareInfo(),W=1080,H=1350,cv=document.creat
   /* el cartel */
   const rw=760,rh=170,rx=(W-rw)/2,ry=ay+S-20;x.save();x.translate(W/2,ry+rh/2);if(!I.won)x.rotate(-.04);x.translate(-W/2,-(ry+rh/2));
   x.shadowColor='rgba(0,0,0,.5)';x.shadowBlur=30;x.shadowOffsetY=12;rr(rx,ry,rw,rh,30);const rg=x.createLinearGradient(0,ry,0,ry+rh);if(I.won){rg.addColorStop(0,'#7a1f2e');rg.addColorStop(1,'#4d1220')}else{rg.addColorStop(0,'#3d3330');rg.addColorStop(1,'#241c1a')}x.fillStyle=rg;x.fill();x.shadowColor='transparent';x.lineWidth=7;x.strokeStyle=I.won?'#f0c548':'#8a6e62';x.stroke();
-  x.font='italic 800 118px "Bodoni Moda", Georgia, serif';x.textAlign='center';const label=I.won?'¡Victoria!':'Derrota',ty=ry+rh/2+42;
+  x.font='italic 800 118px "Bodoni Moda", Georgia, serif';x.textAlign='center';const label=tx(I.won?'¡Victoria!':'Derrota'),ty=ry+rh/2+42;
   if(I.won){x.fillStyle='#1d3557';x.fillText(label,W/2+7,ty+7);x.fillStyle='#74acdf';x.fillText(label,W/2+3.5,ty+3.5);x.fillStyle='#fff'}else{x.fillStyle='#5b4a44';x.fillText(label,W/2+4,ty+4);x.fillStyle='#e9dccb'}x.fillText(label,W/2,ty);x.restore();
   /* el resultado */
   txt(`${I.a1} a ${I.a2}`,ry+rh+150,'800 130px "Bodoni Moda", Georgia, serif','#f6ead2');
-  txt(`${I.won?(I.dos?'Ganamos':'Le gané'):(I.dos?'Perdimos':'Perdí')} contra ${I.rival}`.slice(0,46),ry+rh+225,'600 46px "Barlow Semi Condensed", Arial, sans-serif','#e9dccb');
-  txt(I.donde,ry+rh+285,'500 38px "Barlow Semi Condensed", Arial, sans-serif','#c9b48f');
+  txt(tx(`${I.won?(I.dos?'Ganamos':'Le gané'):(I.dos?'Perdimos':'Perdí')} contra ${I.rival}`).slice(0,46),ry+rh+225,'600 46px "Barlow Semi Condensed", Arial, sans-serif','#e9dccb');
+  txt(tx(I.donde),ry+rh+285,'500 38px "Barlow Semi Condensed", Arial, sans-serif','#c9b48f');
   txt('¿Te animás? Jugá truco en aleclem180.github.io/Reviro',H-110,'600 36px "Barlow Semi Condensed", Arial, sans-serif','#f0c548');
   return await new Promise(ok=>cv.toBlob(ok,'image/png'))}
 function shareText(){const I=shareInfo();return `${I.won?'¡Gané':'Perdí'} ${I.a1} a ${I.a2} al truco en Reviro${I.won?'!':''} ¿Te animás? ${SITE}`}
@@ -299,12 +310,12 @@ function markNotified(k){NOTIFIED.add(k);try{localStorage.setItem('reviro.avisad
 async function notify(kind,key,title,body,go){if(NOTIFIED.has(key))return;markNotified(key);const n=notifSet();
   if(!document.hidden){if(kind!=='inv')toast(title+(body?': '+body:''));return}   /* con la página a la vista alcanza con el aviso de adentro */
   if(!n.on||n[kind]===false||!NOTIF_OK()||Notification.permission!=='granted')return;
-  const opt={body,icon:'img/icono-192.png',badge:'img/icono-192.png',tag:key,data:{go},lang:'es-AR'};
+  title=tx(title);body=tx(body);const opt={body,icon:'img/icono-192.png',badge:'img/icono-192.png',tag:key,data:{go},lang:fmtLoc()};
   try{if(SWREG)await SWREG.showNotification(title,opt);else{const x=new Notification(title,opt);x.onclick=()=>{goFromNotif(go);x.close()}}}catch(e){}}
 async function enableNotif(){if(!NOTIF_OK()){toast('Este navegador no permite avisos');return}
   let p=Notification.permission;if(p!=='granted'){try{p=await Notification.requestPermission()}catch(e){}}
   if(p==='granted'){SET.notif=Object.assign(notifSet(),{on:true});saveSet();toast('Avisos activados');
-    try{const opt={body:'Así te van a llegar los avisos de torneos e invitaciones.',icon:'img/icono-192.png',tag:'prueba'};if(SWREG)SWREG.showNotification('Reviro',opt);else new Notification('Reviro',opt)}catch(e){}}
+    try{const opt={body:tx('Así te van a llegar los avisos de torneos e invitaciones.'),icon:'img/icono-192.png',tag:'prueba'};if(SWREG)SWREG.showNotification('Reviro',opt);else new Notification('Reviro',opt)}catch(e){}}
   else toast('No diste permiso. Se activa desde la configuración del navegador, en los permisos del sitio');render()}
 let TOURSEEN=null;
 function tourNotices(){if(!TOURS)return;const now=Date.now();
@@ -340,7 +351,7 @@ function morphKids(a,b){const bc=[...b.childNodes];
     if(!na){a.appendChild(nb);continue}
     morphNode(na,nb)}
   while(a.childNodes.length>bc.length)a.removeChild(a.lastChild)}
-function morphInto(el,html){const t=document.createElement('div');t.innerHTML=html;morphKids(el,t)}
+function morphInto(el,html){const t=document.createElement('div');t.innerHTML=html;if(LANG!=='es')trTree(t);morphKids(el,t)}
 
 let ACTH={m:null,h:0};
 function holdActions(){const a=document.querySelector('.game .actions');if(!a||!G)return;if(ACTH.m!==G.matchId)ACTH={m:G.matchId,h:0};
@@ -951,6 +962,7 @@ function registerHTML(){const free=AVS.filter(a=>!a.price);
   return `<div class="gate">${fileteHTML('gtitle')}
   <form class="box" data-form="reg"><h2>Creá tu cuenta</h2>
     ${myEmail?`<p class="note">Vas a quedar registrado con <b>${esc(myEmail)}</b>.</p>`:`<p class="note">${LOCAL?'Tu progreso se guarda en este dispositivo.':'Vas a quedar registrado con tu cuenta de claude.ai.'}</p>`}
+    <div class="field"><span>Idioma</span>${langPickHTML()}</div>
     <div class="field"><span>Tu apodo en la mesa</span><input type="text" id="regnick" class="plain" maxlength="20" placeholder="Por ejemplo: El Ale" value="${esc(WAL.nick||myName||'')}" autocomplete="off" required></div>
     <div class="field"><span>Elegí tu personaje</span><div class="regavs">${free.map(a=>`<button type="button" class="regav" data-a="regav" data-id="${a.id}" aria-pressed="${regAv===a.id}">${avatarSVG(a.id,96,true)}<b>${esc(a.name)}</b></button>`).join('')}</div>
       <p class="note">Después podés conseguir más en la tienda.</p></div>
@@ -1236,7 +1248,7 @@ function extraHTML(){const done=(WAL.tut||[]).length,mis=(()=>{ensureMissions();
     ${modeTile('data-a="nav" data-v="anotador"','12B','Anotador',`${ANOT.s[0]} a ${ANOT.s[1]} · a ${ANOT.target}`)}
   </div><button type="button" class="linkrow" data-a="terms">Términos y condiciones</button>`}
 function settingsHTML(){const tg=(k,l,sub,inv)=>`<div class="toggle"><span>${l}<small>${sub}</small></span><button type="button" class="sw" data-a="toggle" data-k="${k}" aria-pressed="${inv?!SET[k]:!!SET[k]}" aria-label="${l}"></button></div>`;
-  const opts=[['sonido','Sonido'],['juego','Juego'],['avisos','Avisos'],['cuenta','Cuenta']];if(isOwnerV)opts.push(['admin','Admin']);const [tab,tabs]=ptabs('set',opts,'sonido');let body='';
+  const opts=[['sonido','Sonido'],['juego','Juego'],['idioma','Idioma'],['avisos','Avisos'],['cuenta','Cuenta']];if(isOwnerV)opts.push(['admin','Admin']);const [tab,tabs]=ptabs('set',opts,'sonido');let body='';
   if(tab==='avisos'){const n=notifSet(),perm=NOTIF_OK()?Notification.permission:'no';const nt=(k,l,sub)=>`<div class="toggle"><span>${l}<small>${sub}</small></span><button type="button" class="sw" data-a="ntog" data-k="${k}" aria-pressed="${n.on&&n[k]!==false}" aria-label="${l}" ${n.on?'':'disabled'}></button></div>`;
     body=`<section class="box">${perm==='no'?`<p class="note" style="margin:0">Los avisos funcionan en la web de Reviro (aleclem180.github.io/Reviro), en un navegador que los permita.</p>`
       :perm==='denied'?`<p style="margin:0"><b>Los avisos están bloqueados.</b></p><p class="note" style="margin:0">Para activarlos, entrá a los permisos del sitio en tu navegador (el candado al lado de la dirección), permití las notificaciones y volvé acá.</p>`
@@ -1250,6 +1262,7 @@ function settingsHTML(){const tg=(k,l,sub,inv)=>`<div class="toggle"><span>${l}<
   if(tab==='juego')body=`<section class="box">${tg('tap2','Tirar con dos toques','Tocás la carta, sube, y la tirás tocándola otra vez. Así no se escapa ninguna')}${tg('help','Ayuda en pantalla','Te muestra tu envido o tu flor en la primera baza')}
       <div class="field"><span>Flor en La Huella</span>${seg('hflor',[['true','Con flor'],['false','Sin flor']],SET.hflor!==false)}</div>
       <p class="note" style="margin:0">La dificultad, los puntos, la flor y la apuesta de cada partida se eligen en Jugar, con el botón Cambiar.</p></section>`;
+  if(tab==='idioma')body=`<section class="box"><div class="field"><span>Idioma de Reviro</span>${langPickHTML()}</div><p class="note" style="margin:0">Cambia todos los textos de la página. Se guarda en tu cuenta, así lo encontrás igual en cualquier dispositivo.</p></section>`;
   if(tab==='cuenta')body=`<section class="box"><p style="margin:0">Jugás como <b>${esc(myDisp())}</b>${PREMIUM?' · <span class="prem">Premium</span>':''}</p>${myEmail?`<p class="note" style="margin:0">Cuenta: ${esc(myEmail)}</p>`:''}
       <p class="note" style="margin:0">Tu código de amigo es <b>${esc(WAL.fcode||'—')}</b>. El apodo y los amigos se manejan desde Perfil.</p>
       <button class="btn" data-a="nav" data-v="profile">Ir a Perfil</button><button class="btn ghost" data-a="terms">Términos y condiciones</button>${fbAccountHTML()}</section>`;
@@ -1322,11 +1335,12 @@ function authHTML(){const free=AVS.filter(a=>!a.price);const e=AUTHERR?`<p class
     ${AUTHV==='register'?`<div class="field"><span>Mail</span><input type="email" id="aemail" class="plain" autocomplete="email" value="${esc(savedEmail())}" required></div>`:''}
     <div class="field"><span>Nombre de usuario</span><input type="text" id="auser" class="plain" maxlength="20" value="${AUTHV==='complete'?esc(googleUser()):''}" autocomplete="username" placeholder="De 3 a 20 letras, números, punto o guion bajo" required></div>
     ${AUTHV==='register'?`<div class="field"><span>Contraseña</span><input type="password" id="apass" class="plain" autocomplete="new-password" minlength="6" placeholder="Al menos 6 caracteres" required></div>`:''}
+    <div class="field"><span>Idioma</span>${langPickHTML()}</div>
     <div class="field"><span>Elegí tu personaje</span><div class="regavs">${free.map(a=>`<button type="button" class="regav" data-a="regav" data-id="${a.id}" aria-pressed="${regAv===a.id}">${avatarSVG(a.id,96,true)}<b>${esc(a.name)}</b></button>`).join('')}</div></div>
     ${AUTHV==='register'||AUTHV==='complete'?`<label class="tos"><input type="checkbox" id="aterms" ${TOSOK?'checked':''}> <span>Leí y acepto los <button type="button" class="linkb" data-a="terms">términos y condiciones</button></span></label>`:''}
     ${e}<button class="btn prim" type="submit" ${dis}>${AUTHBUSY?'Creando…':'Crear mi cuenta'}</button>
     <p class="note">${AUTHV==='register'?'Te vamos a mandar un mail para verificar tu cuenta. ':''}Las fichas y las monedas de Reviro no tienen valor en dinero.</p></form>`;
-  return `<div class="gate">${fileteHTML('gtitle')}${tabs}${body}</div>`}
+  return `<div class="gate">${fileteHTML('gtitle')}${AUTHV==='register'||AUTHV==='complete'?'':langPickHTML('mini')}${tabs}${body}</div>`}
 const GICO='<svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>';
 /* el nombre que trae Google, pasado a un usuario válido (de 3 a 20 letras, números, punto o guion bajo) */
 const googleUser=()=>{let n='';try{n=(NET.auth.googleName&&NET.auth.googleName())||''}catch(e){}n=n.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'.').replace(/[^A-Za-z0-9._]/g,'').slice(0,20);return n.length>=3?n:''};
@@ -1391,7 +1405,7 @@ async function fbStartAI(){const n=+SET.n,stake=+SET.stake;if(stake>WAL.chips){t
 let TOURS=null,TV=null,TVB=null,tvUnsub=null,toursUnsub=null,tourBusy=false,tourConfirm=null;const TREP=new Set(),TOPEN=new Set(),TSTART=new Set(),TCLAIM=new Set();
 const TN={name:'',theme:'',date:'',rules:'',format:'ko',mode:'1v1',max:8,buyIn:100,target:15,flor:true};
 const TMAX={ko:[8,16,32,64,128],liga:[4,6,8,10,12]};const TBUY=[0,50,100,250,500,1000];
-const tFmtDate=ms=>{try{return new Date(ms).toLocaleString('es-AR',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}catch(e){return''}};
+const tFmtDate=ms=>{try{return new Date(ms).toLocaleString(fmtLoc(),{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}catch(e){return''}};
 const tTeamName=tm=>!tm?'—':esc(tm.names.filter(Boolean).join(' y ')+(tm.bot?' y la IA':''));
 const tMine=tm=>!!(tm&&tm.ids.includes(uid));
 const tStatus={open:'Inscripción abierta',running:'En juego',paused:'En pausa',finished:'Terminado',cancelled:'Cancelado'};
@@ -1649,6 +1663,7 @@ document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closes
   switch(a){
   case 'nav':overlayView=null;view=t.dataset.v;render();return;
   case 'ptab':PT[t.dataset.k]=t.dataset.v;render();return;
+  case 'lang':setLang(t.dataset.v);return;
   case 'pg':{const k=t.dataset.k;FITP[k]=Math.max(0,(FITP[k]||0)+(+t.dataset.d));render();return}
   case 'ov':overlayView=t.dataset.v;render();return;
   case 'shopgo':shopTab=t.dataset.v;view='shop';render();return;

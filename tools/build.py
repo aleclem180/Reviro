@@ -14,11 +14,33 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "src"
-JS = ["engine.js", "cat.js", "art.js", "ui.js"]
+JS = ["engine.js", "cat.js", "art.js", "textos.js", "i18n.js", "ui.js"]
 # las direcciones tienen que coincidir con ROUTES en src/ui.js
 ROUTES = ["online", "torneos", "torneo", "nuevo-torneo", "huella", "extra", "perfil", "ajustes",
           "tienda", "misiones", "ranking", "reglamento", "tutorial", "anotador"]
 
+import json
+# traducciones: i18n/<idioma>.json (clave = texto en español) -> src/textos.js, que se carga antes que la interfaz
+_tr = {l: json.loads((ROOT / "i18n" / f"{l}.json").read_text(encoding="utf-8")) for l in ("en", "pt")}
+# los nombres de las cartas: "7 de espada", "ancho de basto"
+_SU = {"en": {"oro": "coins", "copa": "cups", "espada": "swords", "basto": "clubs"}, "pt": {"oro": "ouros", "copa": "copas", "espada": "espadas", "basto": "paus"}}
+_NUM = {"en": {"ancho": "ace", "siete": "seven", "tres": "three", "dos": "two"}, "pt": {"ancho": "ás", "siete": "sete", "tres": "três", "dos": "dois"}}
+for _l, _d in _tr.items():
+    for _s, _st in _SU[_l].items():
+        for _n in (1, 2, 3, 4, 5, 6, 7, 10, 11, 12):
+            _d.setdefault(f"{_n} de {_s}", f"{_n} {'of' if _l == 'en' else 'de'} {_st}")
+        for _w, _wt in _NUM[_l].items():
+            _d.setdefault(f"{_w} de {_s}", f"{_wt} {'of' if _l == 'en' else 'de'} {_st}")
+# "{0} Invitar por WhatsApp": el {0} suele ser un ícono, así que el texto también aparece solo
+import re as _re
+for _d in _tr.values():
+    for _k, _v in list(_d.items()):
+        for _pat in (r"^\{0\} ?", r" ?\{(\d)\}$"):
+            _k2, _v2 = _re.sub(_pat, "", _k), _re.sub(_pat, "", _v)
+            if _k2 != _k and _v2 != _v and _re.search(r"[A-Za-zÀ-ÿ]", _re.sub(r"\{\d\}", "", _k2)) and _k2 not in _d:
+                _d[_k2] = _v2
+(SRC / "textos.js").write_text("/* generado por tools/build.py desde i18n/*.json: no editar a mano */\nconst I18N=" +
+                               json.dumps(_tr, ensure_ascii=False, separators=(",", ":")) + ";\n", encoding="utf-8")
 read = lambda f: (SRC / f).read_text(encoding="utf-8")
 ver = lambda f: hashlib.sha1((SRC / f).read_bytes()).hexdigest()[:8]
 head, style, body = read("head.html"), read("style.css"), read("body.html")
@@ -84,6 +106,6 @@ one = head + "\n<style>\n" + style + "</style>\n\n" + body + "\n<script>\n" + sc
 (ROOT / "dist" / "claude.html").write_text(one, encoding="utf-8")
 
 # para GitHub, lo generado no cuenta como código del proyecto
-attrs = ["dist/** linguist-generated=true", "index.html linguist-generated=true"] + [f"{r}/index.html linguist-generated=true" for r in ROUTES]
+attrs = ["dist/** linguist-generated=true", "index.html linguist-generated=true", "src/textos.js linguist-generated=true"] + [f"{r}/index.html linguist-generated=true" for r in ROUTES]
 (ROOT / ".gitattributes").write_text("\n".join(attrs) + "\n", encoding="utf-8")
 print(f"index.html, {len(ROUTES)} hojas y dist/claude.html listos")
