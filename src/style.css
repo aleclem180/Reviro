@@ -216,7 +216,7 @@ details.rules summary{font-family:var(--f-display);font-size:1.2rem;cursor:point
 .hand button:not(:disabled):hover,.hand button:not(:disabled):focus-visible{--y:-14px;z-index:3}
 .hand button:disabled{cursor:default}
 .hand.wait button{filter:brightness(.82)}
-.hand button.deal{animation:deal .42s cubic-bezier(.2,.8,.3,1.1) backwards}
+.hand button.dealt{animation:deal .42s cubic-bezier(.2,.8,.3,1.1) backwards}
 @keyframes deal{from{transform:translateY(-150px) scale(.5) rotate(12deg);opacity:0}to{transform:none;opacity:1}}
 .actions{display:flex;flex-direction:column;gap:6px;align-items:center;min-height:58px}
 .ask{margin:0;font-family:var(--f-display);font-size:1.2rem;text-align:center}
@@ -925,3 +925,21 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
 .senapop .sgrp{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center}
 .senapop .chiph{width:100%;text-align:center;font-size:.78rem;color:var(--muted);font-weight:700}
 .senapop .note{margin:0;text-align:center;font-size:.8rem}
+
+/* Ojo: la animación de repartir se llama "dealt" y no "deal". La clase .deal es la de la portada (display:flex)
+   y, si una carta de la mano la tenía, se quedaba sin ancho: esas eran las cartas invisibles al ser mano. */
+
+/* ===== Fin de la mano: el cartel va encima del paño, centrado, y no se corta ===== */
+.game .felt>.center{position:static}
+.game .center .result{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:6;width:min(92%,360px);max-height:92%;overflow:auto;
+  background:rgba(28,17,9,.94);box-shadow:0 14px 34px rgba(0,0,0,.55);padding:12px 14px;gap:6px;text-align:center}
+.game .center .result b{font-family:var(--f-display);font-size:1.25rem}
+.game .center .result .btns{justify-content:center;flex-wrap:wrap}
+/* ===== Tutorial ===== */
+.game .coach{flex:none;margin:0;padding:8px 12px;border-radius:12px}
+.game .coach p{margin:2px 0 0;font-size:.92rem;line-height:1.35}
+@media (max-height:760px){.game .coach p{font-size:.84rem}}
+.hand button.tutpick .card{box-shadow:0 0 0 3px var(--coin),0 0 22px rgba(240,197,72,.75)}
+.hand button.tutpick:not(.sel){animation:tutnudge 1.4s ease-in-out infinite}
+@keyframes tutnudge{50%{--y:-8px;transform:translateY(-8px) rotate(var(--r,0deg))}}
+@media (prefers-reduced-motion:reduce){.hand button.tutpick{animation:none}}

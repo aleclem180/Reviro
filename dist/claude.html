@@ -223,7 +223,7 @@ details.rules summary{font-family:var(--f-display);font-size:1.2rem;cursor:point
 .hand button:not(:disabled):hover,.hand button:not(:disabled):focus-visible{--y:-14px;z-index:3}
 .hand button:disabled{cursor:default}
 .hand.wait button{filter:brightness(.82)}
-.hand button.deal{animation:deal .42s cubic-bezier(.2,.8,.3,1.1) backwards}
+.hand button.dealt{animation:deal .42s cubic-bezier(.2,.8,.3,1.1) backwards}
 @keyframes deal{from{transform:translateY(-150px) scale(.5) rotate(12deg);opacity:0}to{transform:none;opacity:1}}
 .actions{display:flex;flex-direction:column;gap:6px;align-items:center;min-height:58px}
 .ask{margin:0;font-family:var(--f-display);font-size:1.2rem;text-align:center}
@@ -932,6 +932,24 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
 .senapop .sgrp{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center}
 .senapop .chiph{width:100%;text-align:center;font-size:.78rem;color:var(--muted);font-weight:700}
 .senapop .note{margin:0;text-align:center;font-size:.8rem}
+
+/* Ojo: la animación de repartir se llama "dealt" y no "deal". La clase .deal es la de la portada (display:flex)
+   y, si una carta de la mano la tenía, se quedaba sin ancho: esas eran las cartas invisibles al ser mano. */
+
+/* ===== Fin de la mano: el cartel va encima del paño, centrado, y no se corta ===== */
+.game .felt>.center{position:static}
+.game .center .result{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:6;width:min(92%,360px);max-height:92%;overflow:auto;
+  background:rgba(28,17,9,.94);box-shadow:0 14px 34px rgba(0,0,0,.55);padding:12px 14px;gap:6px;text-align:center}
+.game .center .result b{font-family:var(--f-display);font-size:1.25rem}
+.game .center .result .btns{justify-content:center;flex-wrap:wrap}
+/* ===== Tutorial ===== */
+.game .coach{flex:none;margin:0;padding:8px 12px;border-radius:12px}
+.game .coach p{margin:2px 0 0;font-size:.92rem;line-height:1.35}
+@media (max-height:760px){.game .coach p{font-size:.84rem}}
+.hand button.tutpick .card{box-shadow:0 0 0 3px var(--coin),0 0 22px rgba(240,197,72,.75)}
+.hand button.tutpick:not(.sel){animation:tutnudge 1.4s ease-in-out infinite}
+@keyframes tutnudge{50%{--y:-8px;transform:translateY(-8px) rotate(var(--r,0deg))}}
+@media (prefers-reduced-motion:reduce){.hand button.tutpick{animation:none}}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -2312,14 +2330,15 @@ function gameHTML(){if(!G)return'';const h=G.hand,me=mySeat,mt=myTeam(),a=actor(
     center=`<div class="result"><b>${h.ended.winner===mt?'La mano es nuestra':'La mano es de ellos'}</b><span>${esc(gains)}</span>${mode==='offline'||(me>=0&&controllerSeat()===mySeat)?'<button class="btn prim" data-a="next">Repartir</button>':'<span>Reparte la próxima en un ratito…</span>'}</div>`}
   const myCards=me>=0?h.cards[me]:[];const L=me>=0?legal(G,me):{};
   if(SELCARD&&(!L.play||!myCards.includes(SELCARD)))SELCARD=null;
-  const hand=`<div class="hand ${L.play?'':'wait'} ${SELCARD?'picking':''}">${myCards.map((c,i)=>`<button type="button" class="${FX.deal?'deal':''} ${SELCARD===c?'sel':''}" aria-pressed="${SELCARD===c}" style="animation-delay:${i*90}ms" data-card="${c}" ${L.play&&!busy&&tutAllowed({t:'play',card:c})?'':'disabled'} aria-label="${SELCARD===c?'Tocá de nuevo para tirar':'Elegir esta carta'}">${cardHTML(c)}</button>`).join('')}</div>`;
+  const hand=`<div class="hand ${L.play?'':'wait'} ${SELCARD?'picking':''}">${myCards.map((c,i)=>`<button type="button" class="${FX.deal?'dealt':''} ${SELCARD===c?'sel':''} ${TUT&&L.play&&coachNow()&&coachNow().x&&tutAllowed({t:'play',card:c})?'tutpick':''}" aria-pressed="${SELCARD===c}" style="animation-delay:${i*90}ms" data-card="${c}" ${L.play&&!busy&&tutAllowed({t:'play',card:c})?'':'disabled'} aria-label="${SELCARD===c?'Tocá de nuevo para tirar':'Elegir esta carta'}">${cardHTML(c)}</button>`).join('')}</div>`;
   let info='';if(SET.help&&me>=0&&!h.ended&&h.results.length===0){const o=h.orig[me];info=G.flor&&hasFlor(o)?`<span>Tenés flor: <b>${florVal(o)}</b></span>`:`<span>Tu envido: <b>${envidoOf(o)}</b></span>`}
   if(mode==='offline'&&partnerSena&&partnerSena.handNo===G.handNo&&h.results.length===0&&!h.ended)info+=`<span>Seña del compa: <b>${esc(partnerSena.t)}</b></span>`;
   /* el registro de la mano va en su columna, a la derecha del paño: así lo que pasa no mueve la mesa */
   const glog=`<aside class="glog ${LOGOPEN?'open':''}" id="glog" aria-label="Lo que pasó en la mano"><div class="glines" aria-live="polite">${G.log.slice(-9).map(e=>`<div>${esc(logText(e))}</div>`).join('')}</div>${info?`<div class="ginfo">${info}</div>`:''}</aside>`;
   center=center.replace('@@INFO@@','');
   const absentNote=mode==='online'&&G.seats.some((_,s)=>isAbsent(s))?(stakeTable(G)?G.seats.map((st,s)=>isAbsent(s)?`<p class="pausebar" data-pause="${(goneSince[st.id]||Date.now())+GRACE+60000}" data-who="${esc(nameOf(s))}">${pauseText(nameOf(s),(goneSince[st.id]||Date.now())+GRACE+60000)}</p>`:'').join(''):'<p class="note">Un bot difícil juega por quien se desconectó hasta que vuelva.</p>'):'';
-  const coachBox=TUT&&co&&!h.ended?`<div class="coach"><small>Lección ${TUT.i+1} de ${LESSONS.length} · ${esc(LESSONS[TUT.i].title)}</small><p>${esc(co.t||'')}</p></div>`:'';
+  const tapTip=TUT&&co&&co.x&&L.play&&SET.tap2!==false&&myCards.some(c=>co.x({t:'play',card:c}))?(SELCARD?' Ahora tocala otra vez para tirarla.':' Tocá la carta y tocala otra vez para tirarla.'):'';
+  const coachBox=TUT&&co&&!h.ended?`<div class="coach"><small>Lección ${TUT.i+1} de ${LESSONS.length} · ${esc(LESSONS[TUT.i].title)}</small><p>${esc((co.t||'')+tapTip)}</p></div>`:'';
   const b0=FX.bump&&FX.bump[mt]?'bump':'',b1=FX.bump&&FX.bump[1-mt]?'bump':'';
   return `<section class="game">
     <div class="gtop"><button class="btn ${confirmExit?'warn':'ghost'}" data-a="exit">${confirmExit?(inProgress()&&countsOnline(G)?(G.stake?'Salir: derrota y perdés la apuesta':'Salir: cuenta como derrota'):inProgress()&&CAMP?'Salir: perdés los porotos':inProgress()&&G.stake?'Salir: perdés la apuesta':'Confirmar salida'):'Salir'}</button>${info?`<span class="gtinfo">${info}</span>`:''}<span class="gtr"><button type="button" class="logbtn" data-a="logtoggle" aria-expanded="${LOGOPEN}" aria-controls="glog">Registro<i aria-hidden="true"></i></button>${mode==='online'?`<span class="note">Mesa ${esc(T?T.code:'')}</span>`:`<span class="note">${({facil:'Fácil',medio:'Medio',dificil:'Difícil'})[G.diff]}</span>`}</span></div>
