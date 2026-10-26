@@ -760,3 +760,10 @@ html,body{height:100%;overflow:hidden}
 .fit.flist,.fit.lb,.fit.rvl,.fit.tlist,.fit.tms,.fit.tables,.fit.stand{align-items:stretch}
 .rv .rvi small:first-of-type{white-space:nowrap}
 .lpanel,.opanel{align-items:stretch}.lpanel>*,.fitw,.fit{min-width:0}.lpanel>.btn{align-self:center}
+/* camisetas de La Hincha en el celular */
+.kpanel{align-items:stretch;max-width:420px}
+.kpanel .item{width:100%;min-width:0;gap:8px}
+.kpanel .prev{height:clamp(120px,24dvh,170px)!important}
+.kpanel .kits{grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;width:100%}
+.kpanel .kitb{width:100%;box-sizing:border-box}
+@media (max-width:380px){.kpanel .kits{gap:5px}.kpanel{padding:14px}}
