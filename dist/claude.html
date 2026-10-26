@@ -666,11 +666,11 @@ const BOT_REPLIES=['¡Ja! Ya vas a ver','Tranquilo, pibe','Se viene el retruco',
 const OL='#3a2016';
 function shade(hex,amt){const m=/^#?([0-9a-f]{6})$/i.exec(hex);if(!m)return hex;const n=parseInt(m[1],16);let r=n>>16,g=(n>>8)&255,b=n&255;
   const t=amt<0?0:255,k=Math.abs(amt);r=Math.round(r+(t-r)*k);g=Math.round(g+(t-g)*k);b=Math.round(b+(t-b)*k);return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1)}
-const TORSO='M17 100V77Q17 60 32 55.6Q41 53 50 53.4Q59 53 68 55.6Q83 60 83 77V100Z';
+const TORSO='M13 100V76Q13 62.5 24 59Q36 56 44 51H56Q64 56 76 59Q87 62.5 87 76V100Z';
 function limb(d,w,col){return `<path class="lo" d="${d}" stroke="${OL}" stroke-width="${w+2.2}" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path class="li" d="${d}" stroke="${col}" stroke-width="${w}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`}
 let AVN=0;
 /* la cabeza se dibuja en el sistema de 64 (centro 32,30) y se ubica en (50,28) escalada */
-const HEADT='translate(50 32) scale(.9) translate(-32 -30)';
+const HEADT='translate(50 32.4) scale(.84 .95) translate(-32 -30)';
 function avatarSVG(id,px,full){const sid=String(id),kit=sid.split(':')[1],a=AVM[sid]||AVM[sid.split(':')[0]]||AVM.gaucho,k='av'+(++AVN);
   const KT=a.id==='hincha'&&KITM[kit||'arg'],p=KT?Object.assign({},a.spec,{kit:KT.id,sleeve:KT.sleeve,k1:KT.c1,k2:KT.c2}):a.spec;
   const s=p.skin,sd=shade(s,-.2),hc=p.hc||'#2b1b12',fc=p.fc||hc,sl=p.sleeve||p.shirt,fa=p.bare?s:sl;
@@ -694,12 +694,12 @@ function avatarSVG(id,px,full){const sid=String(id),kit=sid.split(':')[1],a=AVM[
   if(p.hair==='braids')o+=`<ellipse cx="21" cy="53" rx="2.8" ry="6.4" fill="${HR}"/><ellipse cx="43" cy="53" rx="2.8" ry="6.4" fill="${HR}"/>`;
   o+=`</g>`;
   /* cuello con sombra del mentón */
-  o+=`<path d="M45 41h10v14.4q-5 2.8-10 0z" fill="${SK}" stroke="${OL}" stroke-width=".75"/><path d="M45.2 42.4q4.8 5 9.6 0v5q-4.8 3.6-9.6 0z" fill="${sd}" fill-opacity=".7"/>`;
+  o+=`<path d="M44.2 40.5q5.8 2.6 11.6 0l.6 14.6q-6.4 3-12.8 0z" fill="${SK}" stroke="${OL}" stroke-width=".75"/><path d="M44.4 41.8q5.6 5.4 11.2 0l.2 5.2q-5.8 3.8-11.6 0z" fill="${sd}" fill-opacity=".7"/>`;
   /* torso y ropa */
   o+=`<path d="${TORSO}" fill="url(#${k}sh)" stroke="${OL}" stroke-width=".9"/>`;
-  o+=`<g transform="translate(50 53.4) scale(1.2 1.075) translate(-50 -55.5)">${outfit2(p,k+'t2',s)}</g>`;
+  o+=`<g transform="translate(50 52.6) scale(1.36 1.09) translate(-50 -55.5)">${outfit2(p,k+'t2',s)}</g>`;
   o+=`<defs><clipPath id="${k}t2"><path d="M23 100V71Q23 58 36 55.5H64Q77 58 77 71V100Z"/></clipPath></defs>`;
-  o+=`<g clip-path="url(#${k}t)"><path d="M57 53H68Q83 60 83 77V100H60Q63 80 57 53Z" fill="${shade(p.shirt,-.5)}" fill-opacity=".18"/><path d="M19 70Q22 60 32 56.2L31 64Q24 66 19 70Z" fill="#fff" fill-opacity=".08"/>
+  o+=`<g clip-path="url(#${k}t)"><path d="M58 51H68Q87 60 87 77V100H61Q64 80 58 51Z" fill="${shade(p.shirt,-.5)}" fill-opacity=".18"/><path d="M15 72Q18 61 30 57.4L29 65Q20 67 15 72Z" fill="#fff" fill-opacity=".08"/>
     <path d="M30 74q2.6 4 .8 9.4M70 74q-2.6 4-.8 9.4" stroke="${OL}" stroke-opacity=".22" stroke-width=".7" fill="none" stroke-linecap="round"/></g>`;
   /* cabeza */
   o+=`<g transform="${HEADT}">`;
@@ -731,9 +731,9 @@ function sketchSVG(k,p,fig,defs,crop,vb,px,name){
     <pattern id="${k}hy" width="2.1" height="2.1" patternUnits="userSpaceOnUse" patternTransform="rotate(-48)"><path d="M0 1.05H2.1" stroke="${INK}" stroke-width=".28"/></pattern>`;
   const css=`<style>#${k}c [stroke="${OL}"]{stroke:none}#${k}i *{fill:#fff;fill-opacity:1}#${k}i [stroke]{stroke:${INK}}#${k}i [stroke]:not([stroke="${OL}"]){stroke-width:.45;stroke-opacity:.45}#${k}i .lo{stroke:none}#${k}i .li{stroke-width:.55;stroke-opacity:.9}#${k}i [stroke-opacity]:not(.li){stroke-opacity:.38}</style>`;
   /* zonas en sombra que se rayan (mismas formas que el sombreado del dibujo) */
-  const HT='translate(50 32) scale(.9) translate(-32 -30)';
-  const shadows=`<g clip-path="url(#${k}t)"><path d="M57 53H68Q83 60 83 77V100H60Q63 80 57 53Z" fill="url(#${k}hx)" opacity=".75"/><path d="M64 60Q80 64 83 84V100H70Q72 78 64 60Z" fill="url(#${k}hy)" opacity=".55"/></g>
-    <path d="M45.2 42.4q4.8 5 9.6 0v5q-4.8 3.6-9.6 0z" fill="url(#${k}hx)" opacity=".8"/>
+  const HT=HEADT;
+  const shadows=`<g clip-path="url(#${k}t)"><path d="M58 51H68Q87 60 87 77V100H61Q64 80 58 51Z" fill="url(#${k}hx)" opacity=".75"/><path d="M66 60Q84 64 87 84V100H72Q74 78 66 60Z" fill="url(#${k}hy)" opacity=".55"/></g>
+    <path d="M44.4 41.8q5.6 5.4 11.2 0l.2 5.2q-5.8 3.8-11.6 0z" fill="url(#${k}hx)" opacity=".8"/>
     <g transform="${HT}"><path d="M38.6 19.4Q44.8 26 42.2 36.4Q40.2 41.6 35.8 43.3Q40.8 37.4 40.4 29.6Q40.2 23 38.6 19.4Z" fill="url(#${k}hx)" opacity=".5"/></g>`;
   const bg=`<rect x="-5" y="-5" width="110" height="110" fill="${PAPER}"/>
     <g ${crop?'':`filter="url(#${k}bl)"`}><circle cx="${crop?50:48}" cy="${crop?33:42}" r="${crop?17:33}" fill="${wash}" fill-opacity=".85"/><circle cx="${crop?55:58}" cy="${crop?38:52}" r="${crop?12:24}" fill="${shade(p.bg,.18)}" fill-opacity=".35"/></g>`;
@@ -744,7 +744,7 @@ function brows3(p,hc){const c=p.brow||shade(hc,.05),lift=p.mouth==='smirk'?-.9:0
   const R=`<path d="M39.6 ${26.4+lift}Q36.6 ${24.4+lift} 33.4 ${25.8+lift}Q36.6 ${25.6+lift} 39.6 ${26.4+lift}Z" fill="${c}" stroke="${c}" stroke-width=".8" stroke-linejoin="round"/>`;
   return L+R}
 function eye3(cx,iris,lid,s,sd){let o=`<path d="M${cx-3.1} 30.4Q${cx} 27.6 ${cx+3.1} 30.3Q${cx} 32.5 ${cx-3.1} 30.4Z" fill="#fbf6ec"/>`;
-  o+=`<circle cx="${cx+.2}" cy="30.3" r="1.5" fill="${iris}"/><circle cx="${cx+.2}" cy="30.3" r=".72" fill="#140b06"/><circle cx="${cx+.7}" cy="29.7" r=".42" fill="#fff"/><circle cx="${cx-.35}" cy="30.9" r=".2" fill="#fff" fill-opacity=".7"/>`;
+  o+=`<circle cx="${cx+.2}" cy="30.3" r="1.32" fill="${iris}"/><circle cx="${cx+.2}" cy="30.3" r=".62" fill="#140b06"/><circle cx="${cx+.7}" cy="29.7" r=".42" fill="#fff"/><circle cx="${cx-.35}" cy="30.9" r=".2" fill="#fff" fill-opacity=".7"/>`;
   if(lid)o+=`<path d="M${cx-3.4} 30.5Q${cx} 27.2 ${cx+3.4} 30.4Q${cx} 29.2 ${cx-3.4} 30.5Z" fill="${shade(s,-.08)}"/>`;
   o+=`<path d="M${cx-3.3} 30.5Q${cx} ${lid?29.2:27.4} ${cx+3.3} 30.3" stroke="${OL}" stroke-width="1" fill="none" stroke-linecap="round"/><path d="M${cx-2.4} 31.7Q${cx} 32.7 ${cx+2.4} 31.6" stroke="${OL}" stroke-opacity=".35" stroke-width=".6" fill="none"/>`;
   return o}
@@ -780,26 +780,26 @@ function hand4fist(cx,cy,fill){return `<path d="M${cx-4.5} ${cy-2.4}q0-3 3-3.1h3
 function arms4(p,k,s,sd,sl,fa){const SK=`url(#${k}sk)`,SL=`url(#${k}sl)`,FA=p.bare?SK:SL,cuff=shade(sl,-.18),L=`stroke="${OL}" stroke-width=".8" stroke-linejoin="round"`;
   const fold=`stroke="${shade(sl,-.45)}" stroke-opacity=".45" stroke-width=".65" fill="none" stroke-linecap="round"`;
   let o='';
-  /* brazo derecho del dibujo, apoyado: hombro, codo, mano sobre la panza */
-  o+=`<path d="M66 55.4C75.6 55.6 84.6 62 87.4 72.6L80.2 75.6C78.4 68.4 73.6 63.6 67 62.6Z" fill="${SL}" ${L}/>`;
-  o+=`<path d="M87.4 72.6C88.6 80.6 81 86.6 70.4 87.6L69 80.8C75.4 80.2 79.6 78.6 80.2 75.6Z" fill="${FA}" ${L}/>`;
-  o+=`<path d="M77 64.6q3.6 3 4.6 7.6M73 61.4q2.4 1.4 3.8 3.6" ${fold}/>`;
-  if(p.bare)o+=`<path d="M87.6 71.8L79.8 75.2L79.4 73L87.2 69.6Z" fill="${cuff}" ${L}/>`;
-  else o+=`<path d="M70.6 88L69 80.4L71.6 80L73.2 87.6Z" fill="${cuff}" ${L}/>`;
-  o+=`<path d="M69.4 80.4C65.6 79.4 61 79.6 57 80.6C55.4 81 55.4 82.8 57 83L61.2 82.8C57.6 83.4 55.6 84.2 56 85.4C56.4 86.4 58.2 86 61.6 85.6C58.4 86.6 57.2 87.4 57.8 88.4C58.4 89.2 60.6 88.6 63.2 87.8C66 88.8 69.2 88.4 70.8 87Z" fill="${SK}" ${L}/>`;
-  o+=`<path d="M61.2 82.8L64 82.6M61.6 85.6L64.4 85.4" stroke="${OL}" stroke-opacity=".45" stroke-width=".55" fill="none" stroke-linecap="round"/>`;
+  /* brazo derecho del dibujo: cae relajado al costado del cuerpo */
+  if(p.bare){
+    o+=`<path d="M81.2 79.6L93.2 78.6L94.2 101H83.2Z" fill="${SK}" ${L}/><path d="M86 84q1.4 7 1 15" stroke="${OL}" stroke-opacity=".3" stroke-width=".55" fill="none"/>`;
+    o+=`<path d="M69 57.6C80 58 89.4 64.6 92.4 79.6L81.6 80.6Q80.4 71 70 65Z" fill="${SL}" ${L}/><path d="M81.4 80.8L92.6 79.8L92.4 77.2L81.2 78.2Z" fill="${cuff}" ${L}/>`;
+  }else{
+    o+=`<path d="M69 57.6C80 58 89.6 64.6 92.4 81L94 101H82.6L81.4 81Q80.4 71 70 65Z" fill="${SL}" ${L}/>`;
+  }
+  o+=`<path d="M80 68q4.6 6 6.4 15M75.6 63.6q2.6 1.6 4 4M86.6 88q1 5 .8 10" ${fold}/>`;
   if(p.prop==='none')return o;
-  /* brazo izquierdo del dibujo, levantado sosteniendo su objeto */
-  o+=`<path d="M34 55.4C24.4 56 16.2 62.6 13 72.4L19.6 75.4C21.6 68.4 26.2 63.8 33 62.6Z" fill="${SL}" ${L}/>`;
-  o+=`<path d="M13 72.4C11.4 65.8 13.4 59.8 16.4 55.6L23 57.4C20.4 61 18.6 66.4 19.6 75.4Z" fill="${FA}" ${L}/>`;
-  o+=`<path d="M22.6 64q-2.8 2.6-3.8 6.4M26.4 61q-2 1.2-3.2 3" ${fold}/>`;
-  if(p.bare)o+=`<path d="M12.6 71.4L19.8 74.6L20.4 72.4L13.4 69.2Z" fill="${cuff}" ${L}/>`;
-  else o+=`<path d="M15.8 57.8L16.6 55.2L23.4 57.2L22.6 59.6Z" fill="${cuff}" ${L}/>`;
+  /* brazo izquierdo del dibujo: codo abajo, antebrazo levantado sosteniendo su objeto a la altura del pecho */
+  o+=`<path d="M31 57.6C20 58 10.4 65 7.4 88Q7.6 95.6 14.6 95.4Q15.4 76 30 65Z" fill="${SL}" ${L}/>`;
+  o+=`<path d="M7.4 88C5.4 77 8.6 68 13.4 62.6L21.6 64C18 70 15.4 80 14.6 95.4Q8.6 95.2 7.4 88Z" fill="${FA}" ${L}/>`;
+  o+=`<path d="M20 68q-4.6 6-6.4 15M24.4 63.6q-2.6 1.6-4 4" ${fold}/>`;
+  if(p.bare)o+=`<path d="M7.8 81.6L15.2 83.2L15.4 80.6L8.2 79Z" fill="${cuff}" ${L}/>`;
+  else o+=`<path d="M12.6 65L13.8 62.2L22.2 63.8L21.2 66.6Z" fill="${cuff}" ${L}/>`;
   if(p.prop==='wave'){
-    return o+[[15,49.6,-14],[17.6,48.6,-5],[20.2,48.8,4],[22.6,50,13]].map(([x,y,r])=>`<rect x="${x-1.25}" y="${y-6}" width="2.5" height="7" rx="1.25" transform="rotate(${r} ${x} ${y})" fill="${SK}" ${L}/>`).join('')
-      +`<path d="M13.6 55.4q-3.4-1.4-3.4-3.6q.4-1.4 1.8-.8l3.6 2.2z" fill="${SK}" ${L}/><path d="M14.2 50.4h9.6v3.6q-.2 3.6-4.8 3.8q-4.6-.2-4.8-3.8z" fill="${SK}" ${L}/><path d="M16.4 54.6q3.2 1.2 6 0" stroke="${OL}" stroke-opacity=".35" stroke-width=".55" fill="none"/>`}
-  o+=`<g transform="translate(-1 -3)">${prop2(p.prop,p)}</g>`;
-  return o+hand4fist(20,53.6,SK)}
+    return o+`<g transform="translate(-1.6 6.6)">`+[[15,49.6,-14],[17.6,48.6,-5],[20.2,48.8,4],[22.6,50,13]].map(([x,y,r])=>`<rect x="${x-1.3}" y="${y-6.6}" width="2.6" height="7.6" rx="1.3" transform="rotate(${r} ${x} ${y})" fill="${SK}" ${L}/>`).join('')
+      +`<path d="M13.6 55.4q-3.4-1.4-3.4-3.6q.4-1.4 1.8-.8l3.6 2.2z" fill="${SK}" ${L}/><path d="M14.2 50.4h9.6v3.6q-.2 3.6-4.8 3.8q-4.6-.2-4.8-3.8z" fill="${SK}" ${L}/><path d="M16.4 54.6q3.2 1.2 6 0" stroke="${OL}" stroke-opacity=".35" stroke-width=".55" fill="none"/></g>`}
+  o+=`<g transform="translate(-2.6 3.4)">${prop2(p.prop,p)}</g>`;
+  return o+`<g transform="translate(17.4 59.4) scale(1.12) translate(-17.4 -59.4)">${hand4fist(17.4,59.4,SK)}</g>`}
 function prop2(t,P){const L=`stroke="${OL}" stroke-width="1"`;
   switch(t){
   case 'mate':return limb('M22.6 41.6L27.6 31',1.4,'#c3c7cc')+`<path d="M15.5 47Q14.5 55 21 56Q27.5 55 26.5 47Q26.5 42.5 23.5 41.5H18.5Q15.5 42.5 15.5 47Z" fill="#7a7f86" ${L}/><path d="M16.6 50q2.4-2 4.4 0t4.6 0M17 53q2 1.4 4 0t4 0" stroke="#3f444a" stroke-width=".9" fill="none"/><ellipse cx="21" cy="41.8" rx="3.4" ry="1.1" fill="#3b2a1a" ${L}/>`;
