@@ -774,6 +774,12 @@ html,body{height:100%;overflow:hidden}
 .kpanel .kits{grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;width:100%}
 .kpanel .kitb{width:100%;box-sizing:border-box}
 @media (max-width:380px){.kpanel .kits{gap:5px}.kpanel{padding:14px}}
+/* tirar con dos toques: la carta elegida sube y brilla; el segundo toque la tira */
+.hand button.sel{--y:calc(var(--hw) * -0.24)!important;z-index:4}
+.hand button.sel .card{box-shadow:0 0 0 3px var(--coin),0 12px 26px rgba(0,0,0,.55);border-radius:7px}
+.hand.picking button:not(.sel):not(:disabled){filter:brightness(.82)}
+@media (hover:none){.hand button:not(:disabled):hover{--y:0px}.hand button.sel:hover{--y:calc(var(--hw) * -0.24)}}
+@media (prefers-reduced-motion:reduce){.hand button{transition:none}}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -1641,6 +1647,7 @@ const XP=(y,L,a=L<40?32:24)=>[[30,y,L,-a],[30,y,L,a]];
 const CRUCE={2:XP(45,66),3:[...XP(45,66,26),[30,45,66,0]],4:[...XP(26,34),...XP(64,34)],5:[...XP(24,30),...XP(66,30),[30,45,32,90]],
   6:[...XP(21,24),...XP(45,24),...XP(69,24)],7:[...XP(21,24),...XP(45,24),[30,45,24,0],...XP(69,24)]};
 const SUITHEX={O:'#c48a12',C:'#b5302a',E:'#2b5b9c',B:'#3d7a38'};
+const cardName=c=>`${cn(c)} de ${({O:'oro',C:'copa',E:'espada',B:'basto'})[cs(c)]}`;
 function cardHTML(c,cls='',style=''){const n=cn(c),s=cs(c),col=SUITCOL[s],hx=SUITHEX[s],g=GAPS[s];let fr='';const x0=9,x1=51,gw=3.6,sw=(x1-x0-g*gw)/(g+1);
   for(const y of [4.4,85.6])for(let i=0;i<=g;i++){const a=x0+i*(sw+gw);fr+=`<line x1="${a.toFixed(2)}" x2="${(a+sw).toFixed(2)}" y1="${y}" y2="${y}" stroke="${hx}" stroke-width="1.5" stroke-linecap="round"/>`}
   const long=s==='E'||s==='B';
@@ -1682,10 +1689,10 @@ function fosforos(score,target){const groups=target/5,pitch=17,sz=12;let o='';
 const coinI='<i class="coin" aria-hidden="true"></i>';
 
 /* ---------- estado ---------- */
-let view='menu',mode=null,G=null,mySeat=0,cfg=null,CL=null,db=null,usr=null,uid=null,roomCap=null,R=null,myName='';
+let SELCARD=null,REPAINT=null,view='menu',mode=null,G=null,mySeat=0,cfg=null,CL=null,db=null,usr=null,uid=null,roomCap=null,R=null,myName='';
 let T=null,tableRef=null,unsubTable=null,unsubLobby=null,lobby=[],NAMES={},LOOKS={},isHost=false,busy=false,driveT=null;
 let confirmMazo=false,confirmExit=false,overlayView=null,shopTab='av',pendingBuy=null,panel=null,FX={},transient={},botLooks={},partnerSena=null,lastReward=null;
-const SET={diff:'medio',n:2,target:30,stake:0,flor:true,sound:true,music:true,mute:false,track:'zamba',vol:80,volMusic:60,volFx:90,hflor:true,help:true,on:{n:2,target:30,stake:0,flor:true}};
+const SET={diff:'medio',n:2,target:30,stake:0,flor:true,sound:true,music:true,mute:false,track:'zamba',vol:80,volMusic:60,volFx:90,hflor:true,help:true,tap2:true,on:{n:2,target:30,stake:0,flor:true}};
 try{const s=JSON.parse(localStorage.getItem('reviro.set')||'{}');Object.assign(SET,s);SET.on=Object.assign({n:2,target:30,stake:0,flor:true},s.on||{})}catch(e){}
 function saveSet(){try{localStorage.setItem('reviro.set',JSON.stringify(SET))}catch(e){}}
 function toast(t){const el=$('#toast');el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,3200)}
@@ -1839,6 +1846,7 @@ function render(){const v=$('#view');routeSync();document.body.dataset.view=view
   if(view==='game')v.innerHTML=gameHTML();
   else v.innerHTML=(GATES.includes(view)||view==='room'?'':tabsHTML())+`<div class="page pg-${view}">${pageBody()}</div>`;
   if(view==='torneos'||view==='tour')requestAnimationFrame(animatePots);
+  if(view==='game'&&FX.deal){clearTimeout(REPAINT);const hn=G&&G.handNo;REPAINT=setTimeout(()=>{if(view==='game'&&G&&G.handNo===hn)render()},760)}
   $('#overlay').innerHTML=overlayHTML();FX={};musicUpdate();
   if(view!=='game'){requestAnimationFrame(fitPass);clearTimeout(FITT);FITT=setTimeout(()=>{FITPASS=0;fitPass()},350)}
   {const pl=document.querySelector('.pills');if(pl)pl.style.visibility=(view==='auth'||view==='boot'||view==='login')?'hidden':'visible'}
@@ -2051,7 +2059,8 @@ function gameHTML(){if(!G)return'';const h=G.hand,me=mySeat,mt=myTeam(),a=actor(
   else if(h.ended&&!G.matchOver){const gains=h.gains.map(x=>`${teamName(x.tm)} +${x.p} por ${x.why}`).join(' · ');
     center=`<div class="result"><b>${h.ended.winner===mt?'La mano es nuestra':'La mano es de ellos'}</b><span>${esc(gains)}</span>${mode==='offline'||(me>=0&&controllerSeat()===mySeat)?'<button class="btn prim" data-a="next">Repartir</button>':'<span>Reparte la próxima en un ratito…</span>'}</div>`}
   const myCards=me>=0?h.cards[me]:[];const L=me>=0?legal(G,me):{};
-  const hand=`<div class="hand ${L.play?'':'wait'}">${myCards.map((c,i)=>`<button type="button" class="${FX.deal?'deal':''}" style="animation-delay:${i*90}ms" data-card="${c}" ${L.play&&!busy&&tutAllowed({t:'play',card:c})?'':'disabled'} aria-label="Tirar">${cardHTML(c)}</button>`).join('')}</div>`;
+  if(SELCARD&&(!L.play||!myCards.includes(SELCARD)))SELCARD=null;
+  const hand=`<div class="hand ${L.play?'':'wait'} ${SELCARD?'picking':''}">${myCards.map((c,i)=>`<button type="button" class="${FX.deal?'deal':''} ${SELCARD===c?'sel':''}" aria-pressed="${SELCARD===c}" style="animation-delay:${i*90}ms" data-card="${c}" ${L.play&&!busy&&tutAllowed({t:'play',card:c})?'':'disabled'} aria-label="${SELCARD===c?'Tocá de nuevo para tirar':'Elegir esta carta'}">${cardHTML(c)}</button>`).join('')}</div>`;
   let info='';if(SET.help&&me>=0&&!h.ended&&h.results.length===0){const o=h.orig[me];info=G.flor&&hasFlor(o)?`<span>Tenés flor: <b>${florVal(o)}</b></span>`:`<span>Tu envido: <b>${envidoOf(o)}</b></span>`}
   if(mode==='offline'&&partnerSena&&partnerSena.handNo===G.handNo&&h.results.length===0&&!h.ended)info+=`<span>Seña del compa: <b>${esc(partnerSena.t)}</b></span>`;
   const tk=G.log.slice(-2).map(e=>`<div>${esc(logText(e))}</div>`).join('');
@@ -2090,7 +2099,7 @@ function actionsHTML(L){if(mySeat<0)return'<p class="hint">Estás mirando la par
   L.envido.forEach(k=>b.push(B('env:'+k,ENAME[k])));
   if(L.truco)b.push(B('truco:'+L.truco,TNAME[L.truco],'brass'));
   b.push(B('mazo',confirmMazo?'¿Seguro? Me voy':'Me voy al mazo',confirmMazo?'warn':'ghost'));
-  return `<p class="hint">${L.flor?'Tenés <b>flor</b>: cantala antes de tirar':'Tu turno: tocá una carta para tirarla'}</p><div class="btns">${b.join('')}</div>`}
+  return `<p class="hint">${L.flor?'Tenés <b>flor</b>: cantala antes de tirar':(SELCARD?`Tocá de nuevo el ${cardName(SELCARD)} para tirarlo`:SET.tap2!==false?'Tu turno: tocá una carta y tocala otra vez para tirarla':'Tu turno: tocá una carta para tirarla')}</p><div class="btns">${b.join('')}</div>`}
 function partnerHuman(){if(!G||G.n!==4||mySeat<0)return false;if(mode==='offline')return true;const p=(mySeat+2)%4;return !G.seats[p].bot}
 function socialHTML(){if(!G||G.matchOver||mySeat<0)return'';const canReact=mode==='offline'||!!R;if(!canReact)return'';
   const sena=partnerHuman()&&!G.hand.ended;
@@ -2726,7 +2735,7 @@ function settingsHTML(){const tg=(k,l,sub,inv)=>`<div class="toggle"><span>${l}<
   if(tab==='sonido')body=`<section class="box">${tg('mute','Sonido general','Apaga o prende todo el audio de Reviro',true)}${tg('music','Música','Suena de fondo en los menús')}${tg('sound','Efectos','Al tirar, cantar y sumar puntos')}
       ${[['vol','Volumen general'],['volMusic','Música'],['volFx','Efectos']].map(([k,l])=>`<label class="vol"><span>${l}</span><input type="range" min="0" max="100" step="5" value="${SET[k]??80}" data-vol="${k}" aria-label="${l}"><output id="vo-${k}">${SET[k]??80}%</output></label>`).join('')}
       <div class="field"><span>Tema</span>${musicPickerHTML(false)}<p class="note" style="margin:0">${esc((TRACKS[SET.track]||TRACKS.zamba).desc)}</p></div></section>`;
-  if(tab==='juego')body=`<section class="box">${tg('help','Ayuda en pantalla','Te muestra tu envido o tu flor en la primera baza')}
+  if(tab==='juego')body=`<section class="box">${tg('tap2','Tirar con dos toques','Tocás la carta, sube, y la tirás tocándola otra vez. Así no se escapa ninguna')}${tg('help','Ayuda en pantalla','Te muestra tu envido o tu flor en la primera baza')}
       <div class="field"><span>Flor en La Huella</span>${seg('hflor',[['true','Con flor'],['false','Sin flor']],SET.hflor!==false)}</div>
       <p class="note" style="margin:0">La dificultad, los puntos, la flor y la apuesta de cada partida se eligen en Jugar, con el botón Cambiar.</p></section>`;
   if(tab==='cuenta')body=`<section class="box"><p style="margin:0">Jugás como <b>${esc(myDisp())}</b>${PREMIUM?' · <span class="prem">Premium</span>':''}</p>${myEmail?`<p class="note" style="margin:0">Cuenta: ${esc(myEmail)}</p>`:''}
@@ -3105,13 +3114,13 @@ function mpPendHTML(){if(!FB||!isOwnerV)return'';const P=PENDPUR||[];
   return `<section class="box admin grow">${PENDPUR===null?'<p class="note">Cargando…</p>':fitList('adm-pend',P,x=>`<li><span style="flex:1">${esc(x.username||'Jugador')} · ${fmt(x.coins)} monedas<small>$ ${fmt(x.ars)} · ${esc(tFmtDate(x.at))}</small></span><button class="btn sm brass" data-a="mpok" data-id="${esc(x.id)}">Acreditar</button><button class="btn sm ghost" data-a="mpno" data-id="${esc(x.id)}">Rechazar</button></li>`,'flist','<p class="note">No hay pagos esperando.</p>')}
     <p class="note" style="margin:0">Antes de acreditar, fijate en tu cuenta de Mercado Pago que el pago haya entrado.</p></section>`}
 /* ---------- eventos ---------- */
-document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closest('[data-a],[data-set],[data-card]');if(!t)return;
+document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closest('[data-a],[data-set],[data-card]');if(SELCARD&&!(t&&t.dataset.card)){SELCARD=null;if(!t){render();return}}if(!t)return;
   if(t.dataset.a==='close'&&t.classList.contains('over')&&e.target!==t)return;
   if(t.dataset.set){const k=t.dataset.set,v=t.dataset.v;const val=v==='true'?true:v==='false'?false:(isNaN(+v)?v:+v);
     if(k==='anot.target'){ANOT.target=val;ANOT.s=ANOT.s.map(x=>Math.min(x,val));saveAnot();render();return}
     if(k.startsWith('tn.')){TN[k.slice(3)]=val;render();return}
     if(k.startsWith('on.'))SET.on[k.slice(3)]=val;else SET[k]=val;saveSet();render();return}
-  if(t.dataset.card){doAction({t:'play',card:t.dataset.card});return}
+  if(t.dataset.card){const c=t.dataset.card;if(SET.tap2!==false&&SELCARD!==c){SELCARD=c;sfx('card');render();return}SELCARD=null;doAction({t:'play',card:c});return}
   const a=t.dataset.a;
   if(a!=='anreset')anotConfirm=false;if(a!=='mazo')confirmMazo=false;if(a!=='exit')confirmExit=false;if(!['tourleave','tourstart','tourcancel'].includes(a))tourConfirm=null;if(a!=='buy'&&a!=='prebuy'&&a!=='pack'&&a!=='prepack')pendingBuy=null;
   switch(a){

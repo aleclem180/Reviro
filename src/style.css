@@ -767,3 +767,9 @@ html,body{height:100%;overflow:hidden}
 .kpanel .kits{grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;width:100%}
 .kpanel .kitb{width:100%;box-sizing:border-box}
 @media (max-width:380px){.kpanel .kits{gap:5px}.kpanel{padding:14px}}
+/* tirar con dos toques: la carta elegida sube y brilla; el segundo toque la tira */
+.hand button.sel{--y:calc(var(--hw) * -0.24)!important;z-index:4}
+.hand button.sel .card{box-shadow:0 0 0 3px var(--coin),0 12px 26px rgba(0,0,0,.55);border-radius:7px}
+.hand.picking button:not(.sel):not(:disabled){filter:brightness(.82)}
+@media (hover:none){.hand button:not(:disabled):hover{--y:0px}.hand button.sel:hover{--y:calc(var(--hw) * -0.24)}}
+@media (prefers-reduced-motion:reduce){.hand button{transition:none}}
