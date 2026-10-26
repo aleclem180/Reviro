@@ -104,7 +104,7 @@ ${mid}<text x="4.6" y="14.6" class="cnum" fill="${col}">${n}</text><text x="4.6"
 function fosforos(score,target){const groups=target/5,pitch=17,sz=12;let o='';
   for(let gi=0;gi<groups;gi++){const v=Math.max(0,Math.min(5,score-gi*5));const x=gi*pitch+(target===30&&gi>=3?6:0)+2,y=3;
     const L=[[x,y,x+sz,y],[x+sz,y,x+sz,y+sz],[x+sz,y+sz,x,y+sz],[x,y+sz,x,y],[x,y,x+sz,y+sz]];
-    L.forEach((l,i)=>{const on=i<v;o+=`<line x1="${l[0]}" y1="${l[1]}" x2="${l[2]}" y2="${l[3]}" stroke="${on?'var(--card)':'var(--line)'}" stroke-width="1.6" stroke-linecap="round"/>`+(on?`<circle cx="${l[0]}" cy="${l[1]}" r="1.6" fill="var(--copa)"/>`:'')})}
+    L.forEach((l,i)=>{const on=i<v;o+=`<line x1="${l[0]}" y1="${l[1]}" x2="${l[2]}" y2="${l[3]}" stroke="${on?'var(--fs-on,var(--card))':'var(--fs-off,var(--line))'}" stroke-width="1.6" stroke-linecap="round"/>`+(on?`<circle cx="${l[0]}" cy="${l[1]}" r="1.6" fill="var(--copa)"/>`:'')})}
   if(target===30)o+=`<line x1="${3*pitch+1}" y1="0" x2="${3*pitch+1}" y2="${sz+6}" stroke="var(--brass)" stroke-width="1" stroke-dasharray="2 2"/>`;
   const w=groups*pitch+(target===30?8:2);
   return `<svg width="${w}" height="${sz+6}" viewBox="0 0 ${w} ${sz+6}" role="img" aria-label="${score} de ${target} puntos">${o}</svg>`}
@@ -228,7 +228,7 @@ function computeSena(g){partnerSena=null;if(mode!=='offline'||g.n!==4||Math.rand
   partnerSena={handNo:g.handNo,t:ks.map(k=>SENAS[k]).join(' · ')}}
 
 /* ---------- vistas ---------- */
-function render(){const v=$('#view');
+function render(){const v=$('#view');document.body.dataset.view=view;
   if(view==='boot')v.innerHTML=bootHTML();
   else if(view==='auth')v.innerHTML=authHTML();
   else if(view==='login')v.innerHTML=loginHTML();
@@ -258,42 +258,51 @@ function render(){const v=$('#view');
   if(view==='room'&&T){const ids=T.seats.filter(s=>s.id).map(s=>s.id);ensureNames(ids);fetchLooks(ids)}
   if(view==='game'&&mode==='online'&&G){const ids=G.seats.filter(s=>s.id).map(s=>s.id);ensureNames(ids);fetchLooks(ids)}
   if(view==='menu'&&lobby.length)ensureNames(lobby.map(t=>t.host))}
-function tabsHTML(){const t=[['menu','Jugar'],['torneos','Torneos'],['gira','La Huella'],['profile','Perfil'],['extra','Extra'],['settings','Ajustes']];const cur=EXTRA_SUB.includes(view)?'extra':(view==='tour'||view==='tournew')?'torneos':view;
-  return `<nav class="tabs" aria-label="Secciones">${t.map(([v,l])=>`<button type="button" data-a="nav" data-v="${v}" ${cur===v?'aria-current="page"':''}>${l}</button>`).join('')}</nav>`}
+const TABICO={"menu": "<path d=\"M5 6.5l6.5-2.2 3.2 12.4-6.5 2.2z\"/><path d=\"M12.6 4.6l6.6 1.6-2.9 12.6\"/>", "torneos": "<path d=\"M7 4h10v4a5 5 0 0 1-10 0z\"/><path d=\"M7 6H4.5a2.5 2.5 0 0 0 2.6 3.4M17 6h2.5a2.5 2.5 0 0 1-2.6 3.4\"/><path d=\"M12 13v4M8.5 20h7M10 17h4\"/>", "gira": "<path d=\"M9 4.5 4 6.5v13l5-2 6 2 5-2v-13l-5 2z\"/><path d=\"M9 4.5v13M15 6.5v13\"/>", "extra": "<path d=\"M7.5 10.5h9c0 5-1.8 9-4.5 9s-4.5-4-4.5-9z\"/><path d=\"M9 10.5c.4-2 1.5-3 3-3s2.6 1 3 3\"/><path d=\"M13.5 7.6 16.8 2.8\"/>", "profile": "<circle cx=\"12\" cy=\"8.5\" r=\"3.6\"/><path d=\"M5 20c.8-3.8 3.6-5.6 7-5.6s6.2 1.8 7 5.6\"/>"};
+function tabsHTML(){const t=[['menu','Jugar'],['torneos','Torneos'],['gira','La Huella'],['extra','Extra'],['profile','Perfil']];const cur=EXTRA_SUB.includes(view)?'extra':(view==='tour'||view==='tournew')?'torneos':view;
+  return `<nav class="tabs" aria-label="Secciones">${t.map(([v,l])=>`<button type="button" data-a="nav" data-v="${v}" ${(cur===v||(v==='profile'&&cur==='settings'))?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${TABICO[v]}</svg><span>${l}</span></button>`).join('')}</nav>`}
 function seg(key,opts,cur,dis){return `<div class="seg" role="group">${opts.map(([v,l])=>`<button type="button" data-set="${key}" data-v="${v}" aria-pressed="${String(cur)===String(v)}" ${dis&&dis(v)?'disabled':''}>${l}</button>`).join('')}</div>`}
 const STAKES=[0,50,100,250,500,1000];
+/* título en filete porteño: letras blancas con sombra celeste y volutas a los lados */
+const VOLUTA=`<svg class="vol" viewBox="0 0 64 40" aria-hidden="true"><path d="M62 31C46 31 33 26 30 16C28 9 33 4 39 5.6C44 7 44.6 13.6 40 15C37 15.8 35 13.4 36.4 11.4" fill="none" stroke="#74acdf" stroke-width="2.6" stroke-linecap="round"/><path d="M62 31C46 31 33 26 30 16" fill="none" stroke="#fff" stroke-width=".9" stroke-linecap="round" opacity=".7"/><path d="M33 23Q20 31 4 27Q15 19 33 23Z" fill="#74acdf"/><path d="M31 23.6Q19 27.4 8 26.4" fill="none" stroke="#fff" stroke-width=".8" opacity=".75"/><path d="M41 28Q34 38 22 38.4Q28 30 41 28Z" fill="#3d7fc4"/><circle cx="48" cy="24" r="1.9" fill="#e9b830"/><circle cx="53.4" cy="26.6" r="1.3" fill="#e9b830"/><circle cx="26" cy="12" r="1.5" fill="#c8361f"/></svg>`;
+const fileteHTML=(cls='')=>`<h1 class="filete ${cls}">${VOLUTA}<span>Reviro</span>${VOLUTA.replace('class="vol"','class="vol r"')}</h1>`;
+let SOLOOPTS=false,ONOPTS=false;
 function playHTML(){const on=SET.on;const remembered=(()=>{try{return localStorage.getItem('reviro.table')}catch(e){return null}})();
   const onlineOk=!!(db&&uid);const open=lobby.filter(t=>!t.tour&&Date.now()-(t.created||0)<3*3600e3);const me=AVM[WAL.eq.av]||AVM.gaucho;
-  return `<section class="hero"><h1>Re<span>viro</span></h1><p>Truco de campo, como en la pulpería.</p>
-    <div class="me">${avatarSVG(myAv(),52)}<div><small>Jugás como</small><b>${esc(me.name)}</b></div><button class="btn sm" data-a="nav" data-v="shop">Cambiar</button></div></section>
-  <div class="grid">
-    <section class="box"><h2>Contra la máquina</h2>
+  const dz={facil:'fácil',medio:'medio',dificil:'difícil'}[SET.diff];
+  const sum=`${SET.n==4?'2 contra 2':'Mano a mano'} contra la máquina, nivel ${dz}, a ${SET.target} ${SET.flor===false||SET.flor==='false'?'sin flor':'con flor'}${+SET.stake?`, apostando ${fmt(SET.stake)} fichas`:''}`;
+  const openT=(TOURS||[]).filter(t=>t.status==='open'&&!tClosed(t)).length;
+  return `<section class="deal">${fileteHTML()}
+    <p class="lema">Truco de campo, como en la pulpería.</p>
+    <div class="fan" aria-hidden="true">${['7O','1E','1B'].map(c=>cardHTML(c)).join('')}</div>
+    <button class="btn prim xl" data-a="solo" ${SET.stake>WAL.chips?'disabled':''}>Repartir</button>
+    <button type="button" class="optline" data-a="soloopts" aria-expanded="${SOLOOPTS}">${esc(sum)}. <u>${SOLOOPTS?'Listo':'Cambiar'}</u></button>
+    ${SOLOOPTS?`<div class="opts">
       <div class="field"><span>Dificultad</span>${seg('diff',[['facil','Fácil'],['medio','Medio'],['dificil','Difícil']],SET.diff)}</div>
       <div class="field"><span>Jugadores</span>${seg('n',[[2,'1 contra 1'],[4,'2 contra 2']],SET.n)}</div>
       <div class="field"><span>Partida a</span>${seg('target',[[15,'15 puntos'],[30,'30 puntos']],SET.target)}</div>
       <div class="field"><span>Flor</span>${seg('flor',[['true','Con flor'],['false','Sin flor']],SET.flor)}</div>
       <div class="field"><span>Apuesta en fichas</span>${seg('stake',STAKES.map(v=>[v,v?fmt(v):'Sin apuesta']),SET.stake,v=>+v>WAL.chips)}</div>
-      <p class="note">Ganando sumás ${coinI.replace('class="coin"','class="coin" style="display:inline-block;vertical-align:-3px"')} ${({facil:20,medio:40,dificil:80})[SET.diff]} monedas para la tienda.</p>
-      <button class="btn prim" data-a="solo" ${SET.stake>WAL.chips?'disabled':''}>Repartir</button>
-    </section>
-    <section class="box"><h2>Online</h2>
-      ${onlineOk?`
-      ${remembered?`<button class="btn ink" data-a="rejoin" data-code="${esc(remembered)}">Volver a la mesa ${esc(remembered)}</button>`:''}
-      <button class="btn prim" data-a="quick">Jugar rápido</button><p class="note">Te sienta en una mesa abierta o te arma una nueva.</p>
-      <h3>Crear mesa</h3>
+      <p class="note">Ganando sumás ${({facil:20,medio:40,dificil:80})[SET.diff]} monedas para la tienda. Contra la máquina es práctica: no cuenta en tu historial.</p></div>`:''}
+  </section>
+  <section class="rows" aria-label="Con otras personas"><h2>Con otras personas</h2>
+    ${onlineOk?`
+    ${remembered?`<button type="button" class="rowb hot" data-a="rejoin" data-code="${esc(remembered)}"><b>Volver a la mesa ${esc(remembered)}</b><small>Tu partida sigue ahí</small></button>`:''}
+    <button type="button" class="rowb" data-a="quick"><b>Jugar rápido</b><small>Te sienta en una mesa abierta o te arma una nueva</small></button>
+    <button type="button" class="rowb" data-a="onopts" aria-expanded="${ONOPTS}"><b>Armar una mesa</b><small>${on.n==4?'Cuatro jugadores':'Dos jugadores'}, a ${on.target}${on.stake?', '+fmt(on.stake)+' fichas cada uno':', amistosa'}. Pasale el código a tus amigos</small></button>
+    ${ONOPTS?`<div class="opts">
       <div class="field"><span>Jugadores</span>${seg('on.n',[[2,'2 jugadores'],[4,'4 jugadores']],on.n)}</div>
       <div class="field"><span>Partida a</span>${seg('on.target',[[15,'15'],[30,'30']],on.target)}</div>
       <div class="field"><span>Flor</span>${seg('on.flor',[['true','Con flor'],['false','Sin flor']],on.flor)}</div>
       <div class="field"><span>Apuesta por jugador</span>${seg('on.stake',STAKES.map(v=>[v,v?fmt(v):'Sin']),on.stake,v=>+v>WAL.chips)}</div>
-      <button class="btn prim" data-a="create" ${on.stake>WAL.chips?'disabled':''}>Crear mesa</button>
-      <h3>Entrar con código</h3>
-      <form class="row" data-form="join"><input type="text" id="joincode" maxlength="4" placeholder="ABCD" aria-label="Código de mesa" autocomplete="off"><button class="btn" type="submit">Entrar</button></form>
-      <h3>Mesas abiertas</h3>
-      <div class="tables">${open.length?open.map(t=>{const f=t.seats.filter(s=>s.id||s.bot).length;return `<div class="trow"><div><b>${esc(t.code)}</b> <span>${t.n} jug. · a ${t.target}${t.flor===false?' · sin flor':''} · ${t.stake?fmt(t.stake)+' fichas':'amistosa'} · ${f}/${t.n}</span></div><button class="btn" data-a="join" data-code="${esc(t.code)}" ${t.stake>WAL.chips?'disabled':''}>Unirme</button></div>`}).join(''):'<p class="note">No hay mesas esperando. Creá una y pasale el código a tus amigos.</p>'}</div>
-      <p class="note">Para que tus amigos puedan sentarse, compartí esta página con ellos desde el botón Compartir, con permiso para editar.</p>`
-      :LOCAL?`<p class="note">Las mesas online, los amigos y el ranking funcionan en la versión de Reviro dentro de claude.ai. Acá podés jugar contra la máquina, La Huella y el anotador.</p>`:`<p class="note">El juego online necesita que abras Reviro con tu cuenta de claude.ai. Mientras tanto podés jugar contra la máquina.</p>`}
-    </section>
-  </div>`}
+      <button class="btn prim" data-a="create" ${on.stake>WAL.chips?'disabled':''}>Crear la mesa</button></div>`:''}
+    <form class="rowb rowf" data-form="join"><label for="joincode"><b>Entrar con código</b><small>Las cuatro letras que te pasaron</small></label><input type="text" id="joincode" maxlength="4" placeholder="ABCD" autocomplete="off"><button class="btn" type="submit">Entrar</button></form>
+    ${FB?`<button type="button" class="rowb" data-a="nav" data-v="torneos"><b>Torneos</b><small>${openT?`${openT===1?'Hay uno abierto':'Hay '+openT+' abiertos'}: anotate y jugá por el premio`:'Mirá los que vienen y los que ya se jugaron'}</small></button>`:''}
+    ${open.length?`<h3>Mesas esperando gente</h3><div class="tables">${open.map(t=>{const f=t.seats.filter(s=>s.id||s.bot).length;return `<div class="trow"><div><b>${esc(t.code)}</b> <span>${t.n} jugadores, a ${t.target}${t.flor===false?' sin flor':''}, ${t.stake?fmt(t.stake)+' fichas':'amistosa'}. Hay ${f} de ${t.n}</span></div><button class="btn" data-a="join" data-code="${esc(t.code)}" ${t.stake>WAL.chips?'disabled':''}>Sentarme</button></div>`}).join('')}</div>`:''}
+    ${FB?'':'<p class="note">Para que tus amigos puedan sentarse, compartí esta página con ellos desde el botón Compartir, con permiso para editar.</p>'}`
+    :LOCAL?`<p class="note">Las mesas online, los amigos y el ranking funcionan en la versión de Reviro dentro de claude.ai. Acá podés jugar contra la máquina, La Huella y el anotador.</p>`:`<p class="note">El juego online necesita que abras Reviro con tu cuenta de claude.ai. Mientras tanto podés jugar contra la máquina.</p>`}
+  </section>
+  <button type="button" class="meline" data-a="nav" data-v="shop">${avatarSVG(myAv(),40)}<span>Jugás como <b>${esc(me.name)}</b></span><u>Cambiar</u></button>`}
 function rulesHTML(){const order=['1E','1B','7E','7O','3E','2E','1C','12E','11E','10E','7C','6E','5E','4E'];
   return `<details class="rules"><summary>Reglamento</summary><ul>
   <li>Mazo de 40 cartas españolas, sin ochos ni nueves. Tres cartas por jugador, gana la mano quien gana dos bazas.</li>
@@ -336,7 +345,7 @@ function shopHTML(){const sub=[['av','Personajes'],['kit','Camisetas'],['dorso',
 function profileHTML(){const a=AVM[WAL.eq.av]||AVM.gaucho,st=WAL.stats,pct=st.played?Math.round(st.won*100/st.played):0;
   const ownedCount=WAL.owned.length+AVS.filter(x=>!x.price).length+1+1;
   const tg=(k,l,sub)=>`<div class="toggle"><span>${l}<small>${sub}</small></span><button type="button" class="sw" data-a="toggle" data-k="${k}" aria-pressed="${!!SET[k]}" aria-label="${l}"></button></div>`;
-  return `<div class="prof">${avatarSVG(myAv(),132,true)}<div style="flex:1;min-width:0"><h2>${esc(myDisp())}${PREMIUM?' <span class="prem">Premium</span>':''}</h2><p>${esc(a.name)} · ${esc(a.bio)}</p>${myEmail?`<p class="note">Cuenta: ${esc(myEmail)}</p>`:''}
+  return `<div class="profbar"><button type="button" class="btn sm ghost" data-a="nav" data-v="settings">Ajustes</button></div><div class="prof">${avatarSVG(myAv(),132,true)}<div style="flex:1;min-width:0"><h2>${esc(myDisp())}${PREMIUM?' <span class="prem">Premium</span>':''}</h2><p>${esc(a.name)} · ${esc(a.bio)}</p>${myEmail?`<p class="note">Cuenta: ${esc(myEmail)}</p>`:''}
     <form class="row" data-form="nick" style="margin-top:10px"><input type="text" id="nickin" class="plain" maxlength="20" placeholder="Tu apodo" value="${esc(WAL.nick||'')}" aria-label="Apodo" autocomplete="off"><button class="btn sm" type="submit">Guardar apodo</button></form></div></div>
   ${FB?fbStatsHTML():`<div class="stats">
     <div class="stat-b"><small>Partidas</small><b>${fmt(st.played)}</b></div>
@@ -387,7 +396,7 @@ function gameHTML(){if(!G)return'';const h=G.hand,me=mySeat,mt=myTeam(),a=actor(
     else if(h.said[s]&&(Date.now()-(SAIDAT[s]||0)<3600||[h.flor.pending,h.env.pending,h.truco.pending].some(x=>x&&x.caller===s))){const sy=SAYS[s];bub=`<div class="bubble ${FX.pop&&FX.pop[s]?'pop':''}">${esc(h.said[s])}${sy&&sy.canon===h.said[s]&&sy.line?`<span class="line">${esc(sy.line)}</span>`:''}</div>`}
     const us=team(s)===mt;
     let rest='';if(s!==me){rest=h.ended?`<div class="reveal">${h.cards[s].map(c=>cardHTML(c)).join('')}</div>`:`<div class="backs" aria-label="${h.cards[s].length} cartas">${h.cards[s].map(()=>`<i style="background:${backBg(look.dorso)}"></i>`).join('')}</div>`}
-    const badge=`<div class="badge ${us?'us':''} ${a===s?'active':''}">${avatarSVG(look.av,32)}<span>${esc(nameOf(s))}${isAbsent(s)?' · bot':''}</span>${G.mano===s?'<span class="m" title="Es mano">M</span>':''}</div>`;
+    const badge=`<div class="badge ${us?'us':''} ${a===s?'active':''}">${avatarSVG(look.av,32)}<span>${esc(nameOf(s))}${isAbsent(s)?' · bot':''}</span>${G.mano===s?'<span class="m" title="Es mano">mano</span>':''}</div>`;
     seatsHTML.push(`<div class="seat pos-${pos}">${pos==='bottom'?`<div class="played">${cards}</div>${badge}`:`<div class="seathead">${badge}${rest}</div><div class="played">${cards}</div>`}${bub}</div>`)}
   const baz=[0,1,2].map(i=>{const r=h.results[i];if(r===undefined)return'<i></i>';if(r==='P')return'<i class="p" title="parda"></i>';return r===mt?'<i class="w" title="ganada"></i>':'<i class="l" title="perdida"></i>'}).join('');
   const deck=`<div class="deck" aria-hidden="true">${'<i style="background:'+backBg(WAL.eq.dorso)+'"></i>'.repeat(3)}</div>`;
@@ -435,7 +444,7 @@ function actionsHTML(L){if(mySeat<0)return'<p class="hint">Estás mirando la par
   if(L.flor)b.push(B('flor','¡Flor!','prim'));
   L.envido.forEach(k=>b.push(B('env:'+k,ENAME[k])));
   if(L.truco)b.push(B('truco:'+L.truco,TNAME[L.truco],'brass'));
-  b.push(B('mazo',confirmMazo?'¿Seguro? Al mazo':'Mazo',confirmMazo?'warn':'ghost'));
+  b.push(B('mazo',confirmMazo?'¿Seguro? Me voy':'Me voy al mazo',confirmMazo?'warn':'ghost'));
   return `<p class="hint">${L.flor?'Tenés <b>flor</b>: cantala antes de tirar':'Tu turno: tocá una carta para tirarla'}</p><div class="btns">${b.join('')}</div>`}
 function partnerHuman(){if(!G||G.n!==4||mySeat<0)return false;if(mode==='offline')return true;const p=(mySeat+2)%4;return !G.seats[p].bot}
 function socialHTML(){if(!G||G.matchOver||mySeat<0)return'';const canReact=mode==='offline'||!!R;if(!canReact)return'';
@@ -740,13 +749,13 @@ function friendsBoxHTML(){const fs=[...friendSet()];if(fs.length){fetchLooks(fs)
 
 /* ---------- cuenta: inicio de sesión y registro ---------- */
 let isOwnerV=false,PREMIUM=false,myEmail=null,regAv='gaucho',PREMS={},ADMINP=null,unsubPrem=null,unsubAdmin=null;
-function bootHTML(){return `<div class="gate"><h1 class="gtitle">Re<span>viro</span></h1><p class="note">Conectando con tu cuenta…</p></div>`}
-function loginHTML(){return `<div class="gate"><h1 class="gtitle">Re<span>viro</span></h1>
+function bootHTML(){return `<div class="gate">${fileteHTML('gtitle')}<p class="note">Conectando con tu cuenta…</p></div>`}
+function loginHTML(){return `<div class="gate">${fileteHTML('gtitle')}
   <section class="box"><h2>Iniciá sesión para jugar</h2>
   <p>Reviro usa tu cuenta de claude.ai, la de tu mail, para guardar tu personaje, tus monedas, tus amigos y tu ranking.</p>
   <p class="note">Abrí este link con tu sesión de claude.ai iniciada. Si te lo pasó un amigo, pedile que te comparta la página con permiso para editar.</p></section></div>`}
 function registerHTML(){const free=AVS.filter(a=>!a.price);
-  return `<div class="gate"><h1 class="gtitle">Re<span>viro</span></h1>
+  return `<div class="gate">${fileteHTML('gtitle')}
   <form class="box" data-form="reg"><h2>Creá tu cuenta</h2>
     ${myEmail?`<p class="note">Vas a quedar registrado con <b>${esc(myEmail)}</b>.</p>`:`<p class="note">${LOCAL?'Tu progreso se guarda en este dispositivo.':'Vas a quedar registrado con tu cuenta de claude.ai.'}</p>`}
     <div class="field"><span>Tu apodo en la mesa</span><input type="text" id="regnick" class="plain" maxlength="20" placeholder="Por ejemplo: El Ale" value="${esc(WAL.nick||myName||'')}" autocomplete="off" required></div>
@@ -1020,7 +1029,7 @@ function settingsHTML(){const tg=(k,l,sub,inv)=>`<div class="toggle"><span>${l}<
 
 
 /* ---------- bienvenida ---------- */
-function welcomeHTML(){return `<div class="gate"><h1 class="gtitle">Re<span>viro</span></h1><section class="box"><h2>¡Bienvenido a la mesa, ${esc(myDisp())}!</h2>
+function welcomeHTML(){return `<div class="gate">${fileteHTML('gtitle')}<section class="box"><h2>¡Bienvenido a la mesa, ${esc(myDisp())}!</h2>
   <p>¿Sabés jugar al truco?</p><div class="btns" style="justify-content:flex-start"><button class="btn prim" data-a="welcome" data-v="play">Sí, a jugar</button><button class="btn brass" data-a="welcome" data-v="learn">No, enseñame</button><button class="btn ghost" data-a="welcome" data-v="tut">Más o menos</button></div>
   <p class="note">El tutorial son cinco lecciones cortas con manos armadas. Siempre lo encontrás en Extra.</p></section></div>`}
 
@@ -1082,7 +1091,7 @@ function authHTML(){const free=AVS.filter(a=>!a.price);const e=AUTHERR?`<p class
     <div class="field"><span>Elegí tu personaje</span><div class="regavs">${free.map(a=>`<button type="button" class="regav" data-a="regav" data-id="${a.id}" aria-pressed="${regAv===a.id}">${avatarSVG(a.id,96,true)}<b>${esc(a.name)}</b></button>`).join('')}</div></div>
     ${e}<button class="btn prim" type="submit" ${dis}>${AUTHBUSY?'Creando…':'Crear mi cuenta'}</button>
     <p class="note">Te vamos a mandar un mail para verificar tu cuenta. Las fichas y las monedas de Reviro no tienen valor en dinero.</p></form>`;
-  return `<div class="gate"><h1 class="gtitle">Re<span>viro</span></h1>${tabs}${body}</div>`}
+  return `<div class="gate">${fileteHTML('gtitle')}${tabs}${body}</div>`}
 const fval=id=>{const el=document.getElementById(id);return el?el.value:''};
 async function authSubmit(kind){if(AUTHBUSY)return;AUTHERR='';AUTHBUSY=true;
   const email=fval('aemail'),pass=fval('apass'),user=fval('auser');render();
@@ -1325,6 +1334,8 @@ document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closes
   case 'pack':{if(!PREMIUM){toast('Solo para cuentas premium');return}const p=PACKS[+t.dataset.i];pendingBuy=null;if(p){applyTx('pack-'+Date.now(),{coins:p.coins}).then(()=>{sfx('buy');toast('Compra de prueba: +'+fmt(p.coins)+' monedas, sin cobro')})}return}
   case 'add':if(!PREMIUM){toast('Solo para cuentas premium');return}applyTx('load-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),{chips:+t.dataset.v});overlayView=null;toast('Cargaste '+fmt(t.dataset.v)+' fichas de práctica');render();return;
   case 'tour':openTour(t.dataset.id);return;
+  case 'soloopts':SOLOOPTS=!SOLOOPTS;render();return;
+  case 'onopts':ONOPTS=!ONOPTS;render();return;
   case 'tourbooks':TVB=null;render();return;
   case 'tournew':view='tournew';render();window.scrollTo(0,0);return;
   case 'tourjoin':tourJoin(t.dataset.team);return;
@@ -1400,7 +1411,7 @@ async function start(data){
   renderSnd();renderWallet();render();drive();
   setInterval(presenceTick,3000);setInterval(turnTick,500);setInterval(()=>{if(view==='room'&&T&&T.tour&&T.status==='waiting')render()},15000);setInterval(tourTick,1000);
   try{CL=window.claude;if(CL&&CL.use){[db,usr,roomCap]=await Promise.all([CL.use('db'),CL.use('user'),CL.use('room')]);uid=usr?await usr.id():null;if(usr){try{const me=await usr.me();myName=me.name||'';myEmail=me.email||null}catch(e){}try{isOwnerV=!!(await usr.isOwner())}catch(e){}}}}catch(e){db=null}
-  if(FB){await waitNET();if(!window.NET){$('#view').innerHTML=`<div class="gate"><h1 class="gtitle">Re<span>viro</span></h1><section class="box"><h2>No se pudo conectar</h2><p>No pudimos llegar al servidor del juego. Revisá tu conexión y recargá la página.</p></section></div>`;return}
+  if(FB){await waitNET();if(!window.NET){$('#view').innerHTML=`<div class="gate">${fileteHTML('gtitle')}<section class="box"><h2>No se pudo conectar</h2><p>No pudimos llegar al servidor del juego. Revisá tu conexión y recargá la página.</p></section></div>`;return}
     if(view!=='game')view='boot';render();NET.auth.onChange(info=>onFbUser(info));return}
   if(LOCAL){await loadWallet();if(!WAL.registered){if(view!=='game')view='register';regAv=AVM[WAL.eq.av]&&!AVM[WAL.eq.av].price?WAL.eq.av:'gaucho'}else if(view==='boot')view='menu';render();return}
   if(!uid||!db){if(view!=='game')view='login';render();return}

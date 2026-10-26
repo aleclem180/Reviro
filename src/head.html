@@ -2,7 +2,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rye&family=Rozha+One&family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap">
 <style>
 /* Layout: one-screen pulpería table — fósforos on top, the felt with seats in a cross, the hand and cantos at the bottom; shop and profile as tabs */
 :root{
@@ -28,8 +28,8 @@
   --copa:#b5302a;
   --espada:#2b5b9c;
   --basto:#3d7a38;
-  --f-display:"Rozha One", Georgia, "Times New Roman", serif;
-  --f-rustic:"Rye", "Rozha One", Georgia, serif;
+  --f-display:"Bodoni Moda", "Bodoni 72", Didot, Georgia, serif;
+  --f-rustic:"Bodoni Moda", "Bodoni 72", Didot, Georgia, serif;
   --f-body:"Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
   color-scheme:dark;
 }
@@ -431,6 +431,74 @@ textarea.tin{resize:vertical;min-height:84px}
 .chiph{width:100%;text-align:center;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media (max-width:420px){.felt.n4{--pc:58px}.felt.n2{--pc:80px}.sc b{font-size:1.5rem}.brand{font-size:1.3rem}.pill{padding:3px 8px 3px 5px;font-size:.85rem}}
+
+/* ================= Rediseño: boliche porteño ================= */
+:root{--punzo:#c8361f;--coin:#e9b830;--ultramar:#24489a;--papel:#efe4c8;--tinta:#2b1a10}
+/* sin etiquetas en mayúsculas espaciadas: todo en minúscula normal */
+.me small,.box h3,.field>span,.tag,.stat-b small,.seatc .who small,.sc .lbl,.coach small,.prem,.aph,.tst,.pozo>small,.tstand th,.cd.big small,.cd-u i,.fomo,.chiph,.handinfo span{text-transform:none!important;letter-spacing:.01em!important}
+.field>span,.box h3{font-size:.9rem;font-weight:600;color:var(--muted)}
+.box h3{font-family:var(--f-body)}
+/* sin bordes punteados de relleno */
+.box,.item,.mis,.ach,.lb li,.me,.sc,.seatc,details.rules,.acol,.xcard{outline:none!important}
+/* títulos en Bodoni */
+.box h2,.shophead h2,.prof h2,.panel h2,.xcard b,.unlock,.sech,.brand{font-family:var(--f-display)!important;font-weight:600;letter-spacing:-.005em}
+.brand{font-style:italic;font-weight:700;font-size:1.45rem}
+.box h2{font-size:1.45rem}
+/* título en filete */
+.filete{display:flex;align-items:center;justify-content:center;gap:2px;margin:0;font-family:var(--f-display);font-style:italic;font-weight:800;line-height:1;font-size:clamp(3rem,15vw,4.6rem);letter-spacing:-.01em}
+.filete span{color:#fff;text-shadow:2px 2px 0 #74acdf,4px 4px 0 #1d3557,5px 6px 10px rgba(0,0,0,.45);padding:0 .04em .08em}
+.filete .vol{width:clamp(44px,13vw,72px);height:auto;flex:none;filter:drop-shadow(1px 2px 0 rgba(0,0,0,.35))}
+.filete .vol.r{transform:scaleX(-1)}
+.gate .filete,.filete.gtitle{font-size:clamp(3rem,15vw,4.4rem)}
+/* Jugar: la mesa servida */
+.deal{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:18px 0 6px}
+.lema{margin:0;color:var(--muted);font-size:1.05rem}
+.fan{display:flex;justify-content:center;margin:10px 0 4px;height:min(42vw,190px)}
+.fan .card{width:min(26vw,118px);flex:none;margin:0 -14px;transform-origin:50% 120%;box-shadow:0 10px 22px rgba(0,0,0,.45);border-radius:7px}
+.fan .card:nth-child(1){transform:rotate(-12deg) translateY(10px)}.fan .card:nth-child(3){transform:rotate(12deg) translateY(10px)}.fan .card:nth-child(2){z-index:1}
+.btn.xl{width:min(100%,360px);font-size:1.25rem;padding:14px 18px;border-radius:12px;font-family:var(--f-display);font-style:italic;font-weight:700;letter-spacing:.01em}
+.optline{all:unset;cursor:pointer;color:var(--muted);font-size:.95rem;max-width:42ch;line-height:1.35}
+.optline u,.meline u{color:var(--ink);text-underline-offset:3px;text-decoration-color:rgba(243,230,200,.4)}
+.optline:focus-visible,.meline:focus-visible,.rowb:focus-visible{outline:2px solid var(--coin);outline-offset:3px;border-radius:8px}
+.opts{width:min(100%,520px);display:flex;flex-direction:column;gap:12px;text-align:left;padding:14px;border-radius:14px;background:rgba(0,0,0,.25);border:1px solid var(--line)}
+/* con otras personas: lista, no cajas */
+.rows{max-width:620px;margin:22px auto 0;display:flex;flex-direction:column}
+.rows h2{font-family:var(--f-display);font-weight:600;font-size:1.35rem;margin:0 0 6px}
+.rows h3{margin:14px 0 6px;font-size:.95rem;color:var(--muted);font-weight:600}
+.rowb{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:2px;padding:12px 2px;border-bottom:1px solid var(--line);position:relative;padding-right:28px}
+.rowb::after{content:"";position:absolute;right:6px;top:50%;width:8px;height:8px;border-right:2px solid var(--muted);border-top:2px solid var(--muted);transform:translateY(-50%) rotate(45deg)}
+.rowb b{font-size:1.08rem}.rowb small{color:var(--muted);font-size:.9rem}
+.rowb.hot b{color:var(--coin)}
+.rowb[aria-expanded="true"]::after{transform:translateY(-70%) rotate(135deg)}
+.rows .opts{margin:10px 0}
+.rowf{cursor:default;flex-direction:row;align-items:center;flex-wrap:wrap;gap:8px;padding-right:2px}.rowf::after{display:none}
+.rowf label{display:flex;flex-direction:column;gap:2px;flex:1 1 180px}.rowf input{flex:0 0 96px;text-align:center}.rowf .btn{width:auto;padding:8px 16px}
+.meline{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:10px;margin:22px auto 8px;max-width:620px;width:100%;color:var(--muted)}
+.meline span{flex:1}.meline b{color:var(--ink)}
+/* el marcador: un anotador de papel con fósforos */
+.score .sc{background:repeating-linear-gradient(180deg,transparent 0 17px,rgba(43,26,16,.13) 17px 18px),var(--papel);color:var(--tinta);border:0;border-radius:4px 4px 10px 10px;box-shadow:0 3px 0 rgba(0,0,0,.25),0 8px 16px rgba(0,0,0,.3);--fs-on:#a8702f;--fs-off:rgba(43,26,16,.16)}
+.score .sc .lbl{color:#6d5236;font-size:.85rem;font-weight:700}
+.score .sc b{color:var(--tinta)}
+.score .sc.us{transform:rotate(-1deg)}.score .sc.them{transform:rotate(1deg)}
+.score .mid b{font-family:var(--f-display);font-style:italic}
+/* la mano de quien es mano */
+.badge .m{font-size:.72rem;font-weight:700;letter-spacing:0;padding:1px 6px;border-radius:999px;background:var(--coin);color:var(--brass-ink)}
+/* navegación con íconos; en el celular va abajo, como en un juego */
+.tabs svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.tabs button{display:flex;flex-direction:column;align-items:center;gap:2px}
+.tabs button span{font-size:.78rem}
+.tabs button[aria-current="page"]{background:transparent!important;color:var(--coin)!important}
+.tabs button[aria-current="page"] svg{stroke-width:2.1}
+@media (max-width:720px){
+  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:40;margin:0;border-radius:0;border:0;border-top:1px solid var(--line);background:rgba(28,17,9,.97);backdrop-filter:blur(6px);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));gap:0}
+  .tabs button{padding:4px 0!important;font-size:.72rem!important}
+  #view{padding-bottom:84px}
+}
+.snd.gear{color:var(--ink)}
+body[data-view=menu] .brand,body[data-view=register] .brand,body[data-view=welcome] .brand,body[data-view=auth] .brand,body[data-view=boot] .brand,body[data-view=login] .brand{visibility:hidden}
+.xcard{background:transparent!important;border:0!important;border-bottom:1px solid var(--line)!important;border-radius:0!important;padding:14px 28px 14px 2px!important;position:relative;box-shadow:none!important}
+.xcard::after{content:"";position:absolute;right:6px;top:50%;width:8px;height:8px;border-right:2px solid var(--muted);border-top:2px solid var(--muted);transform:translateY(-50%) rotate(45deg)}
+.profbar{display:flex;justify-content:flex-end;margin-top:12px}.profbar .btn{width:auto}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -466,6 +534,7 @@ textarea.tin{resize:vertical;min-height:84px}
       <button type="button" class="pill" data-a="load" aria-label="Fichas para apostar"><i class="chip" aria-hidden="true"></i><span id="chips">1.000</span></button>
       <button type="button" class="pill" data-a="shopcoins" aria-label="Monedas de la tienda"><i class="coin" aria-hidden="true"></i><span id="coins">150</span></button>
       <button type="button" class="snd" data-a="sound" id="sndbtn" aria-label="Sonido"></button>
+      <button type="button" class="snd gear" data-a="nav" data-v="settings" aria-label="Ajustes"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.8v2.6M12 18.6v2.6M2.8 12h2.6M18.6 12h2.6M5.5 5.5l1.9 1.9M16.6 16.6l1.9 1.9M18.5 5.5l-1.9 1.9M7.4 16.6l-1.9 1.9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
     </div>
   </div>
   <div class="guarda" aria-hidden="true"></div>
