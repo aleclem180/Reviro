@@ -58,7 +58,7 @@ const DORSO_ART={
     return{base:FIELD('#0f1638'),art:FIELD('#17214a')+`<rect x="${FX0}" y="40" width="${FW}" height="34" fill="#25306a" opacity=".55"/>`+st+moon+land+ombu+molino,top:''}},
   oro(){return{base:FIELD('#c99a3c'),defs:`<pattern id="bkp" width="5" height="5" patternUnits="userSpaceOnUse"><path d="M0 0V5M0 0H5" stroke="#7a5410" stroke-width=".38"/><circle cx="2.5" cy="2.5" r=".45" fill="#fff3c4"/></pattern>`,
     art:FIELD('#e0b558')+`<rect x="${FX0}" y="${FY0}" width="${FW}" height="${FH}" fill="url(#bkp)" opacity=".8"/><circle cx="30" cy="45" r="16" fill="#e0b558"/><circle cx="30" cy="45" r="14.6" fill="#f3e4b8" stroke="#8a5d0c" stroke-width="1.1"/>`+[0,1,2,3].map(i=>rhomb(i%2?30:(i?51:9),i%2?(i===1?10:80):45,5,7,'#8a5d0c')).join(''),
-    top:(()=>{const A=CARDART.symO,h=22,w=h*A.w/A.h;return `<image href="${A.src}" x="${30-w/2}" y="${45-h/2}" width="${w}" height="${h}"/>`})()}},
+    top:(()=>{const A=CARDART.symO,h=22,w=h*A.w/A.h;return `<image href="${A.data||A.src}" x="${30-w/2}" y="${45-h/2}" width="${w}" height="${h}"/>`})()}},
   fileteado(){const c=[[FX0+3,FY0+3,''],[FX0+FW-3,FY0+3,'scale(-1 1)'],[FX0+3,FY0+FH-3,'scale(1 -1)'],[FX0+FW-3,FY0+FH-3,'scale(-1 -1)']].map(([x,y,t])=>`<g transform="translate(${x} ${y}) ${t} scale(.9)">${VOLU}</g>`).join('');
     let ros='';for(let i=0;i<10;i++){const a=i*Math.PI/5;ros+=`<ellipse cx="${(30+Math.cos(a)*9.6).toFixed(2)}" cy="${(45+Math.sin(a)*9.6).toFixed(2)}" rx="3.2" ry="1.5" transform="rotate(${i*36} ${(30+Math.cos(a)*9.6).toFixed(2)} ${(45+Math.sin(a)*9.6).toFixed(2)})" fill="${i%2?'#74acdf':'#c0392b'}"/>`}
     ros+=`<circle cx="30" cy="45" r="7.4" fill="#e9c46a"/><circle cx="30" cy="45" r="5.4" fill="#c0392b"/><circle cx="30" cy="45" r="2.8" fill="#e9c46a"/><circle cx="30" cy="45" r="1" fill="#c0392b"/>`;
@@ -159,7 +159,7 @@ function panoSVG(id){const D=(PANO_ART[id]||PANO_ART.quincho)();if(PSOLID[id])D.
 
 /* se pasan a mapa de bits de a uno, con un respiro entre cada uno para no trabar la pantalla.
    El resultado queda en una variable de CSS (--a-dorso-pampa, --a-pano-quincho…), así todo lo que ya está en pantalla se actualiza solo. */
-function artVar(kind,id){const k=kind+'-'+id;if(!ARTIMG[k]){ARTIMG[k]='q';ARTQ.push([k,kind,id]);artPump()}return `var(--a-${k})`}
+function artVar(kind,id){const k=kind+'-'+id;if(!ARTIMG[k]&&window.REVIRO_ART_V&&!window.__ARTGEN){const u=`img/arte/${window.REVIRO_ART_V}/${k}.webp`;ARTIMG[k]=u;try{document.documentElement.style.setProperty('--a-'+k,`url("${u}")`)}catch(e){}}if(!ARTIMG[k]){ARTIMG[k]='q';ARTQ.push([k,kind,id]);artPump()}return `var(--a-${k})`}
 function artPump(){if(ARTBUSY||!ARTQ.length)return;ARTBUSY=true;const [k,kind,id]=ARTQ.shift();
   const svg=kind==='dorso'?dorsoSVG(id):panoSVG(id),W=kind==='dorso'?240:600,H=kind==='dorso'?360:600;
   const uri='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);const setv=u=>{try{document.documentElement.style.setProperty('--a-'+k,`url("${u}")`)}catch(e){}};

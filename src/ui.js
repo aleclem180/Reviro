@@ -29,7 +29,7 @@ function cardHTML(c,cls='',style=''){const n=cn(c),s=cs(c),col=SUITCOL[s],hx=SUI
   else if(n<=7&&long)mid=CRUCE[n].map(([x,y,L,a])=>u(x,y,L,a)).join('');
   else if(n<=7)mid=PIPS2[n].map(([x,y])=>u(x,y,s==='O'?(n>=6?14:15):(n>=6?15:16.5),0)).join('');
   else{/* sota, caballo y rey: el dibujo de cuerpo entero dentro del marco */const F=CARDART[n+s],bw=40,bh=61,sc=Math.min(bw/F.w,bh/F.h),fw=F.w*sc,fh=F.h*sc;
-    fig=`<image href="${F.src}" x="${(30-fw/2).toFixed(2)}" y="${(78.4-fh).toFixed(2)}" width="${fw.toFixed(2)}" height="${fh.toFixed(2)}"/>`;
+    fig=`<image href="${F.data||F.src}" x="${(30-fw/2).toFixed(2)}" y="${(78.4-fh).toFixed(2)}" width="${fw.toFixed(2)}" height="${fh.toFixed(2)}"/>`;
     fr+=`<rect x="9" y="16" width="42" height="63.4" rx="1.6" fill="none" stroke="${hx}" stroke-width=".7"/>`}
   const label=`${n} de ${({O:'oro',C:'copa',E:'espada',B:'basto'})[s]}`;
   return `<span class="card ${cls}" ${style?`style="${style}"`:''} role="img" aria-label="${label}"><img class="cart" data-c="${c}" src="${cardArt(c,fr,mid+fig)}" alt="" draggable="false"><svg class="cidx" viewBox="0 0 60 90" aria-hidden="true"><text x="4.6" y="14.6" class="cnum" fill="${col}">${n}</text><text x="4.6" y="14.6" class="cnum" fill="${col}" transform="rotate(180 30 45)">${n}</text></svg></span>`}
@@ -37,10 +37,17 @@ function cardHTML(c,cls='',style=''){const n=cn(c),s=cs(c),col=SUITCOL[s],hx=SUI
    Por eso se arma una sola vez por carta como imagen SVG y queda guardado: al moverla o rotarla, el navegador no recalcula el filtro.
    El rayado sale en diagonal porque el filtro trabaja en un espacio girado. Los números van aparte, nítidos, con la letra de la página. */
 const CARDIMG={};let CARDDEFS=null;
-function cardDefs(){if(CARDDEFS===null)CARDDEFS=['gPapel','fLapiz','fGrano'].map(id=>{const el=document.getElementById(id);return el?el.outerHTML:''}).join('')+['O','C','E','B'].map(s=>{const A=CARDART['sym'+s];return `<symbol id="p${s}" viewBox="0 0 ${A.w} ${A.h}" preserveAspectRatio="none"><image href="${A.src}" width="${A.w}" height="${A.h}"/></symbol>`}).join('');return CARDDEFS}
+function cardDefs(){if(CARDDEFS===null)CARDDEFS=['gPapel','fLapiz','fGrano'].map(id=>{const el=document.getElementById(id);return el?el.outerHTML:''}).join('')+['O','C','E','B'].map(s=>{const A=CARDART['sym'+s];return `<symbol id="p${s}" viewBox="0 0 ${A.w} ${A.h}" preserveAspectRatio="none"><image href="${A.data||A.src}" width="${A.w}" height="${A.h}"/></symbol>`}).join('');return CARDDEFS}
+/* En la web, las cartas, dorsos y paños ya vienen dibujados como imágenes (tools/arte.py), así el celular no tiene que
+   pintarlos en el medio de la partida, que era lo que daba tirones. Si no están (por ejemplo, en claude.ai), se pintan acá. */
+const PREART=window.REVIRO_ART_V&&!window.__ARTGEN?`img/arte/${window.REVIRO_ART_V}/`:null;const CARDSVG={};
 function cardArt(c,fr,mid){/* mid trae los palos o la figura */if(CARDIMG[c])return CARDIMG[c];
+  if(PREART)return (CARDIMG[c]=PREART+'carta-'+c+'.webp');
   const svg=`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 60 90" width="360" height="540"><defs>${cardDefs()}</defs><rect x=".5" y=".5" width="59" height="89" rx="4.6" fill="url(#gPapel)" stroke="#b9a27a" stroke-width=".7"/><rect x=".5" y=".5" width="59" height="89" rx="4.6" fill="#fff" filter="url(#fGrano)" opacity=".28"/><g transform="rotate(32 30 45)" filter="url(#fLapiz)"><g transform="rotate(-32 30 45)">${fr}</g></g>${mid}</svg>`;
-  const uri='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);CARDIMG[c]=uri;rasterCard(c,uri);return uri}
+  const uri='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);CARDIMG[c]=uri;CARDSVG[c]=uri;if(!window.__ARTGEN)rasterCard(c,uri);return uri}
+/* sin imágenes listas: se pintan todas de a una cuando el celular está libre, antes de que hagan falta */
+function warmArt(){if(PREART||window.__ARTGEN)return;const q=deck().filter(c=>!CARDIMG[c]);const idle=window.requestIdleCallback||(f=>setTimeout(()=>f({timeRemaining:()=>8}),60));
+  const step=()=>{if(!q.length)return;if(view==='game'&&G&&!G.hand.ended&&!G.matchOver){setTimeout(()=>idle(step),1500);return}cardHTML(q.shift());setTimeout(()=>idle(step),120)};idle(step)}
 /* y después se pasa a mapa de bits, que es lo más liviano para mover en pantalla */
 /* y después se pasa a mapa de bits, que es lo más liviano para mover en pantalla.
    Ojo: el navegador a veces avisa que la imagen cargó antes de tener listos los dibujos de adentro; por eso se espera
@@ -1706,7 +1713,7 @@ async function start(data){
   view='boot';
   try{const m=/^#a-([A-Z0-9]{6})$/i.exec(location.hash||'');if(m)localStorage.setItem('reviro.ref',m[1].toUpperCase())}catch(e){}
   if(data&&data.G&&data.mode==='offline'){mode='offline';mySeat=0;view='game';cfg=data.cfg;botLooks=data.botLooks||pickBotLooks(data.G.n);G=data.G}
-  renderSnd();renderWallet();render();drive();
+  renderSnd();renderWallet();render();drive();setTimeout(warmArt,1500);
   setInterval(presenceTick,3000);setInterval(turnTick,500);setInterval(()=>{if(view==='room'&&T&&T.tour&&T.status==='waiting')render()},15000);setInterval(tourTick,1000);
   try{CL=window.claude;if(CL&&CL.use){[db,usr,roomCap]=await Promise.all([CL.use('db'),CL.use('user'),CL.use('room')]);uid=usr?await usr.id():null;if(usr){try{const me=await usr.me();myName=me.name||'';myEmail=me.email||null}catch(e){}try{isOwnerV=!!(await usr.isOwner())}catch(e){}}}}catch(e){db=null}
   if(FB){await waitNET();if(!window.NET){$('#view').innerHTML=`<div class="gate">${fileteHTML('gtitle')}<section class="box"><h2>No se pudo conectar</h2><p>No pudimos llegar al servidor del juego. Revisá tu conexión y recargá la página.</p></section></div>`;return}

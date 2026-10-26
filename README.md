@@ -49,6 +49,7 @@ Las cuentas y el online funcionan con **Firebase** (Authentication + Firestore),
 | `src/ui.js` | Interfaz: hojas, direcciones, paginado, música y partidas |
 | `src/style.css`, `src/head.html`, `src/body.html` | Estilo y esqueleto de la página |
 | `tools/build.py` | Arma la web y `dist/claude.html` a partir de `src/` |
+| `tools/arte.py` | Pinta de antemano cartas, dorsos y paños como imágenes (`img/arte/`), para que el juego no se trabe al mostrarlos |
 | `tests/` | Pruebas en Python: motor, que ninguna hoja necesite scroll y direcciones. `python3 tests/run_all.py` |
 | `dist/claude.html` | La versión para publicar como página en claude.ai |
 

@@ -848,3 +848,13 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
 .srow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.srow .btn{padding:9px 4px;font-size:.88rem;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:4px;text-align:center}
 .btn.fb{background:#1877f2;border-color:#1877f2;color:#fff}.btn.ig{background:linear-gradient(45deg,#f58529,#dd2a7b,#8134af);border:0;color:#fff}
 .spanel>.btn.ghost{align-self:center}
+/* sombra de las cartas como caja y no como filtro: es mucho más liviana para mover */
+.card .cart{filter:none!important}
+.card{border-radius:7%/4.6%;box-shadow:0 2px 4px rgba(0,0,0,.35)}
+.hand .card{box-shadow:0 4px 10px rgba(0,0,0,.4)}
+.played .card.win{box-shadow:0 0 0 2px var(--coin),0 0 12px rgba(220,170,72,.8)}
+/* la sombra del paño en su propia capa: así no se vuelve a pintar cada vez que se tira una carta */
+.game .felt{box-shadow:none!important;contain:layout paint}
+.game .felt::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0;transform:translateZ(0);
+  box-shadow:inset 0 0 0 5px rgba(0,0,0,.22),inset 0 0 0 7px rgba(243,230,200,.14),inset 0 0 70px rgba(0,0,0,.45)}
+.game .felt>*{position:relative;z-index:1}

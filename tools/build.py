@@ -28,7 +28,9 @@ RESET = ("html{color-scheme:light}:root{padding-top:env(safe-area-inset-top,0px)
          "img{max-width:100%}[hidden]{display:none!important}")
 
 # Firebase: la configuración se carga primero; la capa de red (módulo) solo si hay configuración.
-FIREBASE = """<script src="js/firebase-config.js"></script>
+ARTV = ROOT / "js" / "arte-version.js"
+ARTTAG = (f'<script src="js/arte-version.js?v={hashlib.sha1(ARTV.read_bytes()).hexdigest()[:8]}"></script>\n' if ARTV.exists() else "")
+FIREBASE = ARTTAG + """<script src="js/firebase-config.js"></script>
 <script>
 window.REVIRO_WEB = 1;
 if (window.REVIRO_FIREBASE && window.REVIRO_FIREBASE.apiKey) {
