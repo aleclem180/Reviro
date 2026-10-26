@@ -35,6 +35,7 @@ const USERNAME_RE = /^[A-Za-z0-9_.]{3,20}$/;
 
 function authError(code) {
   const M = {
+    'terminos': 'Para crear la cuenta tenés que aceptar los términos y condiciones.',
     'auth/email-already-in-use': 'Ya hay una cuenta con ese mail.',
     'auth/invalid-email': 'El mail no es válido.',
     'auth/weak-password': 'La contraseña tiene que tener al menos 6 caracteres.',
@@ -52,7 +53,10 @@ function authError(code) {
 }
 
 /** Crea la cuenta: usuario de Firebase Auth + users/{uid} + usernames/{usuario} (reserva única) + datos privados. */
-async function register({ email, username, password, avatar }) {
+export const TERMS_V = '2026-10';
+
+async function register({ email, username, password, avatar, terms }) {
+  if (!terms) throw authError('terminos');
   const name = String(username || '').trim();
   if (!USERNAME_RE.test(name)) throw authError('usuario-invalido');
   const lower = name.toLowerCase();
@@ -82,12 +86,19 @@ async function createUserDocs(user, name, avatar) {
     tx.set(doc(fs, 'users', user.uid), {
       username: name, usernameLower: lower, role: 'player', avatar: avatar || 'gaucho',
       createdAt: serverTimestamp(), stats: { ...EMPTY_STATS }, lastMatchId: null,
+      terms: { version: TERMS_V, acceptedAt: serverTimestamp() },
     });
     tx.set(doc(fs, 'users', user.uid, 'private', 'account'), { email: user.email });
   });
 }
 
 /** Para cuentas que quedaron a medio crear (por ejemplo, se cortó internet al registrarse). */
+/** Cuentas creadas antes de los términos: los aceptan al entrar. */
+async function acceptTerms() {
+  await updateDoc(doc(fs, 'users', me().uid), { terms: { version: TERMS_V, acceptedAt: serverTimestamp() } });
+  return loadUser();
+}
+
 async function completeProfile({ username, avatar }) {
   const name = String(username || '').trim();
   if (!USERNAME_RE.test(name)) throw authError('usuario-invalido');
@@ -163,12 +174,14 @@ export function decodeRoom(d) {
   return { ...d, game };
 }
 
+export const MIN_STAKE = 1000;
 const CODE_CH = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
 const newCode = () => Array.from({ length: 4 }, () => CODE_CH[Math.floor(Math.random() * CODE_CH.length)]).join('');
 
 /** Lobby: crea una sala vacía con el creador sentado en el asiento 1. Devuelve el código. */
 async function createRoom({ n = 2, target = 30, flor = true, stake = 0, diff = 'medio', bots = 0 }) {
   const uid = me().uid;
+  if (!bots && stake && stake < MIN_STAKE) stake = 0;   // mesas entre personas: entrada de 1.000 fichas o más (o amistosa)
   for (let attempt = 0; attempt < 6; attempt++) {
     const code = newCode();
     const seats = Array.from({ length: n }, (_, i) => (i === 0 ? { id: uid, bot: false } : { id: null, bot: i <= bots }));
@@ -235,7 +248,7 @@ async function startRoom(code, buildGame) {
     const game = buildGame(seats, d);
     tx.update(roomRef(code), {
       status: 'playing', seats, playerIds: humans(seats), teams: teamsOf(seats), type: typeOf(d.n, seats),
-      gameJson: JSON.stringify(game), seq: game.seq, matchId: game.matchId, result: null, updatedAt: Date.now(),
+      gameJson: JSON.stringify(game), seq: game.seq, matchId: game.matchId, result: null, startedAt: Date.now(), updatedAt: Date.now(),
     });
     return { ok: true, game };
   });
@@ -256,7 +269,8 @@ async function commitMove(code, next) {
     const upd = { gameJson: JSON.stringify(next), seq: next.seq, updatedAt: Date.now() };
     if (next.matchOver) {
       upd.status = 'finished';
-      upd.result = { matchId: next.matchId, winnerTeam: next.matchOver.winner, at: Date.now() };
+      upd.result = { matchId: next.matchId, winnerTeam: next.matchOver.winner, at: Date.now(),
+        cancelled: !!next.matchOver.cancelled, forfeit: next.matchOver.forfeit || null };
     }
     tx.update(roomRef(code), upd);
     return { ok: true };
@@ -304,6 +318,7 @@ async function recordMatch(code) {
     const room = rs.data();
     if (room.status !== 'finished' || !room.result || !(uid in (room.teams || {}))) return null;
     if (!isOnline(room)) return null;   // contra la IA no cuenta en el historial
+    if (room.result.cancelled || room.result.winnerTeam < 0) return null;   // partida cancelada al arrancar: no cuenta
     const matchId = room.result.matchId;
     const recRef = doc(fs, 'users', uid, 'matches', matchId);
     if ((await tx.get(recRef)).exists()) return null;
@@ -642,12 +657,14 @@ const tour = {
     for (const m of matches) b.set(tMatch(tid, m.id), { ...m, updatedAt: Date.now() });
     b.update(tRef(tid), { status: 'running', pot, teams, startedAt: Date.now(), updatedAt: Date.now() });
     await b.commit();
+    audit('empezar torneo', tid, { equipos: teams.length, pozo: pot });
     return { ok: true, teams: teams.length };
   },
 
   async cancel(tid) {
     const t = (await getDoc(tRef(tid))).data();
     await updateDoc(tRef(tid), { status: 'cancelled', updatedAt: Date.now() });
+    audit('cancelar torneo y devolver entradas', tid);
     await setDoc(tBooks(tid), { gross: 0, pot: 0, house: 0, players: t.players || 0, buyIn: t.buyIn, refunded: (t.players || 0) * (t.buyIn || 0), at: Date.now() }).catch(() => {});
   },
   /** Admin: las cuentas del torneo y los últimos movimientos. */
@@ -657,8 +674,15 @@ const tour = {
   },
 
   /** Admin: da por ganado un partido (por ejemplo, si alguien no se presentó). */
+  /** Admin: pausa de emergencia (no se pueden empezar partidos nuevos) y vuelta al juego. */
+  async pause(tid, on) {
+    await updateDoc(tRef(tid), { status: on ? 'paused' : 'running', updatedAt: Date.now() });
+    audit(on ? 'pausar torneo' : 'reanudar torneo', tid);
+    if (!on) await tour.advance(tid);
+  },
   async walkover(tid, mid, winner) {
     await updateDoc(tMatch(tid, mid), { winner, wo: true, updatedAt: Date.now() });
+    audit('dar partido por ganado', tid + '/' + mid, winner);
     await tour.advance(tid);
   },
 
@@ -668,7 +692,7 @@ const tour = {
     const [ts, msnap] = await Promise.all([getDoc(tRef(tid)), getDoc(tMatch(tid, mid))]);
     if (!ts.exists() || !msnap.exists()) return null;
     const t = ts.data(), m = msnap.data();
-    if (m.winner || !m.a || !m.b) return null;
+    if (m.winner || !m.a || !m.b || t.status !== 'running') return null;
     if (!m.a.ids.includes(uid) && !m.b.ids.includes(uid)) return null;
     const code = m.room;
     await runTransaction(fs, async (tx) => {
@@ -823,7 +847,7 @@ const tour = {
 const payRef = () => doc(fs, 'config', 'pagos');
 const pay = {
   watchConfig: (cb) => onSnapshot(payRef(), (s) => cb(s.exists() ? s.data() : { links: [], alias: '' }), () => cb({ links: [], alias: '' })),
-  saveConfig: (cfg) => setDoc(payRef(), { links: (cfg.links || []).map((x) => String(x || '').trim()).slice(0, 8), alias: String(cfg.alias || '').trim().slice(0, 60), updatedAt: Date.now() }),
+  saveConfig: (cfg) => { audit('editar cobros', 'config/pagos'); return setDoc(payRef(), { links: (cfg.links || []).map((x) => String(x || '').trim()).slice(0, 8), alias: String(cfg.alias || '').trim().slice(0, 60), updatedAt: Date.now() }); },
   async request(pack, coins, ars) {
     const uid = me().uid;
     const ref = doc(collection(fs, 'purchases'));
@@ -835,8 +859,61 @@ const pay = {
   markApplied: (id) => updateDoc(doc(fs, 'purchases', id), { applied: true }),
   watchPending: (cb) => onSnapshot(query(collection(fs, 'purchases'), where('status', '==', 'pendiente'), limit(100)),
     (s) => cb(s.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => a.at - b.at))),
-  decide: (id, ok) => updateDoc(doc(fs, 'purchases', id), { status: ok ? 'acreditada' : 'rechazada', decidedAt: Date.now() }),
+  decide: (id, ok) => updateDoc(doc(fs, 'purchases', id), { status: ok ? 'acreditada' : 'rechazada', decidedAt: Date.now() }).then(() => audit(ok ? 'acreditar compra' : 'rechazar compra', id)),
 };
+
+
+/* ------------------------------------------------------------------ */
+/* Referidos                                                           */
+/* ------------------------------------------------------------------ */
+/*
+  referrals/{uid del invitado}  { referrer, username, at, played, paidReferrer }
+  Quien se registra con el link de un amigo recibe monedas de bienvenida. Cuando juega su primera partida
+  online, el que lo invitó cobra su premio (por defecto 500 monedas; el admin puede subirlo por persona con
+  users/{uid}.refBonus, para los que traen más gente).
+*/
+export const REF_NEW = 300, REF_DEFAULT = 500;
+const ref = {
+  async byCode(code) {
+    const s = await getDocs(query(collection(fs, 'profiles'), where('code', '==', String(code).toUpperCase()), limit(1)));
+    return s.empty ? null : s.docs[0].id;
+  },
+  async claim(referrer) {
+    const uid = me().uid;
+    if (!referrer || referrer === uid) return false;
+    return runTransaction(fs, async (tx) => {
+      const r = doc(fs, 'referrals', uid);
+      if ((await tx.get(r)).exists()) return false;
+      tx.set(r, { referrer, username: USER?.username || '', at: Date.now(), played: false, paidReferrer: false });
+      return true;
+    });
+  },
+  async markPlayed() {
+    const r = doc(fs, 'referrals', me().uid);
+    const s = await getDoc(r).catch(() => null);
+    if (s && s.exists() && !s.data().played) await updateDoc(r, { played: true }).catch(() => {});
+  },
+  watchMine: (cb) => onSnapshot(query(collection(fs, 'referrals'), where('referrer', '==', me().uid), limit(200)),
+    (s) => cb(s.docs.map((d) => ({ id: d.id, ...d.data() }))), () => cb([])),
+  markPaid: (id) => updateDoc(doc(fs, 'referrals', id), { paidReferrer: true }),
+};
+
+/* ------------------------------------------------------------------ */
+/* Ajustes de saldo que hace el admin                                  */
+/* ------------------------------------------------------------------ */
+/* grants/{uid}/items/{id} { chips, coins, reason, by, at, applied } — la app del jugador los suma una sola vez. */
+const grants = {
+  watchMine: (cb) => onSnapshot(query(collection(fs, 'grants', me().uid, 'items'), where('applied', '==', false), limit(50)),
+    (s) => cb(s.docs.map((d) => ({ id: d.id, ...d.data() }))), () => cb([])),
+  markApplied: (id) => updateDoc(doc(fs, 'grants', me().uid, 'items', id), { applied: true }),
+};
+
+/* ------------------------------------------------------------------ */
+/* Registro de acciones del admin (no se puede borrar ni editar)       */
+/* ------------------------------------------------------------------ */
+const audit = (action, target, detail) => addDoc(collection(fs, 'auditLog'), {
+  by: me()?.uid || null, byName: USER?.username || '', action, target: target || null, detail: detail ?? null, at: Date.now(),
+}).catch(() => {});
 
 /* ------------------------------------------------------------------ */
 /* Administración                                                      */
@@ -844,11 +921,39 @@ const pay = {
 const admin = {
   watchRooms: (cb) => onSnapshot(query(collection(fs, 'rooms'), where('status', 'in', ['waiting', 'playing'])),
     (s) => cb(s.docs.map((d) => decodeRoom(d.data())))),
-  closeRoom: (code) => updateDoc(roomRef(code), { status: 'closed', updatedAt: Date.now() }),
+  closeRoom: (code) => updateDoc(roomRef(code), { status: 'closed', updatedAt: Date.now() }).then(() => audit('cerrar sala', code)),
   deleteRoom: (code) => deleteDoc(roomRef(code)),
   watchUsers: (cb) => onSnapshot(query(collection(fs, 'users'), limit(300)),
     (s) => cb(s.docs.map((d) => ({ uid: d.id, ...d.data() })))),
-  setRole: (uid, role) => updateDoc(doc(fs, 'users', uid), { role: role === 'admin' ? 'admin' : 'player' }),
+  setRole: (uid, role) => updateDoc(doc(fs, 'users', uid), { role: role === 'admin' ? 'admin' : 'player' }).then(() => audit('cambiar rol', uid, role)),
+  setBanned: (uid, banned, reason) => updateDoc(doc(fs, 'users', uid), { banned: !!banned, bannedReason: banned ? String(reason || '').slice(0, 120) : null })
+    .then(() => audit(banned ? 'suspender cuenta' : 'reactivar cuenta', uid, reason || null)),
+  setRefBonus: (uid, coins) => updateDoc(doc(fs, 'users', uid), { refBonus: Math.max(0, Math.min(100000, Math.round(+coins || 0))) })
+    .then(() => audit('premio por referido', uid, +coins)),
+  async grant(uid, { chips = 0, coins = 0, reason = '' }) {
+    chips = Math.round(+chips || 0); coins = Math.round(+coins || 0);
+    if (!chips && !coins) return;
+    await addDoc(collection(fs, 'grants', uid, 'items'), { chips, coins, reason: String(reason || '').slice(0, 120), by: me().uid, at: Date.now(), applied: false });
+    await audit('ajustar saldo', uid, { chips, coins, reason });
+  },
+  /** Vista completa de un jugador: perfil, billetera, compras, referidos. */
+  async user(uid) {
+    const [u, w, p, r, rr] = await Promise.all([
+      getDoc(doc(fs, 'users', uid)), getDoc(doc(fs, 'wallets', uid)).catch(() => null),
+      getDocs(query(collection(fs, 'purchases'), where('uid', '==', uid), limit(20))).catch(() => null),
+      getDoc(doc(fs, 'referrals', uid)).catch(() => null),
+      getDocs(query(collection(fs, 'referrals'), where('referrer', '==', uid), limit(100))).catch(() => null),
+    ]);
+    return {
+      user: u.exists() ? { uid, ...u.data() } : null,
+      wallet: w && w.exists() ? w.data() : null,
+      purchases: p ? p.docs.map((d) => ({ id: d.id, ...d.data() })) : [],
+      referredBy: r && r.exists() ? r.data() : null,
+      referred: rr ? rr.docs.map((d) => ({ id: d.id, ...d.data() })) : [],
+    };
+  },
+  watchAudit: (cb) => onSnapshot(query(collection(fs, 'auditLog'), orderBy('at', 'desc'), limit(40)), (s) => cb(s.docs.map((d) => d.data())), () => cb([])),
+  audit,
 };
 
 /* ------------------------------------------------------------------ */
@@ -976,10 +1081,10 @@ const roomCap = {
 /* ------------------------------------------------------------------ */
 window.NET = {
   ADMIN_EMAILS, EMPTY_STATS, decodeRoom,
-  auth: { register, completeProfile, login, logout, resetPassword, resendVerification, onChange, isAdmin, loadUser, user: () => USER },
+  auth: { register, completeProfile, acceptTerms, TERMS_V, login, logout, resetPassword, resendVerification, onChange, isAdmin, loadUser, user: () => USER },
   rooms: { createRoom, updateSeats, sit, join, startRoom, commitMove, leaveRoom },
   stats: { recordMatch, recordAbandon, recordPending, watchUser },
-  admin, tour, pay,
+  admin, tour, pay, ref, grants, REF_NEW, REF_DEFAULT, MIN_STAKE,
   db, usr, roomCap,
 };
 window.dispatchEvent(new Event('net-ready'));

@@ -202,6 +202,26 @@ La entrada y el premio se pagan en **fichas**, que no tienen valor en dinero: no
 
 Las monedas son solo para la tienda: no se cambian por fichas ni por plata. Para que se acrediten solas sin que el admin confirme, hace falta un servidor que reciba los avisos de Mercado Pago (por ejemplo, Cloud Functions de Firebase, que piden el plan Blaze).
 
+## Mesas con entrada (fichas)
+
+- En `rooms/{código}`, `stake` es la entrada por jugador: `0` (amistosa) o desde **1.000 fichas**. Las reglas no dejan crear mesas entre personas con menos (contra la IA sí).
+- **Premio:** el 90% del pozo. En 1v1 se lo lleva el ganador; en 2v2 se reparte en partes iguales entre los dos ganadores. El 10% sale de circulación.
+- **Cancelación:** si alguien se va en los primeros 30 segundos (`startedAt`), la partida termina con `result.cancelled = true` y a todos se les devuelve la entrada. No cuenta en el historial.
+- **Desconexión:** si alguien se desconecta después, la partida espera 60 segundos. Si no vuelve, termina con `result.forfeit = uid`: el que se fue pierde su entrada (se reparte entre los rivales, menos el 10%) y a su compañero se le devuelve la suya.
+- Todos los días, quien tenga menos de 1.000 fichas vuelve a 1.000.
+
+## Referidos
+
+`referrals/{uid del invitado}` `{ referrer, username, at, played, paidReferrer }`. El invitado recibe 300 monedas al registrarse con el link de un amigo. Cuando juega su primera partida online (`played`), el que lo invitó cobra su premio: 500 monedas, o lo que el admin le haya puesto en `users/{uid}.refBonus`.
+
+## Moderación, ajustes de saldo y registro de acciones
+
+- `users/{uid}.banned` y `bannedReason`: cuenta suspendida. Las reglas no le dejan crear salas, inscribirse en torneos, comprar ni sumar referidos.
+- `grants/{uid}/items/{id}` `{ chips, coins, reason, by, at, applied }`: ajustes de saldo del admin (pueden ser negativos). La app del jugador los aplica una sola vez.
+- `auditLog/{id}` `{ by, byName, action, target, detail, at }`: cada acción de un admin (roles, suspensiones, ajustes, premium, cobros, salas, torneos). Las reglas no dejan editarlo ni borrarlo.
+- `users/{uid}.terms` `{ version, acceptedAt }`: aceptación de los términos y condiciones, con fecha y hora del servidor. Quien no tiene la versión vigente la tiene que aceptar al entrar.
+- Torneos: el admin puede ponerlos en `paused` (no arrancan partidos nuevos) y reanudarlos.
+
 ## Lo cosmético
 
 | Colección | Contenido | Quién escribe |

@@ -16,6 +16,10 @@ service cloud.firestore {
         && request.auth.token.email == 'alejandro.clemente05@gmail.com'
         && request.auth.token.email_verified == true;
     }
+    // cuenta suspendida por el admin: no puede jugar, inscribirse ni comprar
+    function notBanned() {
+      return signedIn() && !(get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('banned', false) == true);
+    }
     function isAdmin() {
       return isFixedAdmin()
         || (signedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid))
@@ -47,12 +51,16 @@ service cloud.firestore {
       allow update: if
            // el jugador cambia su personaje
            (isSelf(uid) && changed().hasOnly(['avatar']))
+           // el jugador acepta los términos y condiciones
+        || (isSelf(uid) && changed().hasOnly(['terms']))
            // el jugador registra el resultado de una partida (ver validStats)
         || (isSelf(uid) && changed().hasOnly(['stats', 'lastMatchId']) && validStats(uid))
            // el admin fijo deja asentado su propio rol
         || (isSelf(uid) && isFixedAdmin() && changed().hasOnly(['role']) && request.resource.data.role == 'admin')
            // un admin cambia el rol de otro usuario
-        || (isAdmin() && changed().hasOnly(['role']) && request.resource.data.role in ['player', 'admin']);
+        || (isAdmin() && changed().hasOnly(['role']) && request.resource.data.role in ['player', 'admin'])
+           // moderación y premio por referido (solo admin)
+        || (isAdmin() && changed().hasOnly(['banned', 'bannedReason', 'refBonus']));
 
       allow delete: if isAdmin();
 
@@ -123,9 +131,11 @@ service cloud.firestore {
       }
 
       allow read: if signedIn();
-      allow create: if signedIn()
+      allow create: if notBanned()
         && request.resource.data.host == request.auth.uid
         && request.resource.data.status == 'waiting'
+        // entrada: amistosa o desde 1.000 fichas (contra la IA puede ser menos)
+        && (request.resource.data.stake == 0 || request.resource.data.stake >= 1000 || request.resource.data.seats[1].bot == true)
         && request.resource.data.code == code
         && request.resource.data.n in [2, 4];
       allow update: if signedIn()
@@ -165,14 +175,14 @@ service cloud.firestore {
              || (request.resource.data.players == T().players - 1
                  && exists(entryPath(request.auth.uid)) && !existsAfter(entryPath(request.auth.uid)))))
         // cerrar el torneo con el podio cuando se jugó todo (lo hace cualquiera de los inscriptos)
-        || (signedIn() && T().status == 'running' && request.resource.data.status == 'finished'
+        || (signedIn() && T().status in ['running', 'paused'] && request.resource.data.status == 'finished'
             && changed().hasOnly(['status', 'places', 'finishedAt', 'updatedAt'])
             && exists(entryPath(request.auth.uid)));
 
       match /entries/{uid} {
         function tour() { return get(/databases/$(database)/documents/tournaments/$(tid)).data; }
         allow read: if signedIn();
-        allow create: if isSelf(uid) && tour().status == 'open'
+        allow create: if isSelf(uid) && notBanned() && tour().status == 'open'
           && (tour().startAt == null || request.time.toMillis() < tour().startAt)
           && request.resource.data.uid == uid
           && request.resource.data.partner == null
@@ -250,7 +260,7 @@ service cloud.firestore {
     match /purchases/{id} {
       allow read: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
       // el jugador avisa que pagó: queda pendiente hasta que el admin lo vea en Mercado Pago
-      allow create: if signedIn() && request.resource.data.uid == request.auth.uid
+      allow create: if notBanned() && request.resource.data.uid == request.auth.uid
         && request.resource.data.status == 'pendiente' && request.resource.data.applied == false;
       allow update: if isAdmin()
         // el jugador solo marca que ya se le sumaron las monedas de una compra acreditada
@@ -267,7 +277,38 @@ service cloud.firestore {
 
     // ---------- billetera privada (fichas, monedas, cosas compradas) ----------
     match /wallets/{uid} {
-      allow read, write: if isSelf(uid);
+      allow read: if isSelf(uid) || isAdmin();
+      allow write: if isSelf(uid);
+    }
+
+    // ---------- referidos ----------
+    match /referrals/{uid} {
+      allow read: if isAdmin() || isSelf(uid) || (signedIn() && resource.data.referrer == request.auth.uid);
+      allow create: if isSelf(uid) && notBanned() && request.resource.data.referrer != uid
+        && exists(/databases/$(database)/documents/users/$(request.resource.data.referrer))
+        && request.resource.data.played == false && request.resource.data.paidReferrer == false;
+      allow update: if isAdmin()
+        // el invitado avisa que ya jugó su primera partida online
+        || (isSelf(uid) && changed().hasOnly(['played']) && request.resource.data.played == true)
+        // el que invitó marca que ya cobró su premio
+        || (signedIn() && resource.data.referrer == request.auth.uid && resource.data.played == true
+            && changed().hasOnly(['paidReferrer']) && request.resource.data.paidReferrer == true);
+      allow delete: if isAdmin();
+    }
+
+    // ---------- ajustes de saldo que hace el admin ----------
+    match /grants/{uid}/items/{id} {
+      allow read: if isSelf(uid) || isAdmin();
+      allow create: if isAdmin() && request.resource.data.by == request.auth.uid && request.resource.data.applied == false;
+      allow update: if isAdmin() || (isSelf(uid) && changed().hasOnly(['applied']) && request.resource.data.applied == true);
+      allow delete: if false;
+    }
+
+    // ---------- registro de acciones del admin: no se edita ni se borra ----------
+    match /auditLog/{id} {
+      allow read: if isAdmin();
+      allow create: if isAdmin() && request.resource.data.by == request.auth.uid;
+      allow update, delete: if false;
     }
 
     // ---------- premium: solo lo da un admin ----------
