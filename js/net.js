@@ -6,6 +6,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/fireba
 import {
   getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword,
   signOut, sendEmailVerification, sendPasswordResetEmail, updateProfile, deleteUser,
+  GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult,
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import {
   getFirestore, doc, collection, getDoc, getDocs, setDoc, updateDoc, deleteDoc, addDoc,
@@ -46,6 +47,11 @@ function authError(code) {
     'auth/network-request-failed': 'No hay conexión. Revisá internet.',
     'usuario-invalido': 'El usuario tiene que tener de 3 a 20 letras, números, punto o guion bajo.',
     'usuario-tomado': 'Ese nombre de usuario ya está en uso.',
+    'auth/operation-not-allowed': 'El ingreso con Google todavía no está activado. Mientras tanto, entrá con tu mail y contraseña.',
+    'auth/unauthorized-domain': 'Este sitio todavía no está autorizado para entrar con Google.',
+    'auth/popup-closed-by-user': 'Cerraste la ventana de Google antes de terminar.',
+    'auth/cancelled-popup-request': 'Cerraste la ventana de Google antes de terminar.',
+    'auth/account-exists-with-different-credential': 'Ya hay una cuenta con ese mail. Entrá con tu mail y contraseña.',
   };
   const e = new Error(M[code] || 'Algo salió mal. Probá de nuevo.');
   e.code = code;
@@ -99,7 +105,8 @@ async function acceptTerms() {
   return loadUser();
 }
 
-async function completeProfile({ username, avatar }) {
+async function completeProfile({ username, avatar, terms }) {
+  if (!terms) throw authError('terminos');
   const name = String(username || '').trim();
   if (!USERNAME_RE.test(name)) throw authError('usuario-invalido');
   await createUserDocs(me(), name, avatar);
@@ -110,6 +117,21 @@ async function login({ email, password }) {
   try { await signInWithEmailAndPassword(auth, String(email).trim(), password); }
   catch (e) { throw authError(e.code); }
 }
+
+/** Entrar o crear la cuenta con Google. La primera vez, la interfaz pide usuario, personaje y términos (completeProfile).
+ *  Si ya existía una cuenta con ese mismo mail, Firebase la reconoce y se conserva todo: es el mismo usuario. */
+async function google() {
+  const p = new GoogleAuthProvider();
+  p.setCustomParameters({ prompt: 'select_account' });
+  try { await signInWithPopup(auth, p); }
+  catch (e) {
+    if (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment') { await signInWithRedirect(auth, p); return; }
+    throw authError(e.code);
+  }
+}
+/* si se entró por redirección (cuando el navegador bloquea la ventanita), acá llega el resultado */
+let REDIRERR = null;
+getRedirectResult(auth).catch((e) => { REDIRERR = authError(e.code); });
 
 const logout = () => signOut(auth);
 const resetPassword = (email) => sendPasswordResetEmail(auth, String(email).trim()).catch((e) => { throw authError(e.code); });
@@ -1083,7 +1105,7 @@ const roomCap = {
 /* ------------------------------------------------------------------ */
 window.NET = {
   ADMIN_EMAILS, EMPTY_STATS, decodeRoom,
-  auth: { register, completeProfile, acceptTerms, TERMS_V, login, logout, resetPassword, resendVerification, onChange, isAdmin, loadUser, user: () => USER },
+  auth: { register, google, redirectError: () => { const e = REDIRERR; REDIRERR = null; return e; }, googleName: () => (me() && me().displayName) || '', completeProfile, acceptTerms, TERMS_V, login, logout, resetPassword, resendVerification, onChange, isAdmin, loadUser, user: () => USER },
   rooms: { createRoom, updateSeats, sit, join, startRoom, commitMove, leaveRoom },
   stats: { recordMatch, recordAbandon, recordPending, watchUser },
   admin, tour, pay, ref, grants, REF_NEW, REF_DEFAULT, MIN_STAKE,

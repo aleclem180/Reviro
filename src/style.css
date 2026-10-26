@@ -819,3 +819,6 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
 .endp.anim>:not(.cartel){animation:fadein .4s .45s both}@keyframes fadein{from{opacity:0;transform:translateY(6px)}}
 @media (prefers-reduced-motion:reduce){.cartel *,.c-rays,.ripple i,.endp>*{animation:none!important}.btn:active{transform:none}}
 .c-av{border-radius:20px}.c-av .av{border-radius:16px}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:10px;background:#f6f1e7;color:#2a1d12;border-color:#d8cdb8;font-weight:700}
+.gbtn:hover:not(:disabled){background:#fff}
+.ordiv{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.85rem}.ordiv::before,.ordiv::after{content:"";flex:1;height:1px;background:var(--line)}

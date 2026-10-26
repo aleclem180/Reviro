@@ -1169,7 +1169,8 @@ const waitNET=()=>window.NET?Promise.resolve(window.NET):new Promise(res=>{windo
 function authHTML(){const free=AVS.filter(a=>!a.price);const e=AUTHERR?`<p class="autherr" role="alert">${esc(AUTHERR)}</p>`:'';const dis=AUTHBUSY?'disabled':'';
   const tabs=AUTHV==='complete'?'':`<div class="subtabs" role="group"><button type="button" data-a="authv" data-v="login" aria-pressed="${AUTHV==='login'}">Ingresar</button><button type="button" data-a="authv" data-v="register" aria-pressed="${AUTHV==='register'}">Crear cuenta</button></div>`;
   let body='';
-  if(AUTHV==='login')body=`<form class="box" data-form="login"><h2>Ingresá a tu cuenta</h2>
+  const gbtn=`<button type="button" class="btn gbtn" data-a="google" ${dis}>${GICO}<span>Continuar con Google</span></button><div class="ordiv"><span>o con tu mail</span></div>`;
+  if(AUTHV==='login')body=`<form class="box" data-form="login"><h2>Ingresá a tu cuenta</h2>${gbtn}
     <div class="field"><span>Mail</span><input type="email" id="aemail" class="plain" autocomplete="email" required></div>
     <div class="field"><span>Contraseña</span><input type="password" id="apass" class="plain" autocomplete="current-password" required></div>
     ${e}<button class="btn prim" type="submit" ${dis}>${AUTHBUSY?'Entrando…':'Ingresar'}</button>
@@ -1177,22 +1178,26 @@ function authHTML(){const free=AVS.filter(a=>!a.price);const e=AUTHERR?`<p class
   if(AUTHV==='reset')body=`<form class="box" data-form="reset"><h2>Recuperar contraseña</h2><p class="note">Te mandamos un mail para elegir una contraseña nueva.</p>
     <div class="field"><span>Mail</span><input type="email" id="aemail" class="plain" autocomplete="email" required></div>
     ${e}<button class="btn prim" type="submit" ${dis}>Mandar mail</button><button class="btn ghost sm" type="button" data-a="authv" data-v="login">Volver</button></form>`;
-  if(AUTHV==='register'||AUTHV==='complete')body=`<form class="box" data-form="${AUTHV}"><h2>${AUTHV==='complete'?'Terminá tu registro':'Creá tu cuenta'}</h2>
+  if(AUTHV==='register'||AUTHV==='complete')body=`<form class="box" data-form="${AUTHV}"><h2>${AUTHV==='complete'?'Terminá tu registro':'Creá tu cuenta'}</h2>${AUTHV==='register'?gbtn:`<p class="note" style="margin:0">Entraste con ${esc(myEmail||(AUTHINFO&&AUTHINFO.email)||'tu cuenta')}. Elegí cómo te van a ver en la mesa.</p>`}
     ${AUTHV==='register'?`<div class="field"><span>Mail</span><input type="email" id="aemail" class="plain" autocomplete="email" required></div>`:''}
-    <div class="field"><span>Nombre de usuario</span><input type="text" id="auser" class="plain" maxlength="20" autocomplete="username" placeholder="De 3 a 20 letras, números, punto o guion bajo" required></div>
+    <div class="field"><span>Nombre de usuario</span><input type="text" id="auser" class="plain" maxlength="20" value="${AUTHV==='complete'?esc(googleUser()):''}" autocomplete="username" placeholder="De 3 a 20 letras, números, punto o guion bajo" required></div>
     ${AUTHV==='register'?`<div class="field"><span>Contraseña</span><input type="password" id="apass" class="plain" autocomplete="new-password" minlength="6" placeholder="Al menos 6 caracteres" required></div>`:''}
     <div class="field"><span>Elegí tu personaje</span><div class="regavs">${free.map(a=>`<button type="button" class="regav" data-a="regav" data-id="${a.id}" aria-pressed="${regAv===a.id}">${avatarSVG(a.id,96,true)}<b>${esc(a.name)}</b></button>`).join('')}</div></div>
-    ${AUTHV==='register'?`<label class="tos"><input type="checkbox" id="aterms" ${TOSOK?'checked':''}> <span>Leí y acepto los <button type="button" class="linkb" data-a="terms">términos y condiciones</button></span></label>`:''}
+    ${AUTHV==='register'||AUTHV==='complete'?`<label class="tos"><input type="checkbox" id="aterms" ${TOSOK?'checked':''}> <span>Leí y acepto los <button type="button" class="linkb" data-a="terms">términos y condiciones</button></span></label>`:''}
     ${e}<button class="btn prim" type="submit" ${dis}>${AUTHBUSY?'Creando…':'Crear mi cuenta'}</button>
-    <p class="note">Te vamos a mandar un mail para verificar tu cuenta. Las fichas y las monedas de Reviro no tienen valor en dinero.</p></form>`;
+    <p class="note">${AUTHV==='register'?'Te vamos a mandar un mail para verificar tu cuenta. ':''}Las fichas y las monedas de Reviro no tienen valor en dinero.</p></form>`;
   return `<div class="gate">${fileteHTML('gtitle')}${tabs}${body}</div>`}
+const GICO='<svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>';
+/* el nombre que trae Google, pasado a un usuario válido (de 3 a 20 letras, números, punto o guion bajo) */
+const googleUser=()=>{let n='';try{n=(NET.auth.googleName&&NET.auth.googleName())||''}catch(e){}n=n.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'.').replace(/[^A-Za-z0-9._]/g,'').slice(0,20);return n.length>=3?n:''};
+async function googleIn(){if(AUTHBUSY)return;AUTHERR='';AUTHBUSY=true;render();try{await NET.auth.google()}catch(err){AUTHERR=err.message||'No se pudo entrar con Google.'}AUTHBUSY=false;render()}
 const fval=id=>{const el=document.getElementById(id);return el?el.value:''};let TOSOK=false;
 async function authSubmit(kind){if(AUTHBUSY)return;AUTHERR='';AUTHBUSY=true;
   const email=fval('aemail'),pass=fval('apass'),user=fval('auser'),tos=!!(document.getElementById('aterms')||{}).checked;TOSOK=tos;render();
   try{
     if(kind==='login')await NET.auth.login({email,password:pass});
     else if(kind==='register'){if(!tos)throw new Error('Para crear la cuenta tenés que aceptar los términos y condiciones.');await NET.auth.register({email,username:user,password:pass,avatar:regAv,terms:true});await onFbUser(AUTHINFO,true)}
-    else if(kind==='complete'){await NET.auth.completeProfile({username:user,avatar:regAv});await onFbUser(AUTHINFO,true)}
+    else if(kind==='complete'){if(!tos)throw new Error('Para crear la cuenta tenés que aceptar los términos y condiciones.');await NET.auth.completeProfile({username:user,avatar:regAv,terms:true});await onFbUser(AUTHINFO,true)}
     else if(kind==='reset'){await NET.auth.resetPassword(email);toast('Te mandamos el mail para recuperar la contraseña');AUTHV='login'}
   }catch(err){AUTHERR=err.message||'Algo salió mal. Probá de nuevo.'}
   AUTHBUSY=false;render()}
@@ -1201,7 +1206,7 @@ function resetSession(){for(const k of Object.keys(WAL))delete WAL[k];Object.ass
   admUnsubs.forEach(u=>{try{u()}catch(e){}});admUnsubs=[];unsubAdmin=null;ADM_ROOMS=ADM_USERS=null;
   [toursUnsub,tvUnsub,...payUnsubs].forEach(u=>{try{u&&u()}catch(e){}});toursUnsub=tvUnsub=null;payUnsubs=[];PAYCFG=null;MYPUR=[];PENDPUR=null;TOURS=null;TV=null;TCLAIM.clear()}
 async function onFbUser(info,fresh){AUTHINFO=info;
-  if(!info){resetSession();AUTHV='login';view='auth';render();return}
+  if(!info){resetSession();AUTHV='login';view='auth';{const re=NET.auth.redirectError&&NET.auth.redirectError();if(re)AUTHERR=re.message}render();return}
   if(!info.user&&!(NET.auth.user())){AUTHV='complete';view='auth';render();return}
   const u=NET.auth.user();if(uid===info.uid&&view!=='auth'&&!fresh)return;
   uid=info.uid;db=NET.db;usr=NET.usr;roomCap=NET.roomCap;myName=u.username;myEmail=info.email;isOwnerV=NET.auth.isAdmin();PREMIUM=isOwnerV;
@@ -1561,7 +1566,8 @@ document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closes
   case 'welcome':if(t.dataset.v==='learn'){startLesson(0)}else if(t.dataset.v==='tut'){view='tutorial';render()}else{view='menu';render()}return;
   case 'zone':giraZone=t.dataset.id;FITP['riv-'+giraZone]=0;if(!t.dataset.keep&&innerWidth<720)overlayView='rivales';render();return;
   case 'girago':startGira(t.dataset.id);return;
-  case 'regav':regAv=t.dataset.id;render();return;
+  case 'regav':regAv=t.dataset.id;document.querySelectorAll('.regav').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.id===regAv)));return;
+  case 'google':googleIn();return;
   case 'authv':AUTHV=t.dataset.v;AUTHERR='';render();return;
   case 'logout':NET.auth.logout();return;
   case 'reverify':NET.auth.resendVerification().then(()=>toast('Te mandamos el mail de verificación')).catch(()=>toast('No se pudo mandar el mail'));return;

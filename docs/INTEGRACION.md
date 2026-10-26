@@ -90,3 +90,10 @@ y abrí <http://localhost:8000>. Agregá `localhost` a los dominios autorizados 
 ## Límites del plan gratis
 
 El plan Spark de Firebase incluye por día 50.000 lecturas y 20.000 escrituras en Firestore. Cada jugada es una escritura, y cada jugador que mira la mesa hace una lectura por jugada; a eso se suman los latidos de presencia (uno cada 15 segundos por jugador). En la práctica alcanza para unas 50 partidas online de cuatro personas por día, o bastantes más de 1v1 y contra la IA. Si se supera, Firestore deja de responder hasta el día siguiente; no te cobran nada salvo que actives el plan Blaze.
+
+## Entrar con Google
+
+1. En la consola de Firebase: **Authentication → Método de acceso → Agregar proveedor nuevo → Google → Habilitar**. Poné tu mail como correo de asistencia y guardá.
+2. En **Authentication → Configuración → Dominios autorizados**, fijate que esté `aleclem180.github.io` (si no, agregalo).
+
+Listo: en Ingresar y en Crear cuenta aparece "Continuar con Google". La primera vez pide nombre de usuario, personaje y aceptar los términos. Si alguien ya tenía cuenta con ese mismo Gmail, entra a la misma cuenta y no pierde nada.
