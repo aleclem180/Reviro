@@ -683,7 +683,7 @@ const OL='#3a2016';
 function shade(hex,amt){const m=/^#?([0-9a-f]{6})$/i.exec(hex);if(!m)return hex;const n=parseInt(m[1],16);let r=n>>16,g=(n>>8)&255,b=n&255;
   const t=amt<0?0:255,k=Math.abs(amt);r=Math.round(r+(t-r)*k);g=Math.round(g+(t-g)*k);b=Math.round(b+(t-b)*k);return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1)}
 const TORSO='M17 100V77Q17 60 32 55.6Q41 53 50 53.4Q59 53 68 55.6Q83 60 83 77V100Z';
-function limb(d,w,col){return `<path d="${d}" stroke="${OL}" stroke-width="${w+2.2}" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" stroke="${col}" stroke-width="${w}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`}
+function limb(d,w,col){return `<path class="lo" d="${d}" stroke="${OL}" stroke-width="${w+2.2}" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path class="li" d="${d}" stroke="${col}" stroke-width="${w}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`}
 let AVN=0;
 /* la cabeza se dibuja en el sistema de 64 (centro 32,30) y se ubica en (50,28) escalada */
 const HEADT='translate(50 32) scale(.9) translate(-32 -30)';
@@ -701,9 +701,8 @@ function avatarSVG(id,px,full){const sid=String(id),kit=sid.split(':')[1],a=AVM[
     <linearGradient id="${k}sh" x1="0" y1="0" x2="1" y2=".6"><stop offset="0" stop-color="${shade(p.shirt,.08)}"/><stop offset="1" stop-color="${shade(p.shirt,-.12)}"/></linearGradient>
     <linearGradient id="${k}sl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${shade(sl,.08)}"/><stop offset="1" stop-color="${shade(sl,-.14)}"/></linearGradient>
     <radialGradient id="${k}ck"><stop offset="0" stop-color="#e2655f" stop-opacity=".42"/><stop offset="1" stop-color="#e2655f" stop-opacity="0"/></radialGradient>
-  </defs><rect x="-5" y="-5" width="110" height="110" fill="url(#${k}bg)"/>`;
-  o+=`<circle cx="50" cy="43" r="31" fill="${shade(p.bg,.28)}" fill-opacity=".28"/><circle cx="50" cy="43" r="38" fill="none" stroke="${shade(p.bg,.35)}" stroke-opacity=".22" stroke-width=".6"/>`;
-  o+=`<ellipse cx="50" cy="101" rx="40" ry="7" fill="${shade(p.bg,-.45)}" fill-opacity=".35"/>`;
+  </defs>`;
+  const defs=o;o='';
   if(p.ring)o+=`<circle cx="50" cy="31.4" r="21" fill="none" stroke="#fff" stroke-opacity=".9" stroke-width="3"/>`;
   /* pelo largo por detrás */
   o+=`<g transform="${HEADT}" stroke="${OL}" stroke-width=".7" stroke-linejoin="round">`;
@@ -734,7 +733,28 @@ function avatarSVG(id,px,full){const sid=String(id),kit=sid.split(':')[1],a=AVM[
   o+=`</g>`;
   /* en tamaño chico va solo el retrato (cara y hombros), sin brazos ni objetos que se corten en el borde */
   if(!crop)o+=arms4(p,k,s,sd,sl,fa);
-  return `<svg class="av" viewBox="${vb}" width="${px}" height="${px}" role="img" aria-label="${a.name}"${crop?'':' style="border-radius:16px"'}>${o}</svg>`}
+  return sketchSVG(k,p,o,defs,crop,vb,px,a.name)}
+/* Estilo boceto: papel, una mancha de acuarela detrás, el color lavado por debajo
+   y encima el mismo dibujo en tinta de birome, con rayado en las sombras. */
+const INK='#262433',PAPER='#f5eee0';
+function sketchSVG(k,p,fig,defs,crop,vb,px,name){
+  const wash=shade(p.bg,.38);
+  const F=crop?'':`<filter id="${k}wc" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".045" numOctaves="2" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G" result="d"/><feColorMatrix in="d" type="saturate" values=".85" result="s"/><feComponentTransfer in="s"><feFuncR type="linear" slope=".9" intercept=".08"/><feFuncG type="linear" slope=".9" intercept=".07"/><feFuncB type="linear" slope=".9" intercept=".06"/></feComponentTransfer></filter>
+    <filter id="${k}ik" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".07" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.5" xChannelSelector="R" yChannelSelector="G"/></filter>
+    <filter id="${k}bl" x="-20%" y="-20%" width="140%" height="140%"><feTurbulence type="fractalNoise" baseFrequency=".03" numOctaves="3" seed="11" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="9" xChannelSelector="R" yChannelSelector="G"/></filter>
+    <filter id="${k}gr"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="5"/><feColorMatrix type="matrix" values="0 0 0 0 .45  0 0 0 0 .38  0 0 0 0 .3  0 0 0 -.9 .5"/></filter>`;
+  const hatch=`<pattern id="${k}hx" width="1.7" height="1.7" patternUnits="userSpaceOnUse" patternTransform="rotate(38)"><path d="M0 .85H1.7" stroke="${INK}" stroke-width=".32"/></pattern>
+    <pattern id="${k}hy" width="2.1" height="2.1" patternUnits="userSpaceOnUse" patternTransform="rotate(-48)"><path d="M0 1.05H2.1" stroke="${INK}" stroke-width=".28"/></pattern>`;
+  const css=`<style>#${k}c [stroke="${OL}"]{stroke:none}#${k}i *{fill:#fff;fill-opacity:1}#${k}i [stroke]{stroke:${INK}}#${k}i [stroke]:not([stroke="${OL}"]){stroke-width:.45;stroke-opacity:.45}#${k}i .lo{stroke:none}#${k}i .li{stroke-width:.55;stroke-opacity:.9}#${k}i [stroke-opacity]:not(.li){stroke-opacity:.38}</style>`;
+  /* zonas en sombra que se rayan (mismas formas que el sombreado del dibujo) */
+  const HT='translate(50 32) scale(.9) translate(-32 -30)';
+  const shadows=`<g clip-path="url(#${k}t)"><path d="M57 53H68Q83 60 83 77V100H60Q63 80 57 53Z" fill="url(#${k}hx)" opacity=".75"/><path d="M64 60Q80 64 83 84V100H70Q72 78 64 60Z" fill="url(#${k}hy)" opacity=".55"/></g>
+    <path d="M45.2 42.4q4.8 5 9.6 0v5q-4.8 3.6-9.6 0z" fill="url(#${k}hx)" opacity=".8"/>
+    <g transform="${HT}"><path d="M38.6 19.4Q44.8 26 42.2 36.4Q40.2 41.6 35.8 43.3Q40.8 37.4 40.4 29.6Q40.2 23 38.6 19.4Z" fill="url(#${k}hx)" opacity=".5"/></g>`;
+  const bg=`<rect x="-5" y="-5" width="110" height="110" fill="${PAPER}"/>
+    <g ${crop?'':`filter="url(#${k}bl)"`}><circle cx="${crop?50:48}" cy="${crop?33:42}" r="${crop?17:33}" fill="${wash}" fill-opacity=".85"/><circle cx="${crop?55:58}" cy="${crop?38:52}" r="${crop?12:24}" fill="${shade(p.bg,.18)}" fill-opacity=".35"/></g>`;
+  const body=bg+`<g id="${k}c" ${crop?'opacity=".92"':`filter="url(#${k}wc)" opacity=".9"`}>${fig}</g>`+shadows+`<g id="${k}i" style="mix-blend-mode:multiply" ${crop?'':`filter="url(#${k}ik)"`}>${fig}</g>`+(crop?'':`<rect x="0" y="0" width="100" height="100" filter="url(#${k}gr)" opacity=".22"/>`);
+  return `<svg class="av" viewBox="${vb}" width="${px}" height="${px}" role="img" aria-label="${name}"${crop?'':' style="border-radius:16px"'}>${defs.replace('</defs>',F+hatch+'</defs>')}${css}${body}</svg>`}
 function brows3(p,hc){const c=p.brow||shade(hc,.05),lift=p.mouth==='smirk'?-.9:0,heavy=p.eyes==='tired'||p.lid;
   const L=`<path d="M24.4 ${26.4+(heavy?.6:0)}Q27.4 ${24.4+(heavy?.8:0)} 30.6 ${25.8+(heavy?.4:0)}Q27.4 ${25.6+(heavy?.8:0)} 24.4 ${26.4+(heavy?.6:0)}Z" fill="${c}" stroke="${c}" stroke-width=".8" stroke-linejoin="round"/>`;
   const R=`<path d="M39.6 ${26.4+lift}Q36.6 ${24.4+lift} 33.4 ${25.8+lift}Q36.6 ${25.6+lift} 39.6 ${26.4+lift}Z" fill="${c}" stroke="${c}" stroke-width=".8" stroke-linejoin="round"/>`;
