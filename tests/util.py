@@ -45,7 +45,7 @@ async def pagina(browser, base, ancho=390, alto=844, ruta="index.html"):
     pg = await browser.new_page(viewport={"width": ancho, "height": alto})
     pg.errores = []
     pg.on("pageerror", lambda e: pg.errores.append(str(e)))
-    await pg.route("**/js/firebase-config.js",
+    await pg.route("**/js/firebase-config.js*",
                    lambda r: r.fulfill(body='window.REVIRO_FIREBASE={apiKey:""};', content_type="application/javascript"))
     await pg.goto(base + ruta)
     await pg.wait_for_selector("#regnick", timeout=15000)

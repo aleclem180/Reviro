@@ -1534,7 +1534,7 @@ function claimReferral(){let code=null;try{code=localStorage.getItem('reviro.ref
   try{localStorage.removeItem('reviro.ref')}catch(e){}
   NET.ref.byCode(code).then(r=>r&&r!==uid?NET.ref.claim(r):false).then(ok=>{if(ok)applyTx('ref-new',{chips:NET.REF_NEW}).then(()=>toast(`Te sumaste con la invitación de un amigo: +${fmt(NET.REF_NEW)} fichas`))}).catch(()=>{})}
 function refBoxHTML(){if(!FB)return'';const n=(MYUSER&&MYUSER.refBonus)||NET.REF_DEFAULT,played=REFS.filter(x=>x.played).length;
-  return `<section class="box grow"><p class="note" style="margin:0">Por cada amigo que se registre con tu link y juegue su primera partida online, ganás <b>${fmt(n)}</b> fichas. Tu amigo arranca con ${fmt(NET.REF_NEW)} de regalo.</p>
+  return `<section class="box grow"><p class="note" style="margin:0">Por cada amigo que se registre con tu link y juegue su primera partida online, ganás <b>${fmt(n)}</b> fichas. Tu amigo arranca con ${fmt(NET.REF_NEW)} fichas de regalo.</p>
     <div class="row" style="flex-wrap:nowrap"><a class="btn wa" href="${waHref(waInviteText())}" target="_blank" rel="noopener">${WAICO} Invitar por WhatsApp</a><button class="btn" data-a="copylink">Copiar link</button></div>
     ${REFS.length?`<p class="note" style="margin:0">Invitaste a ${REFS.length} ${REFS.length===1?'persona':'personas'}: ${played} ya ${played===1?'jugó':'jugaron'}.</p>`:''}
     ${fitList('refs',REFS,x=>`<li><span style="flex:1">${esc(x.username||'Jugador')}<small>${x.played?(x.paidReferrer?'Cobraste el premio':'Jugó: cobrando…'):'Todavía no jugó online'}</small></span></li>`,'flist')}</section>`}

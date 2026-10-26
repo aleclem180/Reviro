@@ -30,11 +30,11 @@ RESET = ("html{color-scheme:light}:root{padding-top:env(safe-area-inset-top,0px)
 # Firebase: la configuración se carga primero; la capa de red (módulo) solo si hay configuración.
 ARTV = ROOT / "js" / "arte-version.js"
 ARTTAG = (f'<script src="js/arte-version.js?v={hashlib.sha1(ARTV.read_bytes()).hexdigest()[:8]}"></script>\n' if ARTV.exists() else "")
-FIREBASE = ARTTAG + """<script src="js/firebase-config.js"></script>
+FIREBASE = ARTTAG + """<script src="js/firebase-config.js?v=CFGV"></script>
 <script>
 window.REVIRO_WEB = 1;
 if (window.REVIRO_FIREBASE && window.REVIRO_FIREBASE.apiKey) {
-  var s = document.createElement('script'); s.type = 'module'; s.src = 'js/net.js'; document.head.appendChild(s);
+  var s = document.createElement('script'); s.type = 'module'; s.src = 'js/net.js?v=NETV'; document.head.appendChild(s);
 }
 </script>
 """
@@ -61,6 +61,8 @@ def web(base=""):
 """
 
 
+# para que el navegador no se quede con una versión vieja de la capa de red ni de la configuración
+FIREBASE = FIREBASE.replace("NETV", hashlib.sha1((ROOT / "js" / "net.js").read_bytes()).hexdigest()[:8]).replace("CFGV", hashlib.sha1((ROOT / "js" / "firebase-config.js").read_bytes()).hexdigest()[:8])
 (ROOT / "index.html").write_text(web(), encoding="utf-8")
 for r in ROUTES:
     d = ROOT / r
