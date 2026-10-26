@@ -87,6 +87,8 @@ service cloud.firestore {
           let d = request.resource.data;
           let room = get(/databases/$(database)/documents/rooms/$(d.roomId)).data;
           return d.matchId == matchId
+            // solo cuentan las partidas online (al menos dos personas); contra la IA no va al historial
+            && room.playerIds.size() >= 2
             && uid in room.teams
             && d.team == room.teams[uid]
             && (
@@ -158,6 +160,7 @@ service cloud.firestore {
         // inscribirse o darse de baja: solo cambia la cantidad de inscriptos, junto con la inscripción
         || (signedIn() && T().status == 'open' && changed().hasOnly(['players', 'updatedAt'])
             && ((request.resource.data.players == T().players + 1 && request.resource.data.players <= capOf(T())
+                 && (T().startAt == null || request.time.toMillis() < T().startAt)
                  && !exists(entryPath(request.auth.uid)) && existsAfter(entryPath(request.auth.uid)))
              || (request.resource.data.players == T().players - 1
                  && exists(entryPath(request.auth.uid)) && !existsAfter(entryPath(request.auth.uid)))))
@@ -170,6 +173,7 @@ service cloud.firestore {
         function tour() { return get(/databases/$(database)/documents/tournaments/$(tid)).data; }
         allow read: if signedIn();
         allow create: if isSelf(uid) && tour().status == 'open'
+          && (tour().startAt == null || request.time.toMillis() < tour().startAt)
           && request.resource.data.uid == uid
           && request.resource.data.partner == null
           && (request.resource.data.team == uid
@@ -212,6 +216,20 @@ service cloud.firestore {
         allow read: if signedIn();
         allow create, delete: if isAdmin();
         allow update: if isAdmin() || (signedIn() && (validResult() || validFill('a') || validFill('b')));
+      }
+
+      // cuentas internas del torneo (recaudación, premio, casa): solo el admin
+      match /private/{docId} {
+        allow read, write: if isAdmin();
+      }
+      // movimientos de fichas: entradas, bajas, premios y reintegros
+      match /ledger/{id} {
+        function tour() { return get(/databases/$(database)/documents/tournaments/$(tid)).data; }
+        allow read: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
+        allow create: if signedIn() && request.resource.data.uid == request.auth.uid
+          && request.resource.data.kind in ['entrada', 'baja', 'premio', 'reintegro']
+          && (request.resource.data.kind == 'premio' || request.resource.data.amount == tour().buyIn);
+        allow update, delete: if isAdmin();
       }
 
       match /claims/{uid} {

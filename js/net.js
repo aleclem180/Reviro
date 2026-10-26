@@ -303,6 +303,7 @@ async function recordMatch(code) {
     if (!rs.exists()) return null;
     const room = rs.data();
     if (room.status !== 'finished' || !room.result || !(uid in (room.teams || {}))) return null;
+    if (!isOnline(room)) return null;   // contra la IA no cuenta en el historial
     const matchId = room.result.matchId;
     const recRef = doc(fs, 'users', uid, 'matches', matchId);
     if ((await tx.get(recRef)).exists()) return null;
@@ -316,6 +317,9 @@ async function recordMatch(code) {
     return { won, stats };
   });
 }
+
+/** Solo cuentan las partidas online: con al menos dos personas en la mesa. */
+const isOnline = (room) => humans(room.seats || []).length >= 2;
 
 /** Cuenta nueva después de una partida: jugadas +1, ganada o perdida, racha y mejor racha. */
 function nextStats(prev, won) {
@@ -342,6 +346,7 @@ async function recordAbandon(code) {
     if (!rs.exists()) return null;
     const room = rs.data();
     if (room.status !== 'playing' || !room.matchId || !(uid in (room.teams || {}))) return null;
+    if (!isOnline(room)) return null;   // abandonar contra la IA no cuenta
     const matchId = room.matchId;
     const recRef = doc(fs, 'users', uid, 'matches', matchId);
     if ((await tx.get(recRef)).exists()) return null;
@@ -367,9 +372,8 @@ async function recordPending() {
       await recordMatch(d.id).catch(() => null);
       if (r.tour) await tour.reportResult(r.tour.tid, r.tour.mid).catch(() => null);
     }
-    // partida contra la IA que quedó colgada (se cerró la pestaña sin salir): cuenta como abandono
+    // partida contra la IA que quedó colgada (se cerró la pestaña sin salir): se cierra, sin contar en el historial
     else if (r.status === 'playing' && !r.tour && humans(r.seats || []).length === 1 && Date.now() - (r.updatedAt || 0) > 15 * 60e3) {
-      await recordAbandon(d.id).catch(() => null);
       await leaveRoom(d.id).catch(() => null);
     }
   }
@@ -401,7 +405,7 @@ function watchUser(uid, cb) {
   Las fichas no tienen valor en dinero: la entrada y el premio se pagan en fichas de práctica.
   El pozo es el (100 - cut)% de las entradas; el resto queda para la casa (esas fichas salen de circulación).
 */
-const T_CUT = 10, T_SPLIT = [60, 30, 10];
+const T_CUT = 10, T_SPLIT = [60, 30, 10];   // T_CUT: parte de la casa (no se muestra a los jugadores)
 const tRef = (tid) => doc(fs, 'tournaments', tid);
 const tEntry = (tid, uid) => doc(fs, 'tournaments', tid, 'entries', uid);
 const tMatch = (tid, mid) => doc(fs, 'tournaments', tid, 'matches', mid);
@@ -411,16 +415,29 @@ const other = (s) => (s === 'a' ? 'b' : 'a');
 
 /** Pozo: el 90% de lo que se juntó en entradas (antes de empezar, va creciendo con cada inscripto). */
 const potOf = (t) => (t.status === 'open' || t.pot == null)
-  ? Math.floor((t.players || 0) * (t.buyIn || 0) * (100 - (t.cut ?? T_CUT)) / 100) : t.pot;
+  ? Math.floor((t.players || 0) * (t.buyIn || 0) * (100 - T_CUT) / 100) : t.pot;
+/** Cuentas internas (solo para el admin): recaudación bruta, premio y lo que queda para la casa. */
+const booksOf = (t) => { const gross = (t.players || 0) * (t.buyIn || 0); const pot = potOf(t); return { gross, pot, house: gross - pot }; };
+const tLedger = (tid, id) => doc(fs, 'tournaments', tid, 'ledger', id);
+const tBooks = (tid) => doc(fs, 'tournaments', tid, 'private', 'books');
 
-/** Premios por puesto. Si hay menos de tres equipos, lo que sobra va al primero. */
+/**
+  Reparto del pozo: 1.º 60%, 2.º 30%, 3.º 10%. Si hay menos de tres equipos, las partes que sobran
+  van al primero. Se redondea para abajo y los sobrantes del redondeo también van al primero,
+  así la suma de los premios es exactamente el pozo.
+*/
 function prizesOf(t, nTeams) {
   const pot = potOf(t), split = t.split || T_SPLIT;
   const places = Math.max(1, Math.min(split.length, nTeams || split.length));
   const shares = split.slice(0, places);
   shares[0] += split.slice(places).reduce((a, b) => a + b, 0);
-  return shares.map((s) => Math.floor(pot * s / 100));
+  const total = shares.reduce((a, b) => a + b, 0);
+  const out = shares.map((s) => Math.floor(pot * s / total));
+  out[0] += pot - out.reduce((a, b) => a + b, 0);
+  return out;
 }
+/** Lo que le toca a cada integrante: en parejas se parte en dos (el sobrante, al primero). */
+const shareOf = (prize, team, uid) => { const n = team.ids.length, base = Math.floor(prize / n); return team.ids[0] === uid ? prize - base * (n - 1) : base; };
 
 /** Tabla de la liga: partidos ganados, después diferencia de puntos, después puntos a favor. */
 function standingsOf(t, matches) {
@@ -509,7 +526,7 @@ function buildMatches(tid, t, teams) {
 }
 
 const tour = {
-  potOf, prizesOf, standingsOf, placesOf, CUT: T_CUT, SPLIT: T_SPLIT, cap: tCap,
+  potOf, prizesOf, shareOf, booksOf, standingsOf, placesOf, SPLIT: T_SPLIT, cap: tCap,
 
   /** Admin: crea un torneo abierto a inscripciones. */
   async create(cfg) {
@@ -521,7 +538,7 @@ const tour = {
           id, name: String(cfg.name || 'Torneo').slice(0, 40), theme: String(cfg.theme || '').slice(0, 60), rules: String(cfg.rules || '').slice(0, 600),
           startAt: cfg.startAt || null, format: cfg.format === 'liga' ? 'liga' : 'ko', mode: cfg.mode === '2v2' ? '2v2' : '1v1',
           maxTeams: +cfg.maxTeams || 8, buyIn: Math.max(0, +cfg.buyIn || 0), target: +cfg.target === 30 ? 30 : 15, flor: cfg.flor !== false,
-          cut: T_CUT, split: T_SPLIT, status: 'open', players: 0, pot: null, teams: [], places: null,
+          split: T_SPLIT, status: 'open', players: 0, pot: null, teams: [], places: null,
           createdBy: me().uid, created: Date.now(), updatedAt: Date.now(),
         });
         return true;
@@ -565,8 +582,10 @@ const tour = {
         tx.update(tEntry(tid, team), { partner: uid });
       }
       const at = Date.now();
+      if (t.startAt && at >= t.startAt) return { ok: false, reason: 'cerrado' };
       tx.set(tEntry(tid, uid), { uid, name: String(name || '').slice(0, 24), av: av || 'gaucho', team: teamId, partner: null, at });
       tx.update(tRef(tid), { players: t.players + 1, updatedAt: at });
+      tx.set(tLedger(tid, uid + '-' + at + '-in'), { uid, kind: 'entrada', amount: t.buyIn || 0, at });
       return { ok: true, at, buyIn: t.buyIn };
     });
   },
@@ -586,6 +605,7 @@ const tour = {
       }
       tx.delete(tEntry(tid, uid));
       tx.update(tRef(tid), { players: Math.max(0, t.players - 1), updatedAt: Date.now() });
+      tx.set(tLedger(tid, uid + '-' + e.at + '-out'), { uid, kind: 'baja', amount: t.buyIn || 0, at: Date.now() });
       return { ok: true, at: e.at, buyIn: t.buyIn };
     });
   },
@@ -616,15 +636,25 @@ const tour = {
     if (teams.length < 2) return { ok: false, reason: 'pocos' };
     teams = shuffle(teams).slice(0, t.maxTeams);
     const matches = buildMatches(tid, t, teams);
-    const pot = Math.floor(entries.length * t.buyIn * (100 - (t.cut ?? T_CUT)) / 100);
+    const gross = entries.length * t.buyIn, pot = Math.floor(gross * (100 - T_CUT) / 100);
     const b = writeBatch(fs);
+    b.set(tBooks(tid), { gross, pot, house: gross - pot, players: entries.length, buyIn: t.buyIn, cut: T_CUT, at: Date.now() });
     for (const m of matches) b.set(tMatch(tid, m.id), { ...m, updatedAt: Date.now() });
     b.update(tRef(tid), { status: 'running', pot, teams, startedAt: Date.now(), updatedAt: Date.now() });
     await b.commit();
     return { ok: true, teams: teams.length };
   },
 
-  cancel: (tid) => updateDoc(tRef(tid), { status: 'cancelled', updatedAt: Date.now() }),
+  async cancel(tid) {
+    const t = (await getDoc(tRef(tid))).data();
+    await updateDoc(tRef(tid), { status: 'cancelled', updatedAt: Date.now() });
+    await setDoc(tBooks(tid), { gross: 0, pot: 0, house: 0, players: t.players || 0, buyIn: t.buyIn, refunded: (t.players || 0) * (t.buyIn || 0), at: Date.now() }).catch(() => {});
+  },
+  /** Admin: las cuentas del torneo y los últimos movimientos. */
+  async books(tid) {
+    const [b, l] = await Promise.all([getDoc(tBooks(tid)), getDocs(query(collection(fs, 'tournaments', tid, 'ledger'), orderBy('at', 'desc'), limit(40)))]);
+    return { books: b.exists() ? b.data() : null, ledger: l.docs.map((d) => d.data()) };
+  },
 
   /** Admin: da por ganado un partido (por ejemplo, si alguien no se presentó). */
   async walkover(tid, mid, winner) {
@@ -767,10 +797,12 @@ const tour = {
         const prizes = prizesOf(t, (t.teams || []).length);
         ['p1', 'p2', 'p3'].forEach((p, i) => {
           const tm = t.places && t.places[p];
-          if (tm && tm.ids.includes(uid)) { place = i + 1; amount = Math.floor((prizes[i] || 0) / tm.ids.length); }
+          if (tm && tm.ids.includes(uid)) { place = i + 1; amount = shareOf(prizes[i] || 0, tm, uid); }
         });
       }
-      tx.set(tClaim(tid, uid), { uid, kind, place, amount, at: Date.now() });
+      const at = Date.now();
+      tx.set(tClaim(tid, uid), { uid, kind, place, amount, at });
+      if (amount > 0) tx.set(tLedger(tid, uid + '-' + at + '-' + kind), { uid, kind, place, amount, at });
       return { kind, place, amount };
     });
   },
