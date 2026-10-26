@@ -1193,15 +1193,16 @@ function authHTML(){const free=AVS.filter(a=>!a.price);const e=AUTHERR?`<p class
   let body='';
   const gbtn=`<button type="button" class="btn gbtn" data-a="google" ${dis}>${GICO}<span>Continuar con Google</span></button><div class="ordiv"><span>o con tu mail</span></div>`;
   if(AUTHV==='login')body=`<form class="box" data-form="login"><h2>Ingresá a tu cuenta</h2>${gbtn}
-    <div class="field"><span>Mail</span><input type="email" id="aemail" class="plain" autocomplete="email" required></div>
+    <div class="field"><span>Mail</span><input type="email" id="aemail" class="plain" autocomplete="email" value="${esc(savedEmail())}" required></div>
     <div class="field"><span>Contraseña</span><input type="password" id="apass" class="plain" autocomplete="current-password" required></div>
+    <label class="tos"><input type="checkbox" id="aremember" ${savedEmail()?'checked':''}> <span>Recordar mi mail en este dispositivo <small class="note">(la contraseña no se guarda)</small></span></label>
     ${e}<button class="btn prim" type="submit" ${dis}>${AUTHBUSY?'Entrando…':'Ingresar'}</button>
     <button class="btn ghost sm" type="button" data-a="authv" data-v="reset">Me olvidé la contraseña</button></form>`;
   if(AUTHV==='reset')body=`<form class="box" data-form="reset"><h2>Recuperar contraseña</h2><p class="note">Te mandamos un mail para elegir una contraseña nueva.</p>
-    <div class="field"><span>Mail</span><input type="email" id="aemail" class="plain" autocomplete="email" required></div>
+    <div class="field"><span>Mail</span><input type="email" id="aemail" class="plain" autocomplete="email" value="${esc(savedEmail())}" required></div>
     ${e}<button class="btn prim" type="submit" ${dis}>Mandar mail</button><button class="btn ghost sm" type="button" data-a="authv" data-v="login">Volver</button></form>`;
   if(AUTHV==='register'||AUTHV==='complete')body=`<form class="box" data-form="${AUTHV}"><h2>${AUTHV==='complete'?'Terminá tu registro':'Creá tu cuenta'}</h2>${AUTHV==='register'?gbtn:`<p class="note" style="margin:0">Entraste con ${esc(myEmail||(AUTHINFO&&AUTHINFO.email)||'tu cuenta')}. Elegí cómo te van a ver en la mesa.</p>`}
-    ${AUTHV==='register'?`<div class="field"><span>Mail</span><input type="email" id="aemail" class="plain" autocomplete="email" required></div>`:''}
+    ${AUTHV==='register'?`<div class="field"><span>Mail</span><input type="email" id="aemail" class="plain" autocomplete="email" value="${esc(savedEmail())}" required></div>`:''}
     <div class="field"><span>Nombre de usuario</span><input type="text" id="auser" class="plain" maxlength="20" value="${AUTHV==='complete'?esc(googleUser()):''}" autocomplete="username" placeholder="De 3 a 20 letras, números, punto o guion bajo" required></div>
     ${AUTHV==='register'?`<div class="field"><span>Contraseña</span><input type="password" id="apass" class="plain" autocomplete="new-password" minlength="6" placeholder="Al menos 6 caracteres" required></div>`:''}
     <div class="field"><span>Elegí tu personaje</span><div class="regavs">${free.map(a=>`<button type="button" class="regav" data-a="regav" data-id="${a.id}" aria-pressed="${regAv===a.id}">${avatarSVG(a.id,96,true)}<b>${esc(a.name)}</b></button>`).join('')}</div></div>
@@ -1213,9 +1214,11 @@ const GICO='<svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true"><
 /* el nombre que trae Google, pasado a un usuario válido (de 3 a 20 letras, números, punto o guion bajo) */
 const googleUser=()=>{let n='';try{n=(NET.auth.googleName&&NET.auth.googleName())||''}catch(e){}n=n.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'.').replace(/[^A-Za-z0-9._]/g,'').slice(0,20);return n.length>=3?n:''};
 async function googleIn(){if(AUTHBUSY)return;AUTHERR='';AUTHBUSY=true;render();try{await NET.auth.google()}catch(err){AUTHERR=err.message||'No se pudo entrar con Google.'}AUTHBUSY=false;render()}
+/* solo el mail, nunca la contraseña */
+const savedEmail=()=>{try{return localStorage.getItem('reviro.email')||''}catch(e){return ''}};
 const fval=id=>{const el=document.getElementById(id);return el?el.value:''};let TOSOK=false;
 async function authSubmit(kind){if(AUTHBUSY)return;AUTHERR='';AUTHBUSY=true;
-  const email=fval('aemail'),pass=fval('apass'),user=fval('auser'),tos=!!(document.getElementById('aterms')||{}).checked;TOSOK=tos;render();
+  const email=fval('aemail'),pass=fval('apass'),user=fval('auser'),tos=!!(document.getElementById('aterms')||{}).checked,rem=!!(document.getElementById('aremember')||{}).checked;TOSOK=tos;if(kind==='login'){try{if(rem)localStorage.setItem('reviro.email',email.trim());else localStorage.removeItem('reviro.email')}catch(e){}}render();
   try{
     if(kind==='login')await NET.auth.login({email,password:pass});
     else if(kind==='register'){if(!tos)throw new Error('Para crear la cuenta tenés que aceptar los términos y condiciones.');await NET.auth.register({email,username:user,password:pass,avatar:regAv,terms:true});await onFbUser(AUTHINFO,true)}
