@@ -1360,5 +1360,9 @@
 "Fichas:": "Chips:",
 "fichas.": "chips.",
 "fichas)": "chips)",
-"Fichas (+/−)": "Chips (+/−)"
+"Fichas (+/−)": "Chips (+/−)",
+"Ganamos contra {0}": "We beat {0}",
+"Le gané contra {0}": "I beat {0}",
+"Perdimos contra {0}": "We lost to {0}",
+"Perdí contra {0}": "I lost to {0}"
 }

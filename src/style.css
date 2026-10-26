@@ -968,3 +968,9 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
 .langseg.mini button[aria-pressed="true"]{background:var(--ink);color:var(--felt)}
 /* en pantallas muy bajas el reglamento achica la letra (en portugués e inglés los textos son más largos) */
 @media (max-height:700px){.rbody{font-size:clamp(.82rem,2.05dvh,.95rem);line-height:1.38;gap:8px}}
+/* ---------- logo: el cartel "Reviro" reemplaza al título con volutas ---------- */
+.filete.logo{line-height:0}
+.filete.logo img{display:block;height:1.75em;width:auto;max-width:min(92%,460px);object-fit:contain;filter:drop-shadow(0 6px 10px rgba(0,0,0,.35))}
+.pg-menu .filete.logo img{height:1.6em}
+.brand img{display:block;height:34px;width:auto}
+@media (max-width:420px){.brand img{height:30px}}

@@ -14,7 +14,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "src"
-JS = ["engine.js", "cat.js", "art.js", "textos.js", "i18n.js", "ui.js"]
+JS = ["engine.js", "cat.js", "art.js", "marca.js", "textos.js", "i18n.js", "ui.js"]
 # las direcciones tienen que coincidir con ROUTES en src/ui.js
 ROUTES = ["online", "torneos", "torneo", "nuevo-torneo", "huella", "extra", "perfil", "ajustes",
           "tienda", "misiones", "ranking", "reglamento", "tutorial", "anotador"]
@@ -41,6 +41,10 @@ for _d in _tr.values():
                 _d[_k2] = _v2
 (SRC / "textos.js").write_text("/* generado por tools/build.py desde i18n/*.json: no editar a mano */\nconst I18N=" +
                                json.dumps(_tr, ensure_ascii=False, separators=(",", ":")) + ";\n", encoding="utf-8")
+# el logo del título (img/logo.webp, armado con tools/marca.py) va adentro del código, así sirve también en claude.ai
+import base64
+(SRC / "marca.js").write_text("/* generado por tools/build.py desde img/logo.webp: no editar a mano */\nconst LOGO_SRC='data:image/webp;base64," +
+                              base64.b64encode((ROOT / "img" / "logo.webp").read_bytes()).decode() + "';\n", encoding="utf-8")
 read = lambda f: (SRC / f).read_text(encoding="utf-8")
 ver = lambda f: hashlib.sha1((SRC / f).read_bytes()).hexdigest()[:8]
 head, style, body = read("head.html"), read("style.css"), read("body.html")
@@ -73,8 +77,10 @@ def web(base=""):
 <meta name="description" content="Reviro: truco argentino con flor. Jugá contra la IA, 1v1 y 2v2 en tiempo real, recorré La Huella y anotá tus partidas en persona.">
 <meta name="theme-color" content="#1c1109">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="img/icono-192.png">
-<link rel="icon" type="image/png" href="img/icono-192.png">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="img/icono-192.png">
+<link rel="shortcut icon" href="img/favicon.ico">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>{RESET}</style>
 {head}<link rel="stylesheet" href="src/style.css?v={ver('style.css')}">
@@ -106,6 +112,6 @@ one = head + "\n<style>\n" + style + "</style>\n\n" + body + "\n<script>\n" + sc
 (ROOT / "dist" / "claude.html").write_text(one, encoding="utf-8")
 
 # para GitHub, lo generado no cuenta como código del proyecto
-attrs = ["dist/** linguist-generated=true", "index.html linguist-generated=true", "src/textos.js linguist-generated=true"] + [f"{r}/index.html linguist-generated=true" for r in ROUTES]
+attrs = ["dist/** linguist-generated=true", "index.html linguist-generated=true", "src/textos.js linguist-generated=true", "src/marca.js linguist-generated=true"] + [f"{r}/index.html linguist-generated=true" for r in ROUTES]
 (ROOT / ".gitattributes").write_text("\n".join(attrs) + "\n", encoding="utf-8")
 print(f"index.html, {len(ROUTES)} hojas y dist/claude.html listos")

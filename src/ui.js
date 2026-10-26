@@ -263,7 +263,7 @@ async function shareCanvas(){const I=shareInfo(),W=1080,H=1350,cv=document.creat
   /* la guarda pampa arriba y abajo */
   const guarda=y=>{x.fillStyle='#efe0bf';x.fillRect(0,y,W,34);x.fillStyle='#2a170b';x.fillRect(0,y,W,4);x.fillRect(0,y+30,W,4);for(let i=0;i<W/56+1;i++){const cx=i*56+28;x.fillStyle='#2a170b';x.beginPath();x.moveTo(cx,y+6);x.lineTo(cx+14,y+17);x.lineTo(cx,y+28);x.lineTo(cx-14,y+17);x.fill();x.fillStyle='#b0261c';x.beginPath();x.moveTo(cx,y+11);x.lineTo(cx+7,y+17);x.lineTo(cx,y+23);x.lineTo(cx-7,y+17);x.fill()}};guarda(40);guarda(H-74);
   const txt=(t,y,font,fill,shadow)=>{x.font=font;x.textAlign='center';x.textBaseline='alphabetic';if(shadow){x.fillStyle='#1d3557';x.fillText(t,W/2+8,y+8);x.fillStyle='#74acdf';x.fillText(t,W/2+4,y+4)}x.fillStyle=fill;x.fillText(t,W/2,y)};
-  txt('Reviro',200,'italic 800 120px "Bodoni Moda", Georgia, serif','#fff',true);
+  try{const lg=await loadImg(LOGO_SRC);const lw=520,lh=lw*lg.height/lg.width;x.drawImage(lg,(W-lw)/2,58,lw,lh)}catch(e){txt('Reviro',200,'italic 800 120px "Bodoni Moda", Georgia, serif','#fff',true)}
   /* tu personaje en un marco */
   const av=myAv(),sid=String(av),kit=sid.split(':')[1],aid=sid.split(':')[0],PH=kit?PHOTOS[aid+':'+kit]:PHOTOS[aid];let pim=null;
   try{pim=await loadImg(PH?PH.src:'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(avatarSVG(av,400,true).replace('<svg','<svg xmlns="http://www.w3.org/2000/svg"')))}catch(e){}
@@ -276,12 +276,12 @@ async function shareCanvas(){const I=shareInfo(),W=1080,H=1350,cv=document.creat
   x.font='italic 800 118px "Bodoni Moda", Georgia, serif';x.textAlign='center';const label=tx(I.won?'¡Victoria!':'Derrota'),ty=ry+rh/2+42;
   if(I.won){x.fillStyle='#1d3557';x.fillText(label,W/2+7,ty+7);x.fillStyle='#74acdf';x.fillText(label,W/2+3.5,ty+3.5);x.fillStyle='#fff'}else{x.fillStyle='#5b4a44';x.fillText(label,W/2+4,ty+4);x.fillStyle='#e9dccb'}x.fillText(label,W/2,ty);x.restore();
   /* el resultado */
-  txt(`${I.a1} a ${I.a2}`,ry+rh+150,'800 130px "Bodoni Moda", Georgia, serif','#f6ead2');
+  txt(tx(`${I.a1} a ${I.a2}`),ry+rh+150,'800 130px "Bodoni Moda", Georgia, serif','#f6ead2');
   txt(tx(`${I.won?(I.dos?'Ganamos':'Le gané'):(I.dos?'Perdimos':'Perdí')} contra ${I.rival}`).slice(0,46),ry+rh+225,'600 46px "Barlow Semi Condensed", Arial, sans-serif','#e9dccb');
   txt(tx(I.donde),ry+rh+285,'500 38px "Barlow Semi Condensed", Arial, sans-serif','#c9b48f');
-  txt('¿Te animás? Jugá truco en aleclem180.github.io/Reviro',H-110,'600 36px "Barlow Semi Condensed", Arial, sans-serif','#f0c548');
+  txt(tx('¿Te animás? Jugá truco en aleclem180.github.io/Reviro'),H-110,'600 36px "Barlow Semi Condensed", Arial, sans-serif','#f0c548');
   return await new Promise(ok=>cv.toBlob(ok,'image/png'))}
-function shareText(){const I=shareInfo();return `${I.won?'¡Gané':'Perdí'} ${I.a1} a ${I.a2} al truco en Reviro${I.won?'!':''} ¿Te animás? ${SITE}`}
+function shareText(){const I=shareInfo();return tx(`${I.won?'¡Gané':'Perdí'} ${I.a1} a ${I.a2} al truco en Reviro${I.won?'!':''} ¿Te animás? ${SITE}`)}
 async function makeShare(){overlayView='compartir';SHARE={busy:true};render();
   try{const b=await shareCanvas();SHARE={blob:b,url:URL.createObjectURL(b),file:new File([b],'reviro-resultado.png',{type:'image/png'})}}catch(e){SHARE={error:true}}render()}
 function canShareFile(){try{return !!(SHARE&&SHARE.file&&navigator.canShare&&navigator.canShare({files:[SHARE.file]}))}catch(e){return false}}
@@ -413,7 +413,7 @@ const tablePrize=(stake,n)=>Math.floor(stake*n*0.9/(n/2));
 const stakeTable=g=>!!(g&&mode==='online'&&g.stake>0&&humansIn(g)>=2&&!(T&&T.tour));
 /* título en filete porteño: letras blancas con sombra celeste y volutas a los lados */
 const VOLUTA=`<svg class="vol" viewBox="0 0 64 40" aria-hidden="true"><path d="M62 31C46 31 33 26 30 16C28 9 33 4 39 5.6C44 7 44.6 13.6 40 15C37 15.8 35 13.4 36.4 11.4" fill="none" stroke="#74acdf" stroke-width="2.6" stroke-linecap="round"/><path d="M62 31C46 31 33 26 30 16" fill="none" stroke="#fff" stroke-width=".9" stroke-linecap="round" opacity=".7"/><path d="M33 23Q20 31 4 27Q15 19 33 23Z" fill="#74acdf"/><path d="M31 23.6Q19 27.4 8 26.4" fill="none" stroke="#fff" stroke-width=".8" opacity=".75"/><path d="M41 28Q34 38 22 38.4Q28 30 41 28Z" fill="#3d7fc4"/><circle cx="48" cy="24" r="1.9" fill="#e9b830"/><circle cx="53.4" cy="26.6" r="1.3" fill="#e9b830"/><circle cx="26" cy="12" r="1.5" fill="#c8361f"/></svg>`;
-const fileteHTML=(cls='')=>`<h1 class="filete ${cls}">${VOLUTA}<span>Reviro</span>${VOLUTA.replace('class="vol"','class="vol r"')}</h1>`;
+const fileteHTML=(cls='')=>`<h1 class="filete logo ${cls}"><img src="${LOGO_SRC}" alt="Reviro" width="389" height="143" decoding="async"></h1>`;
 let SOLOOPTS=false,ONOPTS=false;
 function playHTML(){const remembered=(()=>{try{return localStorage.getItem('reviro.table')}catch(e){return null}})();
   const onlineOk=!!(db&&uid);const dz={facil:'fácil',medio:'medio',dificil:'difícil'}[SET.diff];
@@ -1790,6 +1790,7 @@ async function start(data){
   view='boot';
   try{const m=/^#a-([A-Z0-9]{6})$/i.exec(location.hash||'');if(m)localStorage.setItem('reviro.ref',m[1].toUpperCase())}catch(e){}
   if(data&&data.G&&data.mode==='offline'){mode='offline';mySeat=0;view='game';cfg=data.cfg;botLooks=data.botLooks||pickBotLooks(data.G.n);G=data.G}
+  {const br=$('.brand');if(br)br.innerHTML=`<img src="${LOGO_SRC}" alt="Reviro" width="389" height="143">`}
   renderSnd();renderWallet();render();drive();setTimeout(warmArt,1500);
   setTimeout(checkUpdate,4000);setInterval(checkUpdate,5*60e3);document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});
   setInterval(presenceTick,3000);setInterval(turnTick,500);setInterval(()=>{if(view==='room'&&T&&T.tour&&T.status==='waiting')render()},15000);setInterval(tourTick,1000);

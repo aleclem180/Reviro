@@ -24,6 +24,7 @@ const NUMDE={en:'of',pt:'de'};
 function tlook(X,c,depth){const d=X.d;if(d[c]!==undefined)return d[c];if(depth>4)return null;
   /* "1 de 3" (páginas, lecciones) */
   let m=/^(\d+) de (\d+)$/.exec(c);if(m)return m[1]+' '+(NUMDE[LANG]||'de')+' '+m[2];
+  m=/^(\d+) a (\d+)$/.exec(c);if(m)return m[1]+(LANG==='en'?'–':' a ')+m[2];
   m=/^a (\d+)$/.exec(c);if(m)return (LANG==='en'?'to ':'até ')+m[1];
   /* varias oraciones pegadas: la primera parte conocida y el resto aparte */
   const ss=c.split(/(?<=[.!?…])\s+(?=[¡¿A-ZÁÉÍÓÚÑ])/);
