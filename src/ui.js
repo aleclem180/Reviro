@@ -67,7 +67,7 @@ function fosforos(score,target){const groups=target/5,pitch=17,sz=12;let o='';
 const coinI='<i class="coin" aria-hidden="true"></i>';
 
 /* ---------- estado ---------- */
-let SELCARD=null,REPAINT=null,view='menu',mode=null,G=null,mySeat=0,cfg=null,CL=null,db=null,usr=null,uid=null,roomCap=null,R=null,myName='';
+let LOGOPEN=false,SELCARD=null,REPAINT=null,view='menu',mode=null,G=null,mySeat=0,cfg=null,CL=null,db=null,usr=null,uid=null,roomCap=null,R=null,myName='';
 let T=null,tableRef=null,unsubTable=null,unsubLobby=null,lobby=[],NAMES={},LOOKS={},isHost=false,busy=false,driveT=null;
 let confirmMazo=false,confirmExit=false,overlayView=null,shopTab='av',pendingBuy=null,panel=null,FX={},transient={},botLooks={},partnerSena=null,lastReward=null;
 const SET={diff:'medio',n:2,target:30,stake:0,flor:true,sound:true,music:true,mute:false,track:'zamba',vol:80,volMusic:60,volFx:90,hflor:true,help:true,tap2:true,on:{n:2,target:30,stake:0,flor:true}};
@@ -520,13 +520,13 @@ function gameHTML(){if(!G)return'';const h=G.hand,me=mySeat,mt=myTeam(),a=actor(
   let info='';if(SET.help&&me>=0&&!h.ended&&h.results.length===0){const o=h.orig[me];info=G.flor&&hasFlor(o)?`<span>Tenés flor: <b>${florVal(o)}</b></span>`:`<span>Tu envido: <b>${envidoOf(o)}</b></span>`}
   if(mode==='offline'&&partnerSena&&partnerSena.handNo===G.handNo&&h.results.length===0&&!h.ended)info+=`<span>Seña del compa: <b>${esc(partnerSena.t)}</b></span>`;
   /* el registro de la mano va en su columna, a la derecha del paño: así lo que pasa no mueve la mesa */
-  const glog=`<aside class="glog" aria-label="Lo que pasó en la mano"><div class="glines" aria-live="polite">${G.log.slice(-9).map(e=>`<div>${esc(logText(e))}</div>`).join('')}</div>${info?`<div class="ginfo">${info}</div>`:''}</aside>`;
+  const glog=`<aside class="glog ${LOGOPEN?'open':''}" id="glog" aria-label="Lo que pasó en la mano"><div class="glines" aria-live="polite">${G.log.slice(-9).map(e=>`<div>${esc(logText(e))}</div>`).join('')}</div>${info?`<div class="ginfo">${info}</div>`:''}</aside>`;
   center=center.replace('@@INFO@@','');
   const absentNote=mode==='online'&&G.seats.some((_,s)=>isAbsent(s))?(stakeTable(G)?G.seats.map((st,s)=>isAbsent(s)?`<p class="pausebar" data-pause="${(goneSince[st.id]||Date.now())+GRACE+60000}" data-who="${esc(nameOf(s))}">${pauseText(nameOf(s),(goneSince[st.id]||Date.now())+GRACE+60000)}</p>`:'').join(''):'<p class="note">Un bot difícil juega por quien se desconectó hasta que vuelva.</p>'):'';
   const coachBox=TUT&&co&&!h.ended?`<div class="coach"><small>Lección ${TUT.i+1} de ${LESSONS.length} · ${esc(LESSONS[TUT.i].title)}</small><p>${esc(co.t||'')}</p></div>`:'';
   const b0=FX.bump&&FX.bump[mt]?'bump':'',b1=FX.bump&&FX.bump[1-mt]?'bump':'';
   return `<section class="game">
-    <div class="gtop"><button class="btn ${confirmExit?'warn':'ghost'}" data-a="exit">${confirmExit?(inProgress()&&countsOnline(G)?(G.stake?'Salir: derrota y perdés la apuesta':'Salir: cuenta como derrota'):inProgress()&&CAMP?'Salir: perdés los porotos':inProgress()&&G.stake?'Salir: perdés la apuesta':'Confirmar salida'):'Salir'}</button>${mode==='online'?`<span class="note">Mesa ${esc(T?T.code:'')}</span>`:`<span class="note">${({facil:'Fácil',medio:'Medio',dificil:'Difícil'})[G.diff]}</span>`}</div>
+    <div class="gtop"><button class="btn ${confirmExit?'warn':'ghost'}" data-a="exit">${confirmExit?(inProgress()&&countsOnline(G)?(G.stake?'Salir: derrota y perdés la apuesta':'Salir: cuenta como derrota'):inProgress()&&CAMP?'Salir: perdés los porotos':inProgress()&&G.stake?'Salir: perdés la apuesta':'Confirmar salida'):'Salir'}</button>${info?`<span class="gtinfo">${info}</span>`:''}<span class="gtr"><button type="button" class="logbtn" data-a="logtoggle" aria-expanded="${LOGOPEN}" aria-controls="glog">Registro<i aria-hidden="true"></i></button>${mode==='online'?`<span class="note">Mesa ${esc(T?T.code:'')}</span>`:`<span class="note">${({facil:'Fácil',medio:'Medio',dificil:'Difícil'})[G.diff]}</span>`}</span></div>
     <div class="score"><div class="sc us"><span class="lbl">Nosotros</span><b class="${b0}">${sc[mt]}</b>${fosforos(sc[mt],G.target)}</div>
       <div class="mid"><b>a ${G.target}</b>${G.flor?'con flor':'sin flor'}<br>${G.stake?fmt(G.stake)+' fichas':'amistosa'}</div>
       <div class="sc them"><span class="lbl">Ellos</span><b class="${b1}">${sc[1-mt]}</b>${fosforos(sc[1-mt],G.target)}</div></div>
@@ -563,7 +563,8 @@ function socialHTML(){if(!G||G.matchOver||mySeat<0)return'';const canReact=mode=
   let o=`<div class="social"><button class="btn sm ${panel==='react'?'ink':'ghost'}" data-a="panel" data-v="react">Reaccionar</button>${sena?`<button class="btn sm ${panel==='sena'?'ink':'ghost'}" data-a="panel" data-v="sena">Hacer seña</button>`:''}</div>`;
   if(panel==='react')o+=`<div class="chips">${Object.entries(REACTS).map(([k,t])=>`<button type="button" data-a="react" data-k="${k}">${t}</button>`).join('')}</div>`;
   if(panel==='sena'&&sena){const btn=([k,t])=>`<button type="button" data-a="sena" data-k="${k}">${t}</button>`;const all=Object.entries(SENA_SHORT);
-    o+=`<div class="chips"><span class="chiph">Cartas</span>${all.filter(([k])=>!SENA_ENV.includes(k)).map(btn).join('')}</div><div class="chips"><span class="chiph">Envido</span>${all.filter(([k])=>SENA_ENV.includes(k)).map(btn).join('')}</div>`;o+=`<p class="note">Solo la ve tu compañero. Podés hacer una de cartas y una de envido.</p>`}
+    /* las dos tandas de señas van en un mismo panel, una debajo de la otra (antes se abrían en el mismo lugar y se pisaban) */
+    o+=`<div class="chips senapop" role="group" aria-label="Señas para tu compañero"><div class="sgrp"><span class="chiph">Cartas</span>${all.filter(([k])=>!SENA_ENV.includes(k)).map(btn).join('')}</div><div class="sgrp"><span class="chiph">Envido</span>${all.filter(([k])=>SENA_ENV.includes(k)).map(btn).join('')}</div><p class="note">Solo la ve tu compañero. Podés hacer una de cartas y una de envido.</p></div>`}
   if(false)o+=`<p class="note">Solo la ve tu compañero.</p>`;
   return o}
 function overlayHTML(){
@@ -1587,7 +1588,7 @@ function mpPendHTML(){if(!FB||!isOwnerV)return'';const P=PENDPUR||[];
   return `<section class="box admin grow">${PENDPUR===null?'<p class="note">Cargando…</p>':fitList('adm-pend',P,x=>`<li><span style="flex:1">${esc(x.username||'Jugador')} · ${fmt(x.coins)} monedas<small>$ ${fmt(x.ars)} · ${esc(tFmtDate(x.at))}</small></span><button class="btn sm brass" data-a="mpok" data-id="${esc(x.id)}">Acreditar</button><button class="btn sm ghost" data-a="mpno" data-id="${esc(x.id)}">Rechazar</button></li>`,'flist','<p class="note">No hay pagos esperando.</p>')}
     <p class="note" style="margin:0">Antes de acreditar, fijate en tu cuenta de Mercado Pago que el pago haya entrado.</p></section>`}
 /* ---------- eventos ---------- */
-document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closest('[data-a],[data-set],[data-card]');if(SELCARD&&!(t&&t.dataset.card)){SELCARD=null;if(!t){render();return}}if(!t)return;
+document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closest('[data-a],[data-set],[data-card]');if(LOGOPEN&&!e.target.closest('.glog,.logbtn')){LOGOPEN=false;if(!t){render();return}}if(SELCARD&&!(t&&t.dataset.card)){SELCARD=null;if(!t){render();return}}if(!t)return;
   if(t.dataset.a==='close'&&t.classList.contains('over')&&e.target!==t)return;
   if(t.dataset.set){const k=t.dataset.set,v=t.dataset.v;const val=v==='true'?true:v==='false'?false:(isNaN(+v)?v:+v);
     if(k==='anot.target'){ANOT.target=val;ANOT.s=ANOT.s.map(x=>Math.min(x,val));saveAnot();render();return}
@@ -1660,6 +1661,7 @@ document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closes
   case 'girago':startGira(t.dataset.id);return;
   case 'regav':regAv=t.dataset.id;document.querySelectorAll('.regav').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.id===regAv)));return;
   case 'google':googleIn();return;
+  case 'logtoggle':LOGOPEN=!LOGOPEN;render();return;
   case 'sharex':overlayView=null;render();return;
   case 'sharemk':makeShare();return;
   case 'sharego':shareNative();return;
