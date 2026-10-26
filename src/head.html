@@ -324,12 +324,17 @@ input.plain{text-transform:none;letter-spacing:normal}
 .girarow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-top:12px;align-items:start}
 @media (max-width:640px){.girarow{grid-template-columns:1fr}}
 .mapwrap{display:flex;justify-content:center;background:var(--hide);border:1px solid var(--line);border-radius:14px;padding:10px}
-.armap{width:100%;max-width:300px;height:auto}
+.armap{width:100%;max-width:340px;height:auto;filter:drop-shadow(0 10px 18px rgba(0,0,0,.45));border-radius:8px}
 .zp{cursor:pointer;transition:filter .15s}
 .zp:hover,.zp:focus{filter:brightness(1.15);outline:none}
-.zp.sel{stroke:#fff;stroke-width:1.8;stroke-opacity:1}
-.zl text{font:700 7px var(--f-body);fill:#fff8e8;paint-order:stroke;stroke:#1c1109;stroke-width:2.2px;stroke-linejoin:round}
-.zl text.need{font-size:5.6px;font-weight:600}
+.zp.sel{stroke:#8f1c12;stroke-width:1.6;stroke-opacity:1;stroke-dasharray:none;fill:rgba(255,240,200,.18)}
+.zp:hover,.zp:focus-visible{fill:rgba(255,245,215,.25)}
+.zl text{font:italic 700 8px var(--f-display);fill:#2b1a10;paint-order:stroke;stroke:#f3e9cf;stroke-width:2.6px;stroke-linejoin:round}
+.zl.lock text{fill:#6b5a46}.zl.sel text{fill:#8f1c12}
+.zi{fill:none;stroke:#2b1a10;stroke-width:.9;stroke-linecap:round;stroke-linejoin:round}.zl.lock .zi{stroke:#8b7a63}
+.armap .mar{font:italic 600 9px var(--f-display);fill:#4f7395;letter-spacing:.3em;opacity:.8}.armap .mar.sm{font-size:6.4px;fill:#6b5236;letter-spacing:.25em}
+.rosa text{font:700 7px var(--f-display);fill:#4a3626}
+.zl text.need{font:600 5.4px var(--f-body);fill:#6b5a46}
 .giraside .box{gap:8px}
 .lb.mini li{padding:4px 8px}
 .lb.mini .pos{font-size:1rem}
@@ -518,6 +523,21 @@ body[data-view=menu] .brand,body[data-view=register] .brand,body[data-view=welco
 .apanel .stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.apanel .stat-b{padding:6px 8px}.apanel .stat-b b{font-size:1.2rem}
 .apanel{max-height:88dvh;overflow:auto;text-align:left}.aform{display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line);padding-top:10px}.aform h3{margin:0}
 .pausebar{margin:0;padding:8px 12px;border-radius:10px;background:rgba(239,138,115,.14);border:1px solid rgba(239,138,115,.5);color:var(--ink);font-weight:600;text-align:center}
+.frpick{display:flex;flex-wrap:wrap;gap:6px}.frpick .btn{width:auto;display:inline-flex;align-items:center;gap:6px}
+.trow.hot{border-color:rgba(233,184,48,.6);background:rgba(233,184,48,.08)}
+.vol{display:grid;grid-template-columns:7.5em 1fr 3.2em;align-items:center;gap:10px;font-size:.95rem}
+.vol input{width:100%;accent-color:var(--coin);height:28px}.vol output{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.phead{display:flex;align-items:center;gap:12px;max-width:620px;width:100%;box-sizing:border-box;margin:14px auto 0;padding:10px 12px;border-radius:16px;background:rgba(0,0,0,.22);border:1px solid var(--line)}
+.phead>div{flex:1;min-width:0;display:flex;flex-direction:column}.phead b{font-family:var(--f-display);font-size:1.2rem;font-weight:700}.phead small{color:var(--muted);font-size:.84rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.phead .btn{width:auto}.pav{all:unset;cursor:pointer;border-radius:50%;box-shadow:0 0 0 2px var(--coin)}.pav:focus-visible{outline:2px solid var(--coin);outline-offset:3px}
+.modes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-width:620px;margin:22px auto 0}
+.mode{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:flex-end;gap:8px;min-height:108px;padding:10px;border-radius:16px;position:relative;overflow:hidden;
+  background:linear-gradient(160deg,#f3e9cf,#e2d2ad);color:var(--tinta);box-shadow:0 6px 14px rgba(0,0,0,.35),inset 0 0 0 1px rgba(90,61,30,.25)}
+.mode img{position:absolute;right:-6px;bottom:-10px;height:120%;max-width:58%;object-fit:contain;opacity:.95;pointer-events:none}
+.mode span{position:relative;display:flex;flex-direction:column;max-width:64%;z-index:1}
+.mode b{font-family:var(--f-display);font-size:1.18rem;font-weight:700;line-height:1.05}.mode small{font-size:.8rem;color:#5d4630;line-height:1.25;margin-top:3px}
+.mode:hover{transform:translateY(-2px)}.mode:focus-visible{outline:2px solid var(--coin);outline-offset:3px}.mode{transition:transform .15s}
+@media (min-width:720px){.modes{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .profbar{display:flex;justify-content:flex-end;margin-top:12px}.profbar .btn{width:auto}
 
 /* ===== La mesa entra entera en la pantalla, sin scroll ===== */

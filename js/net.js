@@ -491,7 +491,7 @@ function placesOf(t, matches) {
   return { p1, p2, p3 };
 }
 
-const roundName = (r, R) => (r === R ? 'Final' : r === R - 1 ? 'Semifinal' : r === R - 2 ? 'Cuartos de final' : r === R - 3 ? 'Octavos de final' : 'Ronda ' + r);
+const roundName = (r, R) => (r === R ? 'Final' : r === R - 1 ? 'Semifinal' : r === R - 2 ? 'Cuartos de final' : r === R - 3 ? 'Octavos de final' : r === R - 4 ? 'Dieciseisavos' : r === R - 5 ? 'Treintaidosavos' : r === 1 ? 'Primera ronda' : 'Ronda ' + r);
 const roomCodeOf = (tid, mid) => ('T' + tid + '-' + mid).toUpperCase();
 const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
@@ -579,7 +579,7 @@ const tour = {
   },
 
   /** Inscribirse. En 2v2, team es el uid de quien armó la pareja (para sumarte a ella) o nada (armás la tuya). */
-  async register(tid, { name, av, team }) {
+  async register(tid, { name, av, team, invite }) {
     const uid = me().uid;
     return runTransaction(fs, async (tx) => {
       const ts = await tx.get(tRef(tid));
@@ -593,12 +593,14 @@ const tour = {
         if (t.mode !== '2v2') return { ok: false, reason: 'modo' };
         const cs = await tx.get(tEntry(tid, team));
         if (!cs.exists() || cs.data().team !== team || cs.data().partner) return { ok: false, reason: 'pareja' };
+        if (cs.data().invite && cs.data().invite !== uid) return { ok: false, reason: 'reservada' };
         teamId = team;
         tx.update(tEntry(tid, team), { partner: uid });
       }
       const at = Date.now();
       if (t.startAt && at >= t.startAt) return { ok: false, reason: 'cerrado' };
-      tx.set(tEntry(tid, uid), { uid, name: String(name || '').slice(0, 24), av: av || 'gaucho', team: teamId, partner: null, at });
+      tx.set(tEntry(tid, uid), { uid, name: String(name || '').slice(0, 24), av: av || 'gaucho', team: teamId, partner: null, at,
+        invite: teamId === uid && t.mode === '2v2' && invite && invite !== uid ? invite : null });   // pareja con un amigo elegido: el lugar queda reservado para él
       tx.update(tRef(tid), { players: t.players + 1, updatedAt: at });
       tx.set(tLedger(tid, uid + '-' + at + '-in'), { uid, kind: 'entrada', amount: t.buyIn || 0, at });
       return { ok: true, at, buyIn: t.buyIn };

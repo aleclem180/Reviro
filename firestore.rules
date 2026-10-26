@@ -190,6 +190,7 @@ service cloud.firestore {
               || (tour().mode == '2v2'
                   && get(/databases/$(database)/documents/tournaments/$(tid)/entries/$(request.resource.data.team)).data.team == request.resource.data.team
                   && get(/databases/$(database)/documents/tournaments/$(tid)/entries/$(request.resource.data.team)).data.partner == null
+                  && get(/databases/$(database)/documents/tournaments/$(tid)/entries/$(request.resource.data.team)).data.get('invite', null) in [null, uid]
                   && getAfter(/databases/$(database)/documents/tournaments/$(tid)/entries/$(request.resource.data.team)).data.partner == uid))
           && getAfter(/databases/$(database)/documents/tournaments/$(tid)).data.players == tour().players + 1;
         // sumarse a una pareja (o dejarla): solo se toca el campo partner de quien la armó
