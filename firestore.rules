@@ -242,6 +242,23 @@ service cloud.firestore {
       }
     }
 
+    // ---------- monedas con Mercado Pago ----------
+    match /config/{docId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+    match /purchases/{id} {
+      allow read: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
+      // el jugador avisa que pagó: queda pendiente hasta que el admin lo vea en Mercado Pago
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid
+        && request.resource.data.status == 'pendiente' && request.resource.data.applied == false;
+      allow update: if isAdmin()
+        // el jugador solo marca que ya se le sumaron las monedas de una compra acreditada
+        || (signedIn() && resource.data.uid == request.auth.uid && resource.data.status == 'acreditada'
+            && changed().hasOnly(['applied']) && request.resource.data.applied == true);
+      allow delete: if isAdmin();
+    }
+
     // ---------- perfil público (personaje, apodo, código de amigo, amigos, puntos) ----------
     match /profiles/{uid} {
       allow read: if signedIn();

@@ -499,7 +499,50 @@ textarea.tin{resize:vertical;min-height:84px}
 body[data-view=menu] .brand,body[data-view=register] .brand,body[data-view=welcome] .brand,body[data-view=auth] .brand,body[data-view=boot] .brand,body[data-view=login] .brand{visibility:hidden}
 .xcard{background:transparent!important;border:0!important;border-bottom:1px solid var(--line)!important;border-radius:0!important;padding:14px 28px 14px 2px!important;position:relative;box-shadow:none!important}
 .xcard::after{content:"";position:absolute;right:6px;top:50%;width:8px;height:8px;border-right:2px solid var(--muted);border-top:2px solid var(--muted);transform:translateY(-50%) rotate(45deg)}
+.item.hincha{grid-column:1/-1}
+.kits{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:4px 0 2px}
+.kitb{all:unset;cursor:pointer;position:relative;aspect-ratio:1;border-radius:50%;padding:3px;border:2px solid transparent}
+.kitb span{display:block;width:100%;height:100%;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.35)}
+.kitb.sel{border-color:var(--coin)}.kitb:focus-visible{outline:2px solid var(--coin);outline-offset:2px}
+.kitb i{position:absolute;right:-2px;bottom:-2px;width:14px;height:14px;border-radius:50%;background:var(--panel);border:1px solid var(--line)}
+.kitb i::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--coin)}
+.kitname{margin:0;font-size:.9rem;color:var(--muted)}.kitname b{color:var(--ink)}
+.btn.wa,.rowb.wa b{color:#25d366}.btn.wa{display:inline-flex;align-items:center;gap:6px;justify-content:center;text-decoration:none;border-color:rgba(37,211,102,.45)}
+.rowb.wa{text-decoration:none}.rowb.wa b{display:flex;align-items:center;gap:8px}
+.btn.mp{background:#009ee3;border-color:#007eb5;color:#fff;text-decoration:none;display:flex;justify-content:center}
+.mpform{display:flex;flex-direction:column;gap:8px}
 .profbar{display:flex;justify-content:flex-end;margin-top:12px}.profbar .btn{width:auto}
+
+/* ===== La mesa entra entera en la pantalla, sin scroll ===== */
+body[data-view=game]{overflow:hidden}
+body[data-view=game] #app{height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+body[data-view=game] .guarda{display:none}
+body[data-view=game] .topbar{padding-block:2px}
+body[data-view=game] #view{flex:1 1 auto;min-height:0;padding-bottom:0}
+body[data-view=game] .game{flex:1 1 auto;min-height:0;gap:5px;padding-top:4px;padding-bottom:calc(6px + env(safe-area-inset-bottom,0px));position:relative}
+.game .gtop{min-height:0}.game .gtop .btn{padding:4px 10px;font-size:.8rem}
+.game .score{gap:6px}.game .score .sc{padding:3px 8px;gap:0}.game .score .sc b{font-size:1.25rem}.game .score .sc .lbl{font-size:.78rem}
+.game .score .mid{font-size:.72rem}
+.game .felt{flex:1 1 0;min-height:0;overflow:hidden;padding:6px;gap:4px}
+.game .felt{container-type:size}
+/* el tamaño de las cartas de la mesa sale del alto que le queda a la mesa */
+.felt.n2>.seat,.felt.n2>.center{--pc:clamp(34px,calc((100cqh - 118px) / 3.3),88px)}
+.felt.n4>.seat,.felt.n4>.center{--pc:clamp(30px,min(calc((100cqh - 150px) / 4.3),calc(100cqw / 5.6)),66px)}
+@container (max-height:300px){.center .ticker,.center .stat{display:none}}
+.game .center{min-height:0;overflow:hidden;gap:3px}
+.game .center .ticker{font-size:.76rem}
+.game .hand{--hw:clamp(76px,min(35vw,15.5dvh),172px)!important;padding-top:6px;min-height:calc(var(--hw) * 1.5 + 10px);flex:none}
+.game .handinfo{min-height:0}
+.game .actions{min-height:0;gap:5px;flex:none}
+.game .actions .btn{padding:7px 12px;font-size:.9rem}
+.game .actions .hint{margin:0;font-size:.88rem}
+.game .social .btn{padding:4px 10px;font-size:.78rem}
+/* el panel de reacciones y señas se abre encima, sin empujar la mesa */
+.game .social{position:relative}
+.game .actions .chips{position:absolute;left:8px;right:8px;bottom:calc(100% - 4px);z-index:30;background:rgba(28,17,9,.97);border:1px solid var(--line);border-radius:14px;padding:8px;box-shadow:0 10px 30px rgba(0,0,0,.5);max-height:45dvh;overflow:auto}
+.game .actions{position:relative}
+@media (max-height:700px){.game .score .sc .lbl{display:none}.game .gtop .btn{padding:2px 8px}.game .hand{--hw:clamp(70px,min(33vw,13dvh),172px)!important}.game .handinfo span{font-size:.72rem}.game .actions .btn{padding:6px 10px;font-size:.84rem}}
+.game .center>*{flex-shrink:0}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">

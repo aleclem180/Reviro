@@ -19,7 +19,7 @@ Cada retrato se arma con la descripción del personaje más la base de estilo. F
 | La Hincha | `hincha.jpg` | azul | Hincha de 25 años, piel morena, pelo largo oscuro, camiseta a bastones celestes y blancos sin escudo, levantando una bufanda celeste y blanca, sonriendo. | Listo |
 | El Asador | `asador.jpg` | rojo ladrillo | Asador de 40 años, barba tupida, delantal blanco sobre camisa azul arremangada, sosteniendo un choripán. | Listo |
 | La Abuela | `abuela.jpg` | lila | Abuela de 80 años, pelo canoso en rodete, anteojos redondos, chal tejido crema sobre vestido lila, agujas de tejer y ovillo rosa. | Listo |
-| El Godín | `godin.jpg` | gris azulado | Oficinista de 35 años, traje gris oscuro, camisa blanca, corbata roja, cara de cansado, taza de café. | Listo |
+| El Laburante | `godin.jpg` | gris azulado | Oficinista de 35 años, traje gris oscuro, camisa blanca, corbata roja, cara de cansado, taza de café. | Listo |
 | El Cheto | `cheto.jpg` | celeste | Joven de 24 años, pelo rubio peinado hacia atrás, gafas de sol en la cabeza, chomba rosa con suéter azul marino sobre los hombros, vaso de café helado. | Listo |
 | El Fisura | `fisura.jpg` | violeta | Joven de 28 años despeinado, anteojos de sol negros, barba de días, campera de cuero negra sobre remera blanca, porción de pizza, sonrisa amplia. | Listo |
 | La Doña del Barrio | `dona.jpg` | naranja | Señora de 60 años con ruleros de colores, bata floreada rosa, aros dorados, sosteniendo una escoba de paja. | Listo |

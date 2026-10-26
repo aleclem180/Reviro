@@ -186,6 +186,22 @@ La entrada y el premio se pagan en **fichas**, que no tienen valor en dinero: no
 
 `{ "uid", "kind": "premio" | "reintegro", "place", "amount", "at" }`. Se crea una sola vez: con eso nadie cobra dos veces. Si el torneo se cancela, cada inscripto recupera su entrada.
 
+## Monedas con Mercado Pago
+
+### `config/pagos`
+
+`{ "links": ["https://mpago.la/…", …], "alias": "tu.alias.mp", "updatedAt": … }`. Un link de pago de Mercado Pago por paquete (en el mismo orden que los paquetes de la tienda) y, si querés, un alias para transferencias. Lo edita el admin desde Ajustes.
+
+### `purchases/{id}`
+
+`{ "uid", "username", "pack", "coins", "ars", "status": "pendiente" | "acreditada" | "rechazada", "applied", "at", "decidedAt" }`.
+
+1. El jugador paga con el link del paquete y toca **Ya pagué**: se crea la compra `pendiente`.
+2. El admin ve el pago en su cuenta de Mercado Pago y toca **Acreditar** en Ajustes.
+3. La app del jugador ve la compra `acreditada`, le suma las monedas una sola vez y la marca `applied: true`.
+
+Las monedas son solo para la tienda: no se cambian por fichas ni por plata. Para que se acrediten solas sin que el admin confirme, hace falta un servidor que reciba los avisos de Mercado Pago (por ejemplo, Cloud Functions de Firebase, que piden el plan Blaze).
+
 ## Lo cosmético
 
 | Colección | Contenido | Quién escribe |

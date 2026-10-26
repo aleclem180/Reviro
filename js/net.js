@@ -808,6 +808,36 @@ const tour = {
   },
 };
 
+
+/* ------------------------------------------------------------------ */
+/* Monedas con Mercado Pago                                            */
+/* ------------------------------------------------------------------ */
+/*
+  config/pagos           { links: [url, url, url, url], alias, updatedAt }   (lo edita el admin)
+  purchases/{id}         { uid, username, pack, coins, ars, status: 'pendiente' | 'acreditada' | 'rechazada',
+                           applied, at, decidedAt }
+  El jugador paga con el link de Mercado Pago del paquete y avisa "Ya pagué". El admin ve el pago en su
+  cuenta de Mercado Pago y lo acredita; ahí las monedas le llegan solas al jugador.
+  Las monedas son solo para la tienda (personajes, dorsos, paños): no se cambian por fichas ni por plata.
+*/
+const payRef = () => doc(fs, 'config', 'pagos');
+const pay = {
+  watchConfig: (cb) => onSnapshot(payRef(), (s) => cb(s.exists() ? s.data() : { links: [], alias: '' }), () => cb({ links: [], alias: '' })),
+  saveConfig: (cfg) => setDoc(payRef(), { links: (cfg.links || []).map((x) => String(x || '').trim()).slice(0, 8), alias: String(cfg.alias || '').trim().slice(0, 60), updatedAt: Date.now() }),
+  async request(pack, coins, ars) {
+    const uid = me().uid;
+    const ref = doc(collection(fs, 'purchases'));
+    await setDoc(ref, { uid, username: USER?.username || '', pack, coins, ars, status: 'pendiente', applied: false, at: Date.now() });
+    return ref.id;
+  },
+  watchMine: (cb) => onSnapshot(query(collection(fs, 'purchases'), where('uid', '==', me().uid), limit(50)),
+    (s) => cb(s.docs.map((d) => ({ id: d.id, ...d.data() })))),
+  markApplied: (id) => updateDoc(doc(fs, 'purchases', id), { applied: true }),
+  watchPending: (cb) => onSnapshot(query(collection(fs, 'purchases'), where('status', '==', 'pendiente'), limit(100)),
+    (s) => cb(s.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => a.at - b.at))),
+  decide: (id, ok) => updateDoc(doc(fs, 'purchases', id), { status: ok ? 'acreditada' : 'rechazada', decidedAt: Date.now() }),
+};
+
 /* ------------------------------------------------------------------ */
 /* Administración                                                      */
 /* ------------------------------------------------------------------ */
@@ -949,7 +979,7 @@ window.NET = {
   auth: { register, completeProfile, login, logout, resetPassword, resendVerification, onChange, isAdmin, loadUser, user: () => USER },
   rooms: { createRoom, updateSeats, sit, join, startRoom, commitMove, leaveRoom },
   stats: { recordMatch, recordAbandon, recordPending, watchUser },
-  admin, tour,
+  admin, tour, pay,
   db, usr, roomCap,
 };
 window.dispatchEvent(new Event('net-ready'));

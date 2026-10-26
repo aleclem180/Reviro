@@ -238,11 +238,12 @@ function playHTML(){const on=SET.on;const remembered=(()=>{try{return localStora
       <div class="field"><span>Flor</span>${seg('on.flor',[['true','Con flor'],['false','Sin flor']],on.flor)}</div>
       <div class="field"><span>Apuesta por jugador</span>${seg('on.stake',STAKES.map(v=>[v,v?fmt(v):'Sin']),on.stake,v=>+v>WAL.chips)}</div>
       <button class="btn prim" data-a="create" ${on.stake>WAL.chips?'disabled':''}>Crear la mesa</button></div>`:''}
+    <a class="rowb wa" href="${waHref(waInviteText())}" target="_blank" rel="noopener"><b>${WAICO} Invitar por WhatsApp</b><small>Mandales el link a tus amigos para jugar juntos</small></a>
     <form class="rowb rowf" data-form="join"><label for="joincode"><b>Entrar con código</b><small>Las cuatro letras que te pasaron</small></label><input type="text" id="joincode" maxlength="4" placeholder="ABCD" autocomplete="off"><button class="btn" type="submit">Entrar</button></form>
     ${FB?`<button type="button" class="rowb" data-a="nav" data-v="torneos"><b>Torneos</b><small>${openT?`${openT===1?'Hay uno abierto':'Hay '+openT+' abiertos'}: anotate y jugá por el premio`:'Mirá los que vienen y los que ya se jugaron'}</small></button>`:''}
     ${open.length?`<h3>Mesas esperando gente</h3><div class="tables">${open.map(t=>{const f=t.seats.filter(s=>s.id||s.bot).length;return `<div class="trow"><div><b>${esc(t.code)}</b> <span>${t.n} jugadores, a ${t.target}${t.flor===false?' sin flor':''}, ${t.stake?fmt(t.stake)+' fichas':'amistosa'}. Hay ${f} de ${t.n}</span></div><button class="btn" data-a="join" data-code="${esc(t.code)}" ${t.stake>WAL.chips?'disabled':''}>Sentarme</button></div>`}).join('')}</div>`:''}
     ${FB?'':'<p class="note">Para que tus amigos puedan sentarse, compartí esta página con ellos desde el botón Compartir, con permiso para editar.</p>'}`
-    :LOCAL?`<p class="note">Las mesas online, los amigos y el ranking funcionan en la versión de Reviro dentro de claude.ai. Acá podés jugar contra la máquina, La Huella y el anotador.</p>`:`<p class="note">El juego online necesita que abras Reviro con tu cuenta de claude.ai. Mientras tanto podés jugar contra la máquina.</p>`}
+    :LOCAL?`<a class="rowb wa" href="${waHref(waInviteText())}" target="_blank" rel="noopener"><b>${WAICO} Invitar por WhatsApp</b><small>Mandales el link de Reviro a tus amigos</small></a><p class="note">Las mesas online, los amigos y el ranking funcionan con tu cuenta en la web.</p>`:`<p class="note">El juego online necesita que abras Reviro con tu cuenta de claude.ai. Mientras tanto podés jugar contra la máquina.</p>`}
   </section>
   <button type="button" class="meline" data-a="nav" data-v="shop">${avatarSVG(myAv(),40)}<span>Jugás como <b>${esc(me.name)}</b></span><u>Cambiar</u></button>`}
 function rulesHTML(){const order=['1E','1B','7E','7O','3E','2E','1C','12E','11E','10E','7C','6E','5E','4E'];
@@ -267,15 +268,23 @@ function buyBtn(type,id,price,name){const own=owns(type,id,price),on=WAL.eq[type
   if(WAL.coins<price)return `<button class="btn" disabled>${coinI} Faltan ${fmt(price-WAL.coins)}</button>`;
   const k=type+':'+id;if(pendingBuy===k)return `<button class="btn prim" data-a="buy" data-t="${type}" data-id="${id}">Confirmar · ${fmt(price)}</button>`;
   return `<button class="btn brass" data-a="prebuy" data-t="${type}" data-id="${id}">${coinI} ${fmt(price)}</button>`}
-function shopHTML(){const sub=[['av','Personajes'],['kit','Camisetas'],['dorso','Dorsos'],['pano','Paños'],['coins','Monedas']];
+let HKIT=null;
+/* La Hincha: las camisetas se eligen en su propia tarjeta */
+function hinchaItemHTML(a){const hasH=owns('av','hincha',a.price);const sel=KITM[HKIT||WAL.eq.kit]?(HKIT||WAL.eq.kit):'arg',k=KITM[sel];
+  const using=WAL.eq.av==='hincha'&&WAL.eq.kit===sel;
+  return `<div class="item hincha ${WAL.eq.av==='hincha'?'on':''}"><div class="prev" style="height:150px">${avatarSVG(kitAv(sel),146,true)}</div>
+    <b>${esc(a.name)}</b><p>${esc(a.bio)}</p>
+    <div class="kits" role="group" aria-label="Camiseta">${KITS.map(x=>{const own=owns('kit',x.id,x.price);return `<button type="button" class="kitb ${sel===x.id?'sel':''}" data-a="hkit" data-id="${x.id}" aria-pressed="${sel===x.id}" title="${esc(x.name)}${own?'':' · '+fmt(x.price)+' monedas'}"><span style="${kitSwatch(x)}"></span>${own?'':'<i aria-hidden="true"></i>'}</button>`}).join('')}</div>
+    <p class="kitname"><b>${esc(k.name)}</b>. ${esc(k.bio)}</p>
+    ${!hasH?buyBtn('av','hincha',a.price,a.name):using?'<button class="btn" disabled>Usando</button>':owns('kit',sel,k.price)?`<button class="btn ink" data-a="equip" data-t="kit" data-id="${sel}">Usar esta camiseta</button>`:buyBtn('kit',sel,k.price,k.name)}</div>`}
+const kitSwatch=k=>({v:`background:repeating-linear-gradient(90deg,${k.c1} 0 25%,${k.c2} 25% 50%)`,h:`background:linear-gradient(${k.c1} 0 38%,${k.c2} 38% 62%,${k.c1} 62%)`,d:`background:linear-gradient(135deg,${k.c1} 0 38%,${k.c2} 38% 62%,${k.c1} 62%)`,s:`background:${k.c1};box-shadow:inset 0 3px 0 ${k.c2}`,p:`background:linear-gradient(90deg,${k.c1} 50%,${k.c2} 50%)`,w:`background:linear-gradient(135deg,${k.c1} 40%,transparent 40%),linear-gradient(225deg,${k.c1} 40%,${k.c2} 40%)`,r:`background:repeating-linear-gradient(0deg,${k.c1} 0 20%,${k.c2} 20% 40%)`})[k.pat]||`background:${k.c1}`;
+function shopHTML(){const sub=[['av','Personajes'],['dorso','Dorsos'],['pano','Paños'],['coins','Monedas']];if(shopTab==='kit')shopTab='av';
   let body='';
-  if(shopTab==='av')body=`<div class="items">${AVS.map(a=>`<div class="item ${WAL.eq.av===a.id?'on':''}"><div class="prev" style="height:124px">${avatarSVG(a.id==='hincha'?kitAv(WAL.eq.kit):a.id,120,true)}</div><b>${esc(a.name)}</b><p>${esc(a.bio)}</p>${buyBtn('av',a.id,a.price,a.name)}</div>`).join('')}</div>`;
-  if(shopTab==='kit'){const hasH=owns('av','hincha',AVM.hincha.price);
-    body=`<p class="note" style="margin-top:12px">${hasH?'Las camisetas las usa <b>La Hincha</b>. Al elegir una, también te ponés a La Hincha.':'Las camisetas las usa <b>La Hincha</b>. Conseguila primero en Personajes.'} Son diseños de colores, sin escudos ni marcas.</p>
-    <div class="items">${KITS.map(k=>`<div class="item ${WAL.eq.kit===k.id&&WAL.eq.av==='hincha'?'on':''}"><div class="prev" style="height:124px">${avatarSVG(kitAv(k.id),120,true)}</div><b>${esc(k.name)}</b><p>${esc(k.bio)}</p>${hasH?buyBtn('kit',k.id,k.price,k.name):'<button class="btn" disabled>Necesitás a La Hincha</button>'}</div>`).join('')}</div>`}
+  if(shopTab==='av')body=`<div class="items">${AVS.map(a=>a.id==='hincha'?hinchaItemHTML(a):`<div class="item ${WAL.eq.av===a.id?'on':''}"><div class="prev" style="height:124px">${avatarSVG(a.id,120,true)}</div><b>${esc(a.name)}</b><p>${esc(a.bio)}</p>${buyBtn('av',a.id,a.price,a.name)}</div>`).join('')}</div>`;
   if(shopTab==='dorso')body=`<div class="items">${DORSOS.map(d=>`<div class="item ${WAL.eq.dorso===d.id?'on':''}"><div class="prev"><div class="bigback" style="background:${d.bg}"></div></div><b>${esc(d.name)}</b><p>${esc(d.bio)}</p>${buyBtn('dorso',d.id,d.price,d.name)}</div>`).join('')}</div>`;
   if(shopTab==='pano')body=`<div class="items">${PANOS.map(p=>`<div class="item ${WAL.eq.pano===p.id?'on':''}"><div class="prev"><div class="swatch" style="background:${p.bg};border-color:${p.edge}">${cardHTML('1E')}${cardHTML('7O')}</div></div><b>${esc(p.name)}</b><p>${esc(p.bio)}</p>${buyBtn('pano',p.id,p.price,p.name)}</div>`).join('')}</div>`;
-  if(shopTab==='coins'&&!PREMIUM)body=premLock()+`<p class="note" style="margin-top:12px">Ganás monedas jugando: 20, 40 u 80 por partida ganada según la dificultad, 60 por partida online ganada, 5 por jugar aunque pierdas, 30 de premio cada día y las misiones.</p>`;
+  if(shopTab==='coins'&&FB)body=mpShopHTML();
+  else if(shopTab==='coins'&&!PREMIUM)body=premLock()+`<p class="note" style="margin-top:12px">Ganás monedas jugando: 20, 40 u 80 por partida ganada según la dificultad, 60 por partida online ganada, 5 por jugar aunque pierdas, 30 de premio cada día y las misiones.</p>`;
   else if(shopTab==='coins')body=`<div class="demo"><b>Modo prueba.</b> Acá no se cobra nada: los paquetes se acreditan gratis para que veas cómo funciona la tienda. El cobro real se conecta cuando Reviro tenga su propia app con medio de pago.</div>
     <div class="items">${PACKS.map((p,i)=>`<div class="item pack"><div class="prev">${coinI.replace('class="coin"','class="coin" style="width:26px;height:26px"')}${fmt(p.coins)}</div><b>${fmt(p.coins)} monedas</b><p>${p.tag?`<span class="tag">${p.tag}</span><br>`:''}<span class="ars">$ ${fmt(p.ars)}</span></p>
       ${pendingBuy==='pack:'+i?`<button class="btn prim" data-a="pack" data-i="${i}">Confirmar prueba</button>`:`<button class="btn brass" data-a="prepack" data-i="${i}">Simular compra</button>`}</div>`).join('')}</div>
@@ -309,7 +318,7 @@ function profileHTML(){const a=AVM[WAL.eq.av]||AVM.gaucho,st=WAL.stats,pct=st.pl
 function roomHTML(){if(!T)return `<div class="room"><p class="note">Cargando mesa…</p></div>`;if(T.tour)return tourRoomHTML();
   const mine=T.seats.findIndex(s=>s.id===uid);const full=T.seats.every(s=>s.id||s.bot);
   return `<div class="room"><div class="row" style="justify-content:space-between"><div><h3 style="margin:0;color:var(--muted);font-size:.78rem;letter-spacing:.14em;text-transform:uppercase">Mesa</h3><div class="code">${esc(T.code)}</div></div>
-    <button class="btn" data-a="copy">Copiar código</button></div>
+    <div class="row" style="flex-wrap:nowrap"><button class="btn" data-a="copy">Copiar código</button><a class="btn wa" href="${waHref(`Sumate a mi mesa de truco en Reviro. Código ${T.code}: ${siteURL()}#m-${T.code}`)}" target="_blank" rel="noopener">${WAICO} WhatsApp</a></div></div>
     <p class="note">${T.n} jugadores · a ${T.target} puntos · ${T.flor===false?'sin flor':'con flor'} · ${T.stake?fmt(T.stake)+' fichas por jugador':'sin apuesta'}${T.n===4?' · los asientos 1 y 3 juegan juntos contra 2 y 4':''}</p>
     <div class="seats">${T.seats.map((s,i)=>{const who=s.bot?'Bot':s.id?(s.id===uid?'Vos':(dispName(s.id)||'Jugador')):'Libre';
       const av=s.bot?'veterano':s.id?(s.id===uid?myAv():((LOOKS[s.id]&&LOOKS[s.id].av)||'gaucho')):null;
@@ -663,6 +672,12 @@ function cleanNick(s){return String(s||'').replace(/[\u0000-\u001f<>]/g,'').repl
 function myDisp(){return WAL.nick||myName||'Vos'}
 function dispName(id){if(!id)return'';if(id===uid)return myDisp();const l=LOOKS[id];return (l&&l.nick)||NAMES[id]||''}
 function saveNick(v){const n=cleanNick(v);if(n&&n.length<2){toast('El apodo necesita al menos 2 letras');return}WAL.nick=n;saveWallet();writeLooks();toast(n?'Ahora te llamás '+n:'Apodo borrado');render()}
+/* compartir por WhatsApp: abre WhatsApp con el mensaje armado */
+const SITE='https://aleclem180.github.io/Reviro/';
+const siteURL=()=>FB?location.origin+location.pathname:SITE;
+const waHref=t=>'https://wa.me/?text='+encodeURIComponent(t);
+const WAICO='<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 2.2a9.7 9.7 0 0 0-8.4 14.6L2.3 21.8l5.1-1.3A9.7 9.7 0 1 0 12 2.2zm0 17.7a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 19.9zm4.4-6c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.8 1c-.1.2-.3.2-.5.1a6.6 6.6 0 0 1-3.3-2.9c-.2-.4.3-.4.8-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.5-.4h-.5a.9.9 0 0 0-.7.3 2.8 2.8 0 0 0-.9 2.1 4.9 4.9 0 0 0 1 2.6 11.2 11.2 0 0 0 4.3 3.8c1.6.7 2.2.7 3 .6.5-.1 1.4-.6 1.6-1.2.2-.6.2-1 .1-1.2l-.6-.2z"/></svg>';
+function waInviteText(){return `¿Un truco? Te espero en Reviro: ${FB?siteURL():SITE}${WAL.fcode?'#a-'+WAL.fcode:''}`}
 function friendLink(){return (window.claude?APP_URL:location.href.split('#')[0])+'#a-'+(WAL.fcode||'')}
 function friendSet(){const s=new Set(WAL.friends||[]);for(const id of REVF)s.add(id);s.delete(uid);return s}
 function subFriends(){if(!db||!uid||unsubRev)return;try{unsubRev=db.collection('looks').where('friends','array-contains',uid).onSnapshot(s=>{REVF=s.docs.map(d=>d.id);s.docs.forEach(d=>{LOOKS[d.id]=d.data()});if(view==='profile'||view==='ranking')render()},()=>{unsubRev=null})}catch(e){}}
@@ -676,7 +691,11 @@ async function addFriendByCode(raw){const code=String(raw||'').toUpperCase().rep
     WAL.friends=(WAL.friends||[]).concat(id).slice(-100);await saveWallet();await writeLooks();
     toast('¡Ahora sos amigo de '+(dispName(id)||'tu amigo')+'!');ensureNames([id]);render()}
   catch(e){toast('No se pudo agregar. Probá de nuevo')}}
-function checkInviteHash(){let hsh='';try{hsh=location.hash||''}catch(e){}const m=/^#a-([A-Z0-9]{6})$/i.exec(hsh);if(!m)return;
+function checkInviteHash(){let hsh='';try{hsh=location.hash||''}catch(e){}
+  const mm=/^#m-([A-Z0-9-]{4,24})$/i.exec(hsh),mt=/^#t-([A-Z0-9]{8})$/i.exec(hsh);
+  if(mm||mt){try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}
+    if(mm&&db&&uid){openTable(mm[1]);return}if(mt&&FB){openTour(mt[1].toUpperCase());return}return}
+  const m=/^#a-([A-Z0-9]{6})$/i.exec(hsh);if(!m)return;
   try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}
   if(m[1].toUpperCase()!==WAL.fcode)addFriendByCode(m[1])}
 function friendsBoxHTML(){const fs=[...friendSet()];if(fs.length){fetchLooks(fs);ensureNames(fs)}
@@ -966,7 +985,7 @@ function settingsHTML(){const tg=(k,l,sub,inv)=>`<div class="toggle"><span>${l}<
       ${myEmail?`<p class="note">Cuenta: ${esc(myEmail)}</p>`:''}
       <p class="note">Tu código de amigo es <b>${esc(WAL.fcode||'—')}</b>. El apodo y los amigos se manejan desde Perfil.</p>
       <button class="btn" data-a="nav" data-v="profile">Ir a Perfil</button>${fbAccountHTML()}</section>
-    ${adminHTML()}${fbAdminHTML()}
+    ${adminHTML()}${fbAdminHTML()}${mpAdminHTML()}
   </div>`}
 
 
@@ -1047,7 +1066,7 @@ async function authSubmit(kind){if(AUTHBUSY)return;AUTHERR='';AUTHBUSY=true;
 function resetSession(){for(const k of Object.keys(WAL))delete WAL[k];Object.assign(WAL,JSON.parse(JSON.stringify(WAL0)));walRef=null;renderWallet();uid=null;db=null;usr=null;roomCap=null;MYUSER=null;isOwnerV=false;PREMIUM=false;myName='';myEmail=null;
   [unsubLobby,unsubRev,unsubPrem,unsubInv,unsubRank].forEach(u=>{try{u&&u()}catch(e){}});unsubLobby=unsubRev=unsubPrem=unsubInv=unsubRank=null;
   admUnsubs.forEach(u=>{try{u()}catch(e){}});admUnsubs=[];unsubAdmin=null;ADM_ROOMS=ADM_USERS=null;
-  [toursUnsub,tvUnsub].forEach(u=>{try{u&&u()}catch(e){}});toursUnsub=tvUnsub=null;TOURS=null;TV=null;TCLAIM.clear()}
+  [toursUnsub,tvUnsub,...payUnsubs].forEach(u=>{try{u&&u()}catch(e){}});toursUnsub=tvUnsub=null;payUnsubs=[];PAYCFG=null;MYPUR=[];PENDPUR=null;TOURS=null;TV=null;TCLAIM.clear()}
 async function onFbUser(info,fresh){AUTHINFO=info;
   if(!info){resetSession();AUTHV='login';view='auth';render();return}
   if(!info.user&&!(NET.auth.user())){AUTHV='complete';view='auth';render();return}
@@ -1058,7 +1077,7 @@ async function onFbUser(info,fresh){AUTHINFO=info;
   if(!WAL.registered){WAL.registered=true;WAL.eq.av=AVM[u.avatar]?u.avatar:'gaucho';saveWallet();writeLooks();view='welcome'}
   else if(view==='auth'||view==='boot')view='menu';
   NET.stats.watchUser(uid,x=>{MYUSER=x;const adm=NET.auth.isAdmin();if(adm!==isOwnerV){isOwnerV=adm;PREMIUM=PREMIUM||adm;subAdmin();subFbAdmin()}if(view==='profile'||view==='settings')render()});
-  subLobby();subFriends();subPremium();subAdmin();subFbAdmin();subInvites();subTours();checkInviteHash();
+  subLobby();subFriends();subPremium();subAdmin();subFbAdmin();subInvites();subTours();subPay();checkInviteHash();
   NET.stats.recordPending().catch(()=>{});render()}
 const RECORDED=new Set();
 function fbRecord(code,matchId){if(RECORDED.has(matchId))return;RECORDED.add(matchId);
@@ -1187,6 +1206,7 @@ function tourHTML(){const back=`<div class="backx"><button type="button" class="
   let o=back+`<div class="grid"><section class="box thead"><div class="row" style="justify-content:space-between;align-items:flex-start"><div style="min-width:0"><h2 style="margin:0">${esc(t.name)}</h2>${t.theme?`<p class="tc-theme" style="margin:2px 0 0">${esc(t.theme)}</p>`:''}</div><span class="tst ${t.status}">${tStatus[t.status]}</span></div>
     <div class="tchips">${info.map(x=>`<span>${esc(x)}</span>`).join('')}${t.startAt?`<span>${esc(tFmtDate(t.startAt))}</span>`:''}</div>
     ${cdHTML(t,true)}${tourPrizesHTML(t)}
+    ${t.status==='open'&&!tClosed(t)?`<a class="btn wa" href="${waHref(`Anotate en el torneo ${t.name} de Reviro. Premio acumulado: ${fmt(NET.tour.potOf(t))} fichas. ${siteURL()}#t-${t.id}`)}" target="_blank" rel="noopener">${WAICO} Invitar al torneo por WhatsApp</a>`:''}
     ${t.rules?`<details class="trules"><summary>Reglas del torneo</summary><p>${esc(t.rules)}</p></details>`:''}</section>`;
   if(t.status==='open'){const pct=Math.min(100,Math.round(t.players/cap*100));const closed=tClosed(t),left=cap-t.players;
     const recent=E.slice().sort((x,y)=>y.at-x.at).slice(0,3);
@@ -1251,6 +1271,35 @@ function tourRoomHTML(){const here=T.here||{};const wait=Math.max(0,5*60e3-(Date
     <div class="row">${wait?`<p class="note">Si falta alguien, en ${Math.ceil(wait/60e3)} min podés empezar con la IA en su lugar.</p>`:`<button class="btn brass" data-a="tourforce">Empezar igual (la IA juega por los que faltan)</button>`}
     <button class="btn ghost" data-a="tourback">Volver al torneo</button></div></div>`}
 
+/* ---------- monedas con Mercado Pago (web con cuenta) ---------- */
+let PAYCFG=null,MYPUR=[],PENDPUR=null,PAYSTEP=-1,payUnsubs=[];const PAYAPPLY=new Set();
+function subPay(){if(!FB||payUnsubs.length)return;try{
+  payUnsubs.push(NET.pay.watchConfig(c=>{PAYCFG=c;if(view==='shop'||view==='settings')render()}));
+  payUnsubs.push(NET.pay.watchMine(l=>{MYPUR=l.sort((a,b)=>b.at-a.at);
+    /* las compras acreditadas por el admin se suman solas, una sola vez */
+    for(const x of l)if(x.status==='acreditada'&&!x.applied&&!PAYAPPLY.has(x.id)){PAYAPPLY.add(x.id);
+      applyTx('mp:'+x.id,{coins:x.coins}).then(()=>NET.pay.markApplied(x.id)).then(()=>{sfx('buy');toast(`¡Se acreditaron ${fmt(x.coins)} monedas!`)}).catch(()=>PAYAPPLY.delete(x.id))}
+    if(view==='shop')render()}));
+  if(isOwnerV)payUnsubs.push(NET.pay.watchPending(l=>{PENDPUR=l;if(view==='settings')render()}))}catch(e){}}
+function mpShopHTML(){const links=(PAYCFG&&PAYCFG.links)||[],alias=PAYCFG&&PAYCFG.alias;const st={pendiente:'Esperando confirmación',acreditada:'Acreditada',rechazada:'No se encontró el pago'};
+  return `<p class="note" style="margin-top:12px">Las monedas sirven para la tienda: personajes, camisetas, dorsos y paños. Se pagan con Mercado Pago y se acreditan cuando se confirma el pago. No se cambian por fichas ni por plata.</p>
+    <div class="items">${PACKS.map((p,i)=>{const link=links[i];return `<div class="item pack"><div class="prev">${coinI.replace('class="coin"','class="coin" style="width:26px;height:26px"')}${fmt(p.coins)}</div><b>${fmt(p.coins)} monedas</b><p>${p.tag?`<span class="tag">${p.tag}</span><br>`:''}<span class="ars">$ ${fmt(p.ars)}</span></p>
+      ${PAYSTEP===i?`<p class="note" style="margin:0">${link?'Cuando termines de pagar, avisá acá:':`Transferí $ ${fmt(p.ars)} al alias <b>${esc(alias)}</b> y avisá acá:`}</p><button class="btn prim" data-a="mpdone" data-i="${i}">Ya pagué</button><button class="btn ghost sm" data-a="mpcancel">Cancelar</button>`
+       :link?`<a class="btn mp" href="${esc(link)}" target="_blank" rel="noopener" data-a="mppay" data-i="${i}">Pagar con Mercado Pago</a>`
+       :alias?`<button class="btn mp" data-a="mppay" data-i="${i}">Pagar con Mercado Pago</button>`
+       :'<button class="btn" disabled>Todavía no está habilitado</button>'}</div>`}).join('')}</div>
+    ${MYPUR.length?`<h3 style="margin:16px 0 6px">Tus compras</h3><ul class="flist">${MYPUR.slice(0,8).map(x=>`<li><span style="flex:1">${fmt(x.coins)} monedas · $ ${fmt(x.ars)}<small>${esc(tFmtDate(x.at))}</small></span><span class="tst ${x.status==='acreditada'?'open':x.status==='rechazada'?'cancelled':'running'}">${st[x.status]||x.status}</span></li>`).join('')}</ul>`:''}
+    <p class="note" style="margin-top:12px">También ganás monedas jugando: 20, 40 u 80 por partida ganada según la dificultad, 60 por partida online ganada, 5 por jugar aunque pierdas y 30 de premio cada día.</p>`}
+function mpAdminHTML(){if(!FB||!isOwnerV)return'';const c=PAYCFG||{links:[],alias:''};const P=PENDPUR||[];
+  return `<section class="box admin"><h2>Cobros con Mercado Pago</h2>
+    <p class="note" style="margin:0">En la app de Mercado Pago: <b>Cobrar → Link de pago</b>, poné el monto de cada paquete y pegá acá el link. Si preferís, dejá solo tu alias y te transfieren.</p>
+    <form class="mpform" data-form="mpcfg">${PACKS.map((p,i)=>`<label class="field"><span>${fmt(p.coins)} monedas · $ ${fmt(p.ars)}</span><input class="tin" id="mpl${i}" placeholder="https://mpago.la/…" value="${esc(c.links&&c.links[i]||'')}"></label>`).join('')}
+      <label class="field"><span>Alias de Mercado Pago (opcional)</span><input class="tin" id="mpalias" placeholder="tu.alias.mp" value="${esc(c.alias||'')}"></label>
+      <button class="btn prim" type="submit">Guardar cobros</button></form>
+    <h3>Pagos para confirmar</h3>
+    ${PENDPUR===null?'<p class="note">Cargando…</p>':P.length?`<ul class="flist">${P.map(x=>`<li><span style="flex:1">${esc(x.username||'Jugador')} · ${fmt(x.coins)} monedas<small>$ ${fmt(x.ars)} · ${esc(tFmtDate(x.at))}</small></span><button class="btn sm brass" data-a="mpok" data-id="${esc(x.id)}">Acreditar</button><button class="btn sm ghost" data-a="mpno" data-id="${esc(x.id)}">Rechazar</button></li>`).join('')}</ul>`:'<p class="note">No hay pagos esperando.</p>'}
+    <p class="note">Antes de acreditar, fijate en tu cuenta de Mercado Pago que el pago haya entrado.</p></section>`}
+
 /* ---------- eventos ---------- */
 document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closest('[data-a],[data-set],[data-card]');if(!t)return;
   if(t.dataset.a==='close'&&t.classList.contains('over')&&e.target!==t)return;
@@ -1268,6 +1317,11 @@ document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closes
   case 'shopcoins':if(view==='game'||view==='room'){toast('Terminá la partida para ir a la tienda');return}shopTab='coins';view='shop';render();return;
   case 'sound':SET.mute=!SET.mute;saveSet();renderSnd();musicUpdate();if(!SET.mute)setTimeout(()=>sfx('pts'),60);if(view==='profile')render();return;
   case 'toggle':SET[t.dataset.k]=!SET[t.dataset.k];saveSet();renderSnd();render();musicUpdate();return;
+  case 'mppay':PAYSTEP=+t.dataset.i;setTimeout(render,50);return;
+  case 'mpcancel':PAYSTEP=-1;render();return;
+  case 'mpdone':{const p=PACKS[+t.dataset.i];PAYSTEP=-1;NET.pay.request(+t.dataset.i,p.coins,p.ars).then(()=>toast('Listo: cuando se confirme el pago, las monedas se suman solas')).catch(()=>toast('No se pudo avisar el pago. Probá de nuevo.'));render();return}
+  case 'mpok':case 'mpno':NET.pay.decide(t.dataset.id,a==='mpok').then(()=>toast(a==='mpok'?'Monedas acreditadas':'Pago rechazado')).catch(()=>toast('No se pudo'));return;
+  case 'hkit':HKIT=t.dataset.id;render();return;
   case 'shoptab':shopTab=t.dataset.v;render();return;
   case 'prebuy':pendingBuy=t.dataset.t+':'+t.dataset.id;render();return;
   case 'buy':{const ty=t.dataset.t,id=t.dataset.id,list=ty==='av'?AVM:ty==='dorso'?DM:ty==='kit'?KITM:PM,it=list[id];pendingBuy=null;if(it)buy(ty,id,it.price,it.name);return}
@@ -1336,6 +1390,7 @@ document.addEventListener('keydown',e=>{const t=e.target;if((e.key==='Enter'||e.
 document.addEventListener('input',e=>{const k={tname:'name',ttheme:'theme',tdate:'date',trules:'rules'}[e.target.id];if(k)TN[k]=e.target.value});
 document.addEventListener('change',e=>{const m=/^an([01])$/.exec(e.target.id||'');if(m){ANOT.names[+m[1]]=cleanNick(e.target.value)||(m[1]==='0'?'Nosotros':'Ellos');saveAnot()}});
 document.addEventListener('submit',e=>{const fa=e.target.closest('[data-form="login"],[data-form="register"],[data-form="complete"],[data-form="reset"]');if(fa){e.preventDefault();authSubmit(fa.dataset.form);return}
+  const fm=e.target.closest('[data-form="mpcfg"]');if(fm){e.preventDefault();NET.pay.saveConfig({links:PACKS.map((_,i)=>($('#mpl'+i)||{}).value||''),alias:($('#mpalias')||{}).value||''}).then(()=>toast('Cobros guardados')).catch(()=>toast('No se pudo guardar'));return}
   const ft=e.target.closest('[data-form="tour"]');if(ft){e.preventDefault();tourCreate();return}
   const fr=e.target.closest('[data-form="reg"]');if(fr){e.preventDefault();doRegister();return}
   const fp=e.target.closest('[data-form="prem"]');if(fp){e.preventDefault();premiumByCode($('#premin').value);return}
