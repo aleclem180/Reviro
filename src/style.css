@@ -943,3 +943,21 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
 .hand button.tutpick:not(.sel){animation:tutnudge 1.4s ease-in-out infinite}
 @keyframes tutnudge{50%{--y:-8px;transform:translateY(-8px) rotate(var(--r,0deg))}}
 @media (prefers-reduced-motion:reduce){.hand button.tutpick{animation:none}}
+
+/* ===== Fin de la mano: el cartel va encima del paño, centrado, y no se corta ===== */
+.game .felt>.center{position:static}
+.game .center .result{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:6;width:min(92%,360px);max-height:92%;overflow:auto;
+  background:rgba(28,17,9,.94);box-shadow:0 14px 34px rgba(0,0,0,.55);padding:12px 14px;gap:6px;text-align:center}
+.game .center .result b{font-family:var(--f-display);font-size:1.25rem}
+.game .center .result .btns{justify-content:center;flex-wrap:wrap}
+/* ===== Tutorial: consejo compacto y la carta que hay que tirar brilla ===== */
+.game .coach{flex:none;margin:0;padding:8px 12px;border-radius:12px}
+.game .coach p{margin:2px 0 0;font-size:.92rem;line-height:1.35}
+@media (max-height:760px){.game .coach p{font-size:.84rem}}
+.hand button.tutpick .card{box-shadow:0 0 0 3px var(--coin),0 0 22px rgba(240,197,72,.75)}
+.hand button.tutpick:not(.sel) .card{animation:tutnudge 1.4s ease-in-out infinite}
+@keyframes tutnudge{50%{transform:translateY(-8px)}}
+@media (prefers-reduced-motion:reduce){.hand button.tutpick .card{animation:none}}
+.game .felt>.center{z-index:auto}
+.game .center .result{animation:respop .3s ease-out}
+@keyframes respop{from{transform:translate(-50%,-50%) scale(.8);opacity:0}to{transform:translate(-50%,-50%);opacity:1}}
