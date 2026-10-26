@@ -50,6 +50,10 @@ def web(base=""):
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="Reviro: truco argentino con flor. Jugá contra la IA, 1v1 y 2v2 en tiempo real, recorré La Huella y anotá tus partidas en persona.">
 <meta name="theme-color" content="#1c1109">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="img/icono-192.png">
+<link rel="icon" type="image/png" href="img/icono-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <style>{RESET}</style>
 {head}<link rel="stylesheet" href="src/style.css?v={ver('style.css')}">
 {FIREBASE}</head>

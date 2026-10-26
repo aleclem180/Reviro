@@ -70,7 +70,7 @@ const coinI='<i class="coin" aria-hidden="true"></i>';
 let LOGOPEN=false,SELCARD=null,REPAINT=null,view='menu',mode=null,G=null,mySeat=0,cfg=null,CL=null,db=null,usr=null,uid=null,roomCap=null,R=null,myName='';
 let T=null,tableRef=null,unsubTable=null,unsubLobby=null,lobby=[],NAMES={},LOOKS={},isHost=false,busy=false,driveT=null;
 let confirmMazo=false,confirmExit=false,overlayView=null,shopTab='av',pendingBuy=null,panel=null,FX={},transient={},botLooks={},partnerSena=null,lastReward=null;
-const SET={diff:'medio',n:2,target:30,stake:0,flor:true,sound:true,music:true,mute:false,track:'zamba',vol:80,volMusic:60,volFx:90,hflor:true,help:true,tap2:true,on:{n:2,target:30,stake:0,flor:true}};
+const SET={diff:'medio',n:2,target:30,stake:0,flor:true,sound:true,music:true,mute:false,track:'zamba',vol:80,volMusic:60,volFx:90,hflor:true,help:true,tap2:true,notif:{on:false,tours:true,start:true,inv:true},on:{n:2,target:30,stake:0,flor:true}};
 try{const s=JSON.parse(localStorage.getItem('reviro.set')||'{}');Object.assign(SET,s);SET.on=Object.assign({n:2,target:30,stake:0,flor:true},s.on||{})}catch(e){}
 function saveSet(){try{localStorage.setItem('reviro.set',JSON.stringify(SET))}catch(e){}}
 function toast(t){const el=$('#toast');el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,3200)}
@@ -283,6 +283,37 @@ function shareHTML(){const s=SHARE||{},enc=encodeURIComponent;
       <div class="srow"><a class="btn wa" href="${waHref(shareText())}" target="_blank" rel="noopener">${WAICO} WhatsApp</a><a class="btn fb" href="https://www.facebook.com/sharer/sharer.php?u=${enc(SITE)}&quote=${enc(shareText())}" target="_blank" rel="noopener">Facebook</a><button class="btn ig" data-a="sharedl">Guardar para Instagram</button></div>
       <p class="note" style="margin:0">${canShareFile()?'Con el primer botón se comparte la imagen directo. ':'Para Instagram, guardá la imagen y subila a tu historia. '}WhatsApp y Facebook mandan el link con tu resultado.</p>`:''}
     <button class="btn ghost" data-a="sharex">Volver</button></div></div>`}
+
+/* ---------- avisos (notificaciones del sistema) ----------
+   Se avisa cuando se abre la inscripción de un torneo, cuando un torneo en el que estás anotado arranca en 5 minutos
+   y cuando te invitan a una mesa. Llegan mientras Reviro esté abierto, aunque sea en otra pestaña o minimizado. */
+const NOTIF_OK=()=>!!window.REVIRO_WEB&&('Notification' in window);
+let SWREG=null;
+if(window.REVIRO_WEB&&('serviceWorker' in navigator)&&/^https?:$/.test(location.protocol)){
+  try{navigator.serviceWorker.register('sw.js').then(r=>{SWREG=r}).catch(()=>{});navigator.serviceWorker.addEventListener('message',e=>{const d=e.data||{};if(d.go)goFromNotif(d.go)})}catch(e){}}
+const notifSet=()=>Object.assign({on:false,tours:true,start:true,inv:true},SET.notif||{});
+function goFromNotif(go){try{window.focus()}catch(e){}if(go.startsWith('t:')&&FB&&view!=='game'){openTour(go.slice(2));return}if(go==='inv')render()}
+/* guarda qué se avisó, así no se repite al recargar */
+const NOTIFIED=(()=>{try{return new Set(JSON.parse(localStorage.getItem('reviro.avisados')||'[]'))}catch(e){return new Set()}})();
+function markNotified(k){NOTIFIED.add(k);try{localStorage.setItem('reviro.avisados',JSON.stringify([...NOTIFIED].slice(-200)))}catch(e){}}
+async function notify(kind,key,title,body,go){if(NOTIFIED.has(key))return;markNotified(key);const n=notifSet();
+  if(!document.hidden){if(kind!=='inv')toast(title+(body?': '+body:''));return}   /* con la página a la vista alcanza con el aviso de adentro */
+  if(!n.on||n[kind]===false||!NOTIF_OK()||Notification.permission!=='granted')return;
+  const opt={body,icon:'img/icono-192.png',badge:'img/icono-192.png',tag:key,data:{go},lang:'es-AR'};
+  try{if(SWREG)await SWREG.showNotification(title,opt);else{const x=new Notification(title,opt);x.onclick=()=>{goFromNotif(go);x.close()}}}catch(e){}}
+async function enableNotif(){if(!NOTIF_OK()){toast('Este navegador no permite avisos');return}
+  let p=Notification.permission;if(p!=='granted'){try{p=await Notification.requestPermission()}catch(e){}}
+  if(p==='granted'){SET.notif=Object.assign(notifSet(),{on:true});saveSet();toast('Avisos activados');
+    try{const opt={body:'Así te van a llegar los avisos de torneos e invitaciones.',icon:'img/icono-192.png',tag:'prueba'};if(SWREG)SWREG.showNotification('Reviro',opt);else new Notification('Reviro',opt)}catch(e){}}
+  else toast('No diste permiso. Se activa desde la configuración del navegador, en los permisos del sitio');render()}
+let TOURSEEN=null;
+function tourNotices(){if(!TOURS)return;const now=Date.now();
+  /* la primera vez solo se anotan los que ya estaban, para no avisar de golpe de todos */
+  if(TOURSEEN===null){TOURSEEN=true;for(const t of TOURS)if(t.status==='open'&&now-(t.created||0)>10*60e3)markNotified('tn:'+t.id)}
+  for(const t of TOURS){
+    if(t.status==='open'&&!tClosed(t))notify('tours','tn:'+t.id,'Se abrió la inscripción de un torneo',`${t.name}${t.buyIn?' · entrada '+fmt(t.buyIn)+' fichas':' · gratis'}`,'t:'+t.id);
+    const mine=WAL.tours&&WAL.tours[t.id];
+    if(mine&&t.status==='open'&&t.startAt&&t.startAt-now<=5*60e3&&t.startAt-now>0)notify('start','ts:'+t.id,'Tu torneo arranca en 5 minutos',t.name,'t:'+t.id)}}
 
 /* ---------- siempre la última versión ----------
    El navegador a veces se queda con la página vieja guardada. Cada tanto se pregunta qué versión hay publicada:
@@ -1205,7 +1236,14 @@ function extraHTML(){const done=(WAL.tut||[]).length,mis=(()=>{ensureMissions();
     ${modeTile('data-a="nav" data-v="anotador"','12B','Anotador',`${ANOT.s[0]} a ${ANOT.s[1]} · a ${ANOT.target}`)}
   </div><button type="button" class="linkrow" data-a="terms">Términos y condiciones</button>`}
 function settingsHTML(){const tg=(k,l,sub,inv)=>`<div class="toggle"><span>${l}<small>${sub}</small></span><button type="button" class="sw" data-a="toggle" data-k="${k}" aria-pressed="${inv?!SET[k]:!!SET[k]}" aria-label="${l}"></button></div>`;
-  const opts=[['sonido','Sonido'],['juego','Juego'],['cuenta','Cuenta']];if(isOwnerV)opts.push(['admin','Admin']);const [tab,tabs]=ptabs('set',opts,'sonido');let body='';
+  const opts=[['sonido','Sonido'],['juego','Juego'],['avisos','Avisos'],['cuenta','Cuenta']];if(isOwnerV)opts.push(['admin','Admin']);const [tab,tabs]=ptabs('set',opts,'sonido');let body='';
+  if(tab==='avisos'){const n=notifSet(),perm=NOTIF_OK()?Notification.permission:'no';const nt=(k,l,sub)=>`<div class="toggle"><span>${l}<small>${sub}</small></span><button type="button" class="sw" data-a="ntog" data-k="${k}" aria-pressed="${n.on&&n[k]!==false}" aria-label="${l}" ${n.on?'':'disabled'}></button></div>`;
+    body=`<section class="box">${perm==='no'?`<p class="note" style="margin:0">Los avisos funcionan en la web de Reviro (aleclem180.github.io/Reviro), en un navegador que los permita.</p>`
+      :perm==='denied'?`<p style="margin:0"><b>Los avisos están bloqueados.</b></p><p class="note" style="margin:0">Para activarlos, entrá a los permisos del sitio en tu navegador (el candado al lado de la dirección), permití las notificaciones y volvé acá.</p>`
+      :!n.on||perm!=='granted'?`<p style="margin:0">Enterate cuando se abre un torneo, cuando el tuyo está por arrancar o cuando te invitan a una mesa, aunque estés en otra pestaña.</p><button class="btn prim" data-a="notifon">Activar avisos</button>`
+      :`<div class="toggle"><span>Avisos de Reviro<small>Prendé o apagá todos juntos</small></span><button type="button" class="sw" data-a="notifoff" aria-pressed="true" aria-label="Avisos de Reviro"></button></div>`}
+      ${perm==='granted'||n.on?nt('tours','Se abre la inscripción de un torneo','Para anotarte antes de que se llene el cupo')+nt('start','Tu torneo arranca en 5 minutos','Solo de los torneos en los que estás anotado')+nt('inv','Te invitan a una mesa','Cuando un amigo te invita a su mesa o a jugar en pareja un torneo'):''}
+      <p class="note" style="margin:0">Llegan mientras Reviro esté abierto, aunque sea en otra pestaña o minimizado. En iPhone, primero agregá Reviro a la pantalla de inicio (Compartir → Agregar a inicio) y abrilo desde ahí.</p></section>`}
   if(tab==='sonido')body=`<section class="box">${tg('mute','Sonido general','Apaga o prende todo el audio de Reviro',true)}${tg('music','Música','Suena de fondo en los menús')}${tg('sound','Efectos','Al tirar, cantar y sumar puntos')}
       ${[['vol','Volumen general'],['volMusic','Música'],['volFx','Efectos']].map(([k,l])=>`<label class="vol"><span>${l}</span><input type="range" min="0" max="100" step="5" value="${SET[k]??80}" data-vol="${k}" aria-label="${l}"><output id="vo-${k}">${SET[k]??80}%</output></label>`).join('')}
       <div class="field"><span>Tema</span>${musicPickerHTML(false)}<p class="note" style="margin:0">${esc((TRACKS[SET.track]||TRACKS.zamba).desc)}</p></div></section>`;
@@ -1227,7 +1265,8 @@ function welcomeHTML(){return `<div class="gate">${fileteHTML('gtitle')}<section
 let INV=null,INVS=[],unsubInv=null,INVITED=new Set();const INV_TTL=10*60e3,dismissedInv=new Set();
 function subInvites(){if(!db||!uid||unsubInv)return;try{unsubInv=db.collection('invites').where('to','==',uid).onSnapshot(s=>{
   INVS=s.docs.map(d=>({id:d.id,...d.data()})).filter(x=>Date.now()-(x.at||0)<INV_TTL&&!dismissedInv.has(x.id)).sort((a,b)=>b.at-a.at);
-  const was=INV&&INV.id;INV=INVS[0]||null;if(INV){fetchLooks([INV.from]);if(INV.id!==was)sfx('call')}render()},()=>{unsubInv=null})}catch(e){}}
+  const was=INV&&INV.id;INV=INVS[0]||null;if(INV){fetchLooks([INV.from]);if(INV.id!==was){sfx('call');const X=INV;ensureNames([X.from]);Promise.resolve(fetchLooks([X.from])).catch(()=>{}).then(()=>new Promise(r=>setTimeout(r,600))).then(()=>{const who=dispName(X.from)||(LOOKS[X.from]&&LOOKS[X.from].nick)||'Un amigo';
+    if(X.kind==='tour')notify('inv','inv:'+X.id,'¡Te invitan a un torneo!',`${who} quiere jugar con vos en pareja: ${X.name||''}`,'t:'+X.tid);else notify('inv','inv:'+X.id,'¡Te invitan a jugar!',`${who} te invita a su mesa ${X.code||''}`,'inv')})}}render()},()=>{unsubInv=null})}catch(e){}}
 async function acceptInvite(go){const x=INV;if(!x)return;dismissedInv.add(x.id);INV=INVS.find(y=>!dismissedInv.has(y.id))||null;
   try{await db.doc('invites/'+x.id).delete()}catch(e){}
   if(go&&x.kind==='tour'){if(mode==='offline'&&G&&!G.matchOver){G=null;mode=null}openTour(x.tid);return}
@@ -1356,7 +1395,7 @@ const tFmtDate=ms=>{try{return new Date(ms).toLocaleString('es-AR',{weekday:'sho
 const tTeamName=tm=>!tm?'—':esc(tm.names.filter(Boolean).join(' y ')+(tm.bot?' y la IA':''));
 const tMine=tm=>!!(tm&&tm.ids.includes(uid));
 const tStatus={open:'Inscripción abierta',running:'En juego',paused:'En pausa',finished:'Terminado',cancelled:'Cancelado'};
-function subTours(){if(!FB||toursUnsub)return;try{toursUnsub=NET.tour.watchList(l=>{TOURS=l;tourClaims();if(view==='torneos')render()})}catch(e){}}
+function subTours(){if(!FB||toursUnsub)return;try{toursUnsub=NET.tour.watchList(l=>{TOURS=l;tourClaims();tourNotices();if(view==='torneos')render()})}catch(e){}}
 function openTour(tid){if(tvUnsub)tvUnsub();TV={tid,t:null,entries:[],matches:[]};tourConfirm=null;PT.tour='res';overlayView=null;view='tour';render();
   TVB=null;tvUnsub=NET.tour.watch(tid,x=>{if(!TV||TV.tid!==tid)return;Object.assign(TV,x,{loaded:true});if(view==='tour')render()})}
 /* cobra solo el premio o el reintegro de los torneos en los que te anotaste */
@@ -1381,7 +1420,7 @@ function animatePots(){document.querySelectorAll('.potn').forEach(el=>{const to=
   const t0=performance.now(),D=1100;const step=now=>{const k=Math.min(1,(now-t0)/D),e=1-Math.pow(1-k,3);el.textContent=fmt(Math.round(from+(to-from)*e));if(k<1)requestAnimationFrame(step)};requestAnimationFrame(step)})}
 const TAUTO=new Set();
 const pauseText=(who,until)=>{const s=Math.max(0,Math.ceil((until-Date.now())/1000));return `Partida en pausa: esperando a ${who}. Si no vuelve en ${s} s, pierde su entrada.`};
-function tourTick(){const now=Date.now();let ended=false;
+function tourTick(){const now=Date.now();let ended=false;if(TOURS&&now%30000<1000)tourNotices();
   document.querySelectorAll('[data-pause]').forEach(el=>{el.textContent=pauseText(el.dataset.who,+el.dataset.pause)});
   document.querySelectorAll('[data-cd]').forEach(el=>{const ms=+el.dataset.cd-now;el.innerHTML=cdInner(ms,el.classList.contains('big'));el.classList.toggle('hot',ms<36e5&&ms>0);el.classList.toggle('warm',ms>=36e5&&ms<864e5);if(ms<=0&&!el.dataset.done){el.dataset.done='1';ended=true}});
   if(ended&&(view==='tour'||view==='torneos'))render();
@@ -1671,6 +1710,9 @@ document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closes
   case 'girago':startGira(t.dataset.id);return;
   case 'regav':regAv=t.dataset.id;document.querySelectorAll('.regav').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.id===regAv)));return;
   case 'google':googleIn();return;
+  case 'notifon':enableNotif();return;
+  case 'notifoff':SET.notif=Object.assign(notifSet(),{on:false});saveSet();render();return;
+  case 'ntog':{const n=notifSet();if(!n.on)return;n[t.dataset.k]=n[t.dataset.k]===false;SET.notif=n;saveSet();render();return}
   case 'logtoggle':LOGOPEN=!LOGOPEN;render();return;
   case 'sharex':overlayView=null;render();return;
   case 'sharemk':makeShare();return;
