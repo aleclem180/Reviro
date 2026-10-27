@@ -983,3 +983,6 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
 .admbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 8px;flex-wrap:wrap}.admbar .seg{flex:0 0 auto}.admbar .seg button{min-width:0;padding:4px 10px;font-size:.85rem}
 .admchips{color:var(--brass);font-variant-numeric:tabular-nums;white-space:nowrap}.admchips svg{width:.95em;height:.95em;vertical-align:-2px;margin-right:2px}
 .admchips .chip{display:inline-block;width:.85em;height:.85em;margin-right:3px;vertical-align:-1px}
+/* ingreso y registro en celulares: sin la barra de abajo, la hoja usa todo el alto y se baja entera */
+@media (max-width:720px){body[data-view=auth] #view,body[data-view=login] #view,body[data-view=register] #view,body[data-view=welcome] #view,body[data-view=boot] #view,body[data-view=banned] #view{padding-bottom:env(safe-area-inset-bottom,0px)}
+  body[data-view=auth] .page,body[data-view=register] .page{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:max(24px,env(safe-area-inset-bottom,0px));scroll-padding:80px 0}}

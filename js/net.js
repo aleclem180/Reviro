@@ -48,7 +48,7 @@ function authError(code) {
     'usuario-invalido': 'El usuario tiene que tener de 3 a 20 letras, números, punto o guion bajo.',
     'usuario-tomado': 'Ese nombre de usuario ya está en uso.',
     'auth/operation-not-allowed': 'El ingreso con Google todavía no está activado. Mientras tanto, entrá con tu mail y contraseña.',
-    'auth/unauthorized-domain': 'Este sitio todavía no está autorizado para entrar con Google.',
+    'auth/unauthorized-domain': 'El ingreso con Google no está disponible por ahora. Usá tu mail y una contraseña.',
     'auth/popup-closed-by-user': 'Cerraste la ventana de Google antes de terminar.',
     'auth/cancelled-popup-request': 'Cerraste la ventana de Google antes de terminar.',
     'auth/account-exists-with-different-credential': 'Ya hay una cuenta con ese mail. Entrá con tu mail y contraseña.',

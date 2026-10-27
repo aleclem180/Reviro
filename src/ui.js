@@ -232,7 +232,10 @@ function pageBody(){switch(view){
   case 'profile':return profileHTML();case 'missions':return missionsHTML();case 'ranking':return rankingHTML();case 'room':return roomHTML()}return''}
 function render(){const v=$('#view');routeSync();document.body.dataset.view=view;
   if(view==='game'){if(v.firstElementChild&&v.firstElementChild.classList.contains('game'))morphInto(v,gameHTML());else v.innerHTML=gameHTML()}
-  else v.innerHTML=(GATES.includes(view)||view==='room'?'':tabsHTML())+`<div class="page pg-${view}">${pageBody()}</div>`;
+  else{/* en el ingreso no se pierde lo que ya escribiste cuando la pantalla se vuelve a dibujar (por ejemplo, al fallar Google) */
+    const keep=view==='auth'?[...v.querySelectorAll('input[id]')].map(el=>[el.id,el.type==='checkbox'?el.checked:el.value]):null;
+    v.innerHTML=(GATES.includes(view)||view==='room'?'':tabsHTML())+`<div class="page pg-${view}">${pageBody()}</div>`;
+    if(keep)for(const [id,val] of keep){const el=document.getElementById(id);if(!el)continue;if(el.type==='checkbox')el.checked=val;else if(val&&!el.value)el.value=val}}
   if(view==='torneos'||view==='tour')requestAnimationFrame(animatePots);
   if(view==='game'&&FX.deal){clearTimeout(REPAINT);const hn=G&&G.handNo;REPAINT=setTimeout(()=>{if(view!=='game'||!G||G.handNo!==hn)return;document.querySelectorAll('.hand img.cart').forEach(im=>{const u=CARDIMG[im.dataset.c];if(u&&im.getAttribute('src')!==u)im.src=u});const hd=document.querySelector('.hand');if(hd){hd.style.transform='translateZ(0)';requestAnimationFrame(()=>requestAnimationFrame(()=>{hd.style.transform=''}))}},760)}
   $('#overlay').innerHTML=overlayHTML();FX={};musicUpdate();
@@ -1781,6 +1784,11 @@ document.addEventListener('input',e=>{if(e.target.id==='admq'){ADMQ=e.target.val
   const k={tname:'name',ttheme:'theme',tdate:'date',trules:'rules'}[e.target.id];if(k)TN[k]=e.target.value});
 document.addEventListener('change',e=>{if(e.target.dataset&&e.target.dataset.vol){sfx('pts');return}
   const m=/^an([01])$/.exec(e.target.id||'');if(m){ANOT.names[+m[1]]=cleanNick(e.target.value)||(m[1]==='0'?'Nosotros':'Ellos');saveAnot()}});
+/* un campo obligatorio vacío: se borra el error viejo y se muestra el campo (en celulares quedaba fuera de la vista) */
+document.addEventListener('invalid',e=>{const f=e.target;if(!f.closest||!f.closest('.gate'))return;const er=document.querySelector('.gate .autherr');if(er){er.remove();AUTHERR=''}
+  if(!document.querySelector('.gate :invalid')||document.querySelector('.gate :invalid')===f)try{f.scrollIntoView({block:'center',behavior:'smooth'})}catch(_){}},true);
+/* con el teclado abierto en Android, el campo elegido queda a la vista */
+document.addEventListener('focusin',e=>{const f=e.target;if(f.matches&&f.matches('.gate input')&&matchMedia('(max-width:720px)').matches)setTimeout(()=>{try{f.scrollIntoView({block:'center',behavior:'smooth'})}catch(_){}},300)});
 document.addEventListener('submit',e=>{const fa=e.target.closest('[data-form="login"],[data-form="register"],[data-form="complete"],[data-form="reset"]');if(fa){e.preventDefault();authSubmit(fa.dataset.form);return}
   const fnk=e.target.closest('[data-form="admnick"]');if(fnk&&ADMU){e.preventDefault();const v=fval('anick');NET.admin.setNote(ADMU.uid,v).then(()=>toast(v.trim()?'Apodo interno guardado':'Apodo interno borrado')).catch(()=>toast('No se pudo guardar'));return}
   const fg=e.target.closest('[data-form="admgrant"]');if(fg&&ADMU){e.preventDefault();const c=+fval('agchips')||0,m=+fval('agcoins')||0;if(!c&&!m){toast('Poné cuántas fichas o monedas');return}
