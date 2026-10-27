@@ -1237,3 +1237,9 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
 @media (min-width:640px){.fpanel{flex-direction:row;align-items:center;gap:20px}.fpanel h2,.fpanel .fbio{text-align:left}}
 @media (max-height:640px){.fpanel .frases{display:none}}
 .item .imore{white-space:nowrap;max-width:calc(100% - 8px);overflow:hidden;text-overflow:clip}
+/* menú Jugar: los mismos dibujos a lápiz que en Extra */
+.modes .mode.ic img{right:4px;bottom:2px;height:min(92%,120px);width:auto;max-width:44%;aspect-ratio:1;object-fit:contain;opacity:1;transition:transform .2s ease-out}
+.modes .mode.ic span{max-width:60%}
+.modes .mode.ic:hover img{transform:rotate(-3deg) scale(1.04)}
+/* menú en pantallas bajas: tarjetas de una línea para que el logo y el reparto no se pisen */
+@media (max-height:700px){.modes .mode small{display:none}.modes .mode{min-height:54px;align-items:center}.modes .mode.ic img{height:86%}}

@@ -495,9 +495,9 @@ function playHTML(){const remembered=(()=>{try{return localStorage.getItem('revi
     <button type="button" class="optline" data-a="soloopts">${esc(sum)} · <u>Cambiar</u></button>
   </section>
   <div class="modes">
-    ${modeTile('data-a="nav" data-v="torneos"','12O','Torneos',FB?(openT?(openT===1?'Hay uno abierto':`Hay ${openT} abiertos`):'Mirá los que vienen'):'Con tu cuenta en la web')}
-    ${modeTile('data-a="nav" data-v="gira"','11E','La Huella',`${esc(cz.short||cz.name)} · ${fmt(WAL.copas||0)} porotos`)}
-    ${modeTile('data-a="nav" data-v="online"','10C','Jugar online',onlineOk?(nOpen?`${nOpen} mesa${nOpen>1?'s':''} esperando gente`:'Rápido, con código o armá tu mesa'):'Con tu cuenta en la web')}
+    ${iconTile('data-a="nav" data-v="torneos"','torneos','O','Torneos',FB?(openT?(openT===1?'Hay uno abierto':`Hay ${openT} abiertos`):'Mirá los que vienen'):'Con tu cuenta en la web')}
+    ${iconTile('data-a="nav" data-v="gira"','huella','B','La Huella',`${esc(cz.short||cz.name)} · ${fmt(WAL.copas||0)} porotos`)}
+    ${iconTile('data-a="nav" data-v="online"','online','E','Jugar online',onlineOk?(nOpen?`${nOpen} mesa${nOpen>1?'s':''} esperando gente`:'Rápido, con código o armá tu mesa'):'Con tu cuenta en la web')}
     ${iconTile('data-a="nav" data-v="anotador"','anotador','C','Anotador','Para jugar en persona, con fósforos')}
   </div>
   <a class="waline" href="${waHref(waInviteText())}" target="_blank" rel="noopener">${WAICO} Invitar amigos por WhatsApp</a>`}

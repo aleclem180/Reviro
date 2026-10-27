@@ -257,6 +257,31 @@ const ICON_ART={
    `<rect x="20" y="78" width="60" height="22" rx="2" fill="#c0392b"/><rect x="26" y="83" width="48" height="12" fill="#f3e6c8"/><rect x="74" y="78" width="10" height="22" fill="#6b4a2a"/>`,
   ink:M.map(m=>fi(...m)).join('')+`<rect x="20" y="78" width="64" height="22" rx="2" ${IK} stroke-width="1.6"/>`+sk('M74 78V100',1.2)+sk('M26 83H74V95H26Z',1)+
    `<path d="M38 89h4M46 89h4M54 89h4M62 89h4" stroke="#3b2c1f" stroke-width="1.6" stroke-linecap="round"/>`}},
+ /* torneos: la llave del torneo que termina en el banderín del campeón */
+ torneos:()=>({art:sombra(66,106,34)+
+   `<path d="M78 30V100" stroke="#7a4b28" stroke-width="4"/><path d="M80 30L108 40L80 52Z" fill="#b3352b"/><circle cx="91" cy="41" r="4" fill="#f6c437"/>
+    <rect x="12" y="24" width="20" height="10" rx="2" fill="#74acdf"/><rect x="12" y="46" width="20" height="10" rx="2" fill="#e0453a"/><rect x="12" y="68" width="20" height="10" rx="2" fill="#3f7a3a"/><rect x="12" y="90" width="20" height="10" rx="2" fill="#f6c437"/>
+    <rect x="42" y="35" width="20" height="10" rx="2" fill="#e2c37a"/><rect x="42" y="79" width="20" height="10" rx="2" fill="#e2c37a"/>`,
+  ink:sk('M78 30V100',1.4)+sk('M80 30L108 40L80 52Z',1.4)+
+   `<g ${IK} stroke-width="1.3"><rect x="12" y="24" width="20" height="10" rx="2"/><rect x="12" y="46" width="20" height="10" rx="2"/><rect x="12" y="68" width="20" height="10" rx="2"/><rect x="12" y="90" width="20" height="10" rx="2"/><rect x="42" y="35" width="20" height="10" rx="2"/><rect x="42" y="79" width="20" height="10" rx="2"/></g>`+
+   sk('M32 29H37V51H32M37 40H42M32 73H37V95H32M37 84H42M62 40H68V84H62M68 62H76',1.3)}),
+ /* La Huella: el mapa plegado con el camino y las pisadas de bota */
+ huella:()=>{const pie=(x,y,r)=>`<g transform="translate(${x} ${y}) rotate(${r})"><ellipse cx="0" cy="-4" rx="4.6" ry="6.6" fill="#5a3d1e"/><ellipse cx="0" cy="7" rx="3.6" ry="3.4" fill="#5a3d1e"/></g>`;
+  return {art:sombra(60,106,40)+
+   `<path d="M16 30L44 22L76 30L104 22V92L76 100L44 92L16 100Z" fill="#f1e3c3"/><path d="M44 22V92L76 100V30Z" fill="#e6d3a8"/>
+    <path d="M20 40C28 36 36 44 40 52C36 62 26 60 20 66Z" fill="#9fc07a"/><path d="M80 44C90 40 98 46 100 56C94 66 84 62 80 70Z" fill="#e2aa2e" opacity=".8"/><path d="M50 70C58 66 68 72 70 82C62 88 54 86 50 92Z" fill="#74acdf" opacity=".8"/>`+
+   pie(34,80,-20)+pie(46,66,10)+pie(58,56,-14)+pie(72,46,16),
+  ink:sk('M16 30L44 22L76 30L104 22V92L76 100L44 92L16 100Z')+sk('M44 22V92M76 30V100',1.2)+
+   `<path d="M24 92C34 86 40 76 50 68S66 52 80 44 92 34 96 30" stroke="#b3352b" stroke-width="2" stroke-dasharray="3 3.5" fill="none" stroke-linecap="round"/>`+
+   `<path d="M96 14C90 14 87 19 87 23C87 29 96 36 96 36S105 29 105 23C105 19 102 14 96 14Z" fill="#c0392b"/><circle cx="96" cy="23" r="3" fill="#f3e6c8"/>`+sk('M96 14C90 14 87 19 87 23C87 29 96 36 96 36S105 29 105 23C105 19 102 14 96 14Z',1.2)}},
+ /* jugar online: el celular con tres cartas en la pantalla y la señal */
+ online:()=>({art:sombra(56,108,26)+
+   `<rect x="34" y="22" width="44" height="80" rx="7" fill="#3b2c2a"/><rect x="38" y="30" width="36" height="62" rx="2" fill="#2f5f8f"/>
+    <g transform="rotate(-14 48 66)"><rect x="40" y="52" width="16" height="24" rx="2" fill="#f4efe2"/></g><rect x="49" y="50" width="16" height="24" rx="2" fill="#f4efe2"/><g transform="rotate(14 64 66)"><rect x="58" y="52" width="16" height="24" rx="2" fill="#f4efe2"/></g>
+    <circle cx="52" cy="60" r="2.4" fill="#e2aa2e"/><path d="M57 56V68" stroke="#2f5f8f" stroke-width="1.6"/><circle cx="68" cy="60" r="2.4" fill="#b3352b"/>`,
+  ink:`<rect x="34" y="22" width="44" height="80" rx="7" ${IK} stroke-width="1.7"/><rect x="38" y="30" width="36" height="62" rx="2" ${IK} stroke-width="1"/>`+sk('M52 26H60',1.3)+
+   `<g ${IK} stroke-width="1"><g transform="rotate(-14 48 66)"><rect x="40" y="52" width="16" height="24" rx="2"/></g><rect x="49" y="50" width="16" height="24" rx="2"/><g transform="rotate(14 64 66)"><rect x="58" y="52" width="16" height="24" rx="2"/></g></g>`+
+   `<g stroke="#3f7a3a" stroke-width="3" stroke-linecap="round" fill="none"><path d="M86 34a10 10 0 0 1 10 10"/><path d="M86 24a20 20 0 0 1 20 20"/><path d="M86 14a30 30 0 0 1 30 30"/></g><circle cx="87" cy="44" r="2.6" fill="#3f7a3a"/>`}),
  /* pase de temporada: la guitarra criolla de la peña con su escarapela de premio */
  pase:()=>({art:sombra(56,108,30)+
    `<g transform="rotate(-24 56 70)"><rect x="51" y="4" width="10" height="44" fill="#6b3f1f"/><rect x="49" y="0" width="14" height="12" rx="2" fill="#4a2a14"/>
