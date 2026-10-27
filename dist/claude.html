@@ -1127,6 +1127,7 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
 .rvst .se{fill:#3a2616;stroke:rgba(240,197,72,.85);stroke-width:1;stroke-linejoin:round}
 .rvst .sf{fill:#f6c437;stroke:#8a5a12;stroke-width:.6;stroke-linejoin:round}
 .rv.locked .rvst{filter:grayscale(.7);opacity:.8}
+.bossnote{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -2568,7 +2569,9 @@ function holdActions(){const a=document.querySelector('.game .actions');if(!a||!
 
 /* ---------- listas que se paginan solas: se mide cuántas entran en el lugar que queda ---------- */
 const FITN={},FITP={};let FITPASS=0,FITT=null;
-function fitList(key,arr,fn,cls='',empty=''){const n=arr.length;if(!n)return empty;const per=Math.max(1,Math.min(n,FITN[key]||4));const pages=Math.ceil(n/per);const p=Math.min(FITP[key]||0,pages-1);FITP[key]=p;
+function fitList(key,arr,fn,cls='',empty=''){const n=arr.length;if(!n)return empty;let per=Math.max(1,Math.min(n,FITN[key]||4));
+  /* rivales: hojas parejas (8 = 4 + 4, no 6 + 2) */
+  if(/\brvl\b/.test(cls)&&per<n)per=Math.ceil(n/Math.ceil(n/per));const pages=Math.ceil(n/per);const p=Math.min(FITP[key]||0,pages-1);FITP[key]=p;
   const tg=/\b(flist|rvl)\b/.test(cls)?'ul':/\blb\b/.test(cls)?'ol':'div';
   return `<div class="fitw"><${tg} class="fit ${cls}" data-fit="${key}" data-n="${n}">${arr.slice(p*per,p*per+per).map(fn).join('')}</${tg}>${pages>1?`<div class="pager" role="group" aria-label="Páginas"><button type="button" class="pgb" data-a="pg" data-k="${key}" data-d="-1" ${p?'':'disabled'} aria-label="Página anterior">‹</button><span>${p+1} de ${pages}</span><button type="button" class="pgb" data-a="pg" data-k="${key}" data-d="1" ${p<pages-1?'':'disabled'} aria-label="Página siguiente">›</button></div>`:''}</div>`}
 /* el mapa de La Huella se dimensiona en píxeles con el lugar que queda (en Safari los altos en % dentro de flex no siempre funcionan) */
@@ -3411,7 +3414,8 @@ function giraHTML(){const c=WAL.copas||0,z=ZM[giraZone]||ZONES[0],open=zoneOpen(
     <div class="mapwrap">${mapSVG()}</div>
     ${wide?`<div class="gside">${tit}<section class="box zbox grow" style="border-color:${open?z.col:'var(--line)'}">${zhd}${giraRivalsHTML(z)}</section></div>`
       :`${tit}<section class="box zbar" style="border-color:${open?z.col:'var(--line)'}">${zhd}<button type="button" class="btn ${open?'prim':''}" data-a="ov" data-v="rivales">Ver los ${nR} rivales de ${esc(z.short||z.name)}</button></section>`}</div>`}
-function giraRivalsHTML(z){return fitList('riv-'+z.id,RIVALS.filter(r=>r.zone===z.id),rivalCard,'rvl')+(WAL.gira&&WAL.gira.bosses.includes(z.id)?`<p class="note" style="margin:0">★ Ya le ganaste al jefe de ${esc(z.name)}.</p>`:'')}
+function giraRivalsHTML(z){return fitList('riv-'+z.id,RIVALS.filter(r=>r.zone===z.id),rivalCard,'rvl')+/* el aviso del jefe ocupa siempre su lugar, así entran los mismos rivales por hoja en todas las zonas */
+  (WAL.gira&&WAL.gira.bosses.includes(z.id)?`<p class="note bossnote" style="margin:0">★ Ya le ganaste al jefe de ${esc(z.name)}.</p>`:`<p class="note bossnote" style="margin:0;visibility:hidden" aria-hidden="true">★</p>`)}
 function rivalesHTML(){const z=ZM[giraZone]||ZONES[0],open=zoneOpen(z);return `<div class="over" data-a="close"><div class="panel lpanel rpanel" data-stop style="border-color:${open?z.col:'var(--line)'}"><h2>${esc(z.name)}</h2><p class="note" style="margin:0">${esc(z.prov)}${open?'':` · se abre con ${fmt(z.need)} porotos`}</p>${giraRivalsHTML(z)}<button class="btn ghost" data-a="close">Volver al mapa</button></div></div>`}
 function tablaHTML(){const c=WAL.copas||0;const table=RIVALS.map(r=>({n:r.name,c:r.copas,av:r.av})).concat({n:myDisp()+' (vos)',c,av:myAv(),me:1}).sort((a,b)=>b.c-a.c);const myPos=table.findIndex(x=>x.me);
   const win=table.slice(Math.max(0,myPos-3),myPos+4);

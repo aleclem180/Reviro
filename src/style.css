@@ -1120,3 +1120,4 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
 .rvst .se{fill:#3a2616;stroke:rgba(240,197,72,.85);stroke-width:1;stroke-linejoin:round}
 .rvst .sf{fill:#f6c437;stroke:#8a5a12;stroke-width:.6;stroke-linejoin:round}
 .rv.locked .rvst{filter:grayscale(.7);opacity:.8}
+.bossnote{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
