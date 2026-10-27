@@ -557,7 +557,7 @@ const RULES={cartas:()=>`<p>Mazo de 40 cartas españolas, sin ochos ni nueves. T
   envido:()=>`<p><b>Envido</b> (2), <b>real envido</b> (3) y <b>falta envido</b>. Se canta solo en la primera baza, antes de tirar tu primera carta. El envido va primero: se puede cantar como respuesta a un truco todavía no querido.</p><p>No querido vale 1, o lo acumulado hasta el canto anterior.</p><p><b>El tanto</b> suma 20 más las dos cartas del mismo palo; las figuras valen 0. Si empatan, gana el mano.</p><p><b>Falta envido:</b> en las malas (a 30, cuando nadie llegó a 15) gana el partido; en las buenas da lo que le falta al que va ganando.</p>`,
   flor:()=>`<p><b>Flor</b> (tres cartas del mismo palo) vale 3 y anula el envido.</p><p>Si el otro equipo también tiene: <b>con flor me achico</b> (4 para el primero), <b>contraflor</b> (6) o <b>contraflor al resto</b> (la falta).</p><p>Con flor activada, quien la tiene debe cantarla antes de tirar.</p>`,
   truco:()=>`<p><b>Truco</b> (2), <b>retruco</b> (3) y <b>vale cuatro</b> (4). Solo sube el equipo que tiene el quiero. No querido da lo que valía antes del canto.</p><p><b>Irse al mazo</b> regala la mano; en la primera baza, sin envido cantado, el rival suma un punto más.</p>`,
-  mas:()=>`<p><b>Señas:</b> en 2 contra 2 tu compañero puede avisarte qué tiene con un gesto, y online vos también le podés hacer señas. Solo las ve tu equipo.</p><p><b>Fichas:</b> sirven para las mesas con entrada, los torneos y la tienda; las ganás con misiones y logros. Son de práctica y no tienen valor en dinero. Las <b>monedas</b> son otra forma de pagar en la tienda, y nunca se cambian por fichas.</p>`};
+  mas:()=>`<p><b>Señas:</b> en 2 contra 2 tu compañero puede avisarte qué tiene con un gesto, y online vos también le podés hacer señas. Solo las ve tu equipo.</p><p><b>Fichas:</b> sirven para las mesas con entrada, los torneos y la tienda. Son de práctica y no tienen valor en dinero. Las <b>monedas</b> son otra forma de pagar en la tienda (las ganás jugando, con misiones y con logros) y nunca se cambian por fichas.</p>`};
 function rulesHTML(){return `<details class="rules"><summary>Reglamento</summary>${Object.values(RULES).map(f=>f()).join('')}</details>`}
 function rulesPageHTML(){const [tab,tabs]=ptabs('rules',[['cartas','Cartas'],['envido','Envido'],['flor','Flor'],['truco','Truco'],['mas','Más']],'cartas');
   return phd('Reglamento','','extra')+tabs+`<section class="box rbody">${RULES[tab]()}</section>`}
@@ -767,7 +767,7 @@ function startSolo(){TUT=null;mySena=null;CAMP=null;if(FB){fbStartAI();return}co
 const SHOWNRW=new Set();
 function settle(g){if(!g||!g.matchOver||mySeat<0)return;
   if(SRV()&&mode==='online'){const rw=T&&T.rewards&&T.rewards[uid];if(rw&&!SHOWNRW.has(g.matchId)){SHOWNRW.add(g.matchId);lastReward={matchId:g.matchId,coins:rw.coins||0};
-      const av=(rw.avisos||[]).map(x=>(x.tipo==='mision'?'Misión cumplida: ':'Logro: ')+misTitle(x.id));if(av.length)setTimeout(()=>toast(av.join(' · ')),1200);render()}return}const key=g.matchId+':done';if(WAL.applied.includes(key))return;
+      const av=(rw.avisos||[]).map(x=>(x.tipo==='mision'?'Misión cumplida: ':'Logro: ')+misTitle(x.id)+(x.monedas?' (+'+fmt(x.monedas)+' monedas)':''));if(av.length)setTimeout(()=>toast(av.join(' · ')),1200);render()}return}const key=g.matchId+':done';if(WAL.applied.includes(key))return;
   const won=g.matchOver.winner===myTeam();const prize=mode==='online'?60:({facil:20,medio:40,dificil:80})[g.diff]||40;const coins=won?prize:5;
   const pts=won?(mode==='online'?30:({facil:3,medio:8,dificil:15})[g.diff]||8):0;
   const mo=g.matchOver;let chips=won&&g.stake?g.stake*2:0;
@@ -946,13 +946,13 @@ function ensureMissions(){const today=new Date().toLocaleDateString('en-CA');if(
   const ids=MISSIONS.map(m=>m.id);let x=dayHash(today);const pick=[];while(pick.length<3){x=(x*1103515245+12345)>>>0;const id=ids[x%ids.length];if(!pick.includes(id))pick.push(id)}
   WAL.mis={date:today,ids:pick,prog:{},done:[]}}
 function achValue(a){if(a.ev==='@streak')return Math.max(WAL.stats.best||0,WAL.stats.abest||0);if(a.ev==='@avatars')return AVS.filter(x=>owns('av',x.id,x.price)).length;return (WAL.ach.cnt[a.ev]||0)}
-function recordEvents(key,evs){if(SRV())return walQ;walQ=walQ.then(async()=>{if(key&&WAL.evk.includes(key))return;ensureMissions();const msgs=[];let chips=0,xp=0;
+function recordEvents(key,evs){if(SRV())return walQ;walQ=walQ.then(async()=>{if(key&&WAL.evk.includes(key))return;ensureMissions();const msgs=[];let coins=0,xp=0;
     for(const ev of evs){WAL.ach.cnt[ev]=(WAL.ach.cnt[ev]||0)+1;
       for(const id of WAL.mis.ids){const m=MISSIONS.find(x=>x.id===id);if(!m||m.ev!==ev||WAL.mis.done.includes(id))continue;
-        WAL.mis.prog[id]=Math.min(m.goal,(WAL.mis.prog[id]||0)+1);if(WAL.mis.prog[id]>=m.goal){WAL.mis.done.push(id);chips+=fPrice(m.r);xp+=SEASON.xp.mision;msgs.push('Misión cumplida: '+m.t+' (+'+fmt(fPrice(m.r))+' fichas)')}}}
-    for(const a of ACHS){if(WAL.ach.done.includes(a.id))continue;if(achValue(a)>=a.goal){WAL.ach.done.push(a.id);chips+=fPrice(a.r);xp+=SEASON.xp.logro;msgs.push('Logro: '+a.t+' (+'+fmt(fPrice(a.r))+' fichas)')}}
+        WAL.mis.prog[id]=Math.min(m.goal,(WAL.mis.prog[id]||0)+1);if(WAL.mis.prog[id]>=m.goal){WAL.mis.done.push(id);coins+=m.r;xp+=SEASON.xp.mision;msgs.push('Misión cumplida: '+m.t+' (+'+fmt(m.r)+' monedas)')}}}
+    for(const a of ACHS){if(WAL.ach.done.includes(a.id))continue;if(achValue(a)>=a.goal){WAL.ach.done.push(a.id);coins+=a.r;xp+=SEASON.xp.logro;msgs.push('Logro: '+a.t+' (+'+fmt(a.r)+' monedas)')}}
     if(key)WAL.evk=WAL.evk.concat(key).slice(-60);
-    if(chips){WAL.chips+=chips;sfx('buy')}renderWallet();await saveWallet();if(msgs.length)toast(msgs.join(' · '));if(xp)paseXP(xp);render()});return walQ}
+    if(coins){WAL.coins+=coins;WAL.stats.earned=(WAL.stats.earned||0)+coins;sfx('buy')}renderWallet();await saveWallet();if(msgs.length)toast(msgs.join(' · '));if(xp)paseXP(xp);render()});return walQ}
 function handEvents(g){const h=g.hand,mt=myTeam(),won=h.ended&&h.ended.winner===mt,evs=[];
   if(won)evs.push('hand_won');if(won&&h.truco.level>=3)evs.push('retruco_won');if(won&&h.truco.level===4)evs.push('vale4_won');
   if(won&&h.results.includes('P'))evs.push('parda_won');
@@ -1062,9 +1062,9 @@ function missionsHTML(){ensureMissions();markDoneSeen();const now=new Date(),mid
   const mis=WAL.mis.ids.map(id=>MISSIONS.find(m=>m.id===id)).filter(Boolean);const got=ACHS.filter(a=>WAL.ach.done.includes(a.id)).length;
   const [tab,tabs]=ptabs('mis',[['hoy','Misiones de hoy'],['logros',`Logros (${got} de ${ACHS.length})`]],'hoy');
   const body=tab==='hoy'?`<p class="note snote">Se renuevan en ${hrs} h.</p><div class="mislist">${mis.map(m=>{const p=WAL.mis.prog[m.id]||0,done=WAL.mis.done.includes(m.id);
-      return `<div class="mis ${done?'ok':''}"><div class="mtop"><b>${esc(m.t)}</b><span class="rw">${chipI}+${fmt(fPrice(m.r))}</span></div><div class="bar"><i style="width:${Math.round(p*100/m.goal)}%"></i></div><small>${done?'Cumplida':p+' de '+m.goal}</small></div>`}).join('')}</div>`
+      return `<div class="mis ${done?'ok':''}"><div class="mtop"><b>${esc(m.t)}</b><span class="rw">${coinI}+${fmt(m.r)}</span></div><div class="bar"><i style="width:${Math.round(p*100/m.goal)}%"></i></div><small>${done?'Cumplida':p+' de '+m.goal}</small></div>`}).join('')}</div>`
     :fitList('achs',ACHS,a=>{const v=Math.min(a.goal,achValue(a)),done=WAL.ach.done.includes(a.id);
-      return `<div class="ach ${done?'ok':''}"><span class="medal" aria-hidden="true">${done?'★':'☆'}</span><div><b>${esc(a.t)}</b><small>${esc(a.d)}</small><div class="bar"><i style="width:${Math.round(v*100/a.goal)}%"></i></div><small>${done?'Conseguido':v+' de '+a.goal} · ${chipI.replace('class="chip"','class="chip" style="display:inline-block;width:11px;height:11px;vertical-align:-1px"')} ${fmt(fPrice(a.r))} fichas</small></div></div>`},'achs');
+      return `<div class="ach ${done?'ok':''}"><span class="medal" aria-hidden="true">${done?'★':'☆'}</span><div><b>${esc(a.t)}</b><small>${esc(a.d)}</small><div class="bar"><i style="width:${Math.round(v*100/a.goal)}%"></i></div><small>${done?'Conseguido':v+' de '+a.goal} · ${coinI.replace('class="coin"','class="coin" style="display:inline-block;width:11px;height:11px;vertical-align:-1px"')} ${fmt(a.r)} monedas</small></div></div>`},'achs');
   return phd('Misiones y logros','','menu')+tabs+`<div class="pbody">${body}</div>`}
 function rankingHTML(){const head=phd('Ranking','','menu');if(!db||!uid)return head+`<section class="box"><p class="note" style="margin:0">${LOCAL?'El ranking funciona con tu cuenta en la web.':'El ranking necesita que abras Reviro con tu cuenta de claude.ai.'}</p></section>`;
   subRank();subFriends();const fs=friendSet();const rows=(RANK||[]).filter(r=>r.played>0&&(rankScope==='all'||r.id===uid||fs.has(r.id)));const ids=rows.map(r=>r.id);if(ids.length)ensureNames(ids);

@@ -1507,5 +1507,7 @@
 "Extras": "Extras",
 "1 misión o logro cumplido": "1 missão ou conquista cumprida",
 "{0} misiones o logros cumplidos": "{0} missões ou conquistas cumpridas",
-"{0} para ver": "{0} para ver"
+"{0} para ver": "{0} para ver",
+"Misión cumplida: {0} (+{1} monedas)": "Missão cumprida: {0} (+{1} moedas)",
+"Logro: {0} (+{1} monedas)": "Conquista: {0} (+{1} moedas)"
 }

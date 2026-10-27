@@ -30,7 +30,9 @@ async function sala(S, code, seats, extra) {
 }
 /** Fichas de los jugadores, sin contar lo que pagaron las misiones y los logros (que son aparte del pozo). */
 const total = async (S, ids) => { let c = 0; for (const id of ids) c += (await S.get('wallets/' + id)).chips - await mis(S, id); return c; };
-const mis = async (S, id) => (await S.list('wallets/' + id + '/movimientos')).filter((m) => m.tipo === 'misiones y logros').reduce((a, m) => a + m.fichas, 0);
+/** Monedas que pagaron las misiones y los logros (aparte del premio de la partida). */
+const misC = async (S, id) => (await S.list('wallets/' + id + '/movimientos')).filter((m) => m.tipo === 'misiones y logros').reduce((a, m) => a + (m.monedas || 0), 0);
+const mis = async (S, id) => (await S.list('wallets/' + id + '/movimientos')).filter((m) => m.tipo === 'misiones y logros').reduce((a, m) => a + (m.fichas || 0), 0);
 async function estado(S, code) { return JSON.parse((await S.get('rooms/' + code + '/secreto/estado')).gameJson); }
 
 /** Juega la partida entera: cada humano juega lo que elegiría la IA; los bots y las manos nuevas, con avanzar. */
@@ -78,7 +80,7 @@ prueba('mesa con entrada entre dos personas: se cobra, se juega entera y la casa
   const g = await estado(S, 'BBBB'), win = g.matchOver.winner === 0 ? 'a' : 'b', lose = win === 'a' ? 'b' : 'a';
   assert.strictEqual(await total(S, ['a', 'b']), 8000 + 1800);
   const ww = await S.get('wallets/' + win), wl = await S.get('wallets/' + lose);
-  assert.strictEqual(ww.coins, 1060); assert.strictEqual(wl.coins, 1005);
+  assert.strictEqual(ww.coins - await misC(S, win), 1060); assert.strictEqual(wl.coins - await misC(S, lose), 1005);
   assert.strictEqual((await S.get('users/' + win)).stats.wins, 1);
   assert.strictEqual((await S.get('users/' + lose)).stats.losses, 1);
   assert((await S.get('users/a/matches/' + g.matchId)) && (await S.get('users/b/matches/' + g.matchId)));
@@ -112,7 +114,7 @@ prueba('contra la máquina: el servidor juega por los bots y paga según la difi
   await N.salaEmpezar(ctxOf('a'), { code: 'DDDD' });
   const room = await jugarTodo(S, N, 'DDDD');
   const g = await estado(S, 'DDDD'), w = await S.get('wallets/a');
-  assert.strictEqual(w.coins, 1000 + (g.matchOver.winner === 0 ? 80 : 5));
+  assert.strictEqual(w.coins - await misC(S, 'a'), 1000 + (g.matchOver.winner === 0 ? 80 : 5));
   assert.strictEqual((await S.get('users/a')).stats.played, 0, 'contra la IA no cuenta en el historial');
   assert(w.mis && w.mis.ids.length === 3 && w.ach.cnt.match_played === 1);
   assert(room.rewards.a);
@@ -185,7 +187,7 @@ prueba('premio del día una vez por día y lecciones pagadas una sola vez', asyn
   for (let i = 0; i < 5; i++) await N.billetera(ctxOf('a'), { op: 'tutorial', i });
   for (let i = 0; i < 5; i++) await N.billetera(ctxOf('a'), { op: 'tutorial', i });
   const w = await S.get('wallets/a');
-  assert.strictEqual(w.coins, 60 + 100);
+  assert.strictEqual(w.coins - await misC(S, 'a'), 60 + 100);
   assert(w.ach.done.includes('alumno'));
 });
 

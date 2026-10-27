@@ -1613,5 +1613,7 @@
 "Extras": "Extras",
 "1 misión o logro cumplido": "1 mission or achievement completed",
 "{0} misiones o logros cumplidos": "{0} missions or achievements completed",
-"{0} para ver": "{0} to see"
+"{0} para ver": "{0} to see",
+"Misión cumplida: {0} (+{1} monedas)": "Mission completed: {0} (+{1} coins)",
+"Logro: {0} (+{1} monedas)": "Achievement: {0} (+{1} coins)"
 }

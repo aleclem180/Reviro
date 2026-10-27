@@ -103,23 +103,23 @@
     function eventos(t, uid, w, evs, key) {
       if (key && w.evk.includes(key)) return [];
       asegurarMisiones(w);
-      const avisos = []; let chips = 0;
+      const avisos = []; let coins = 0;
       for (const ev of evs) {
         w.ach.cnt[ev] = (w.ach.cnt[ev] || 0) + 1;
         for (const id of w.mis.ids) {
           const m = C.MISSIONS.find((x) => x.id === id);
           if (!m || m.ev !== ev || w.mis.done.includes(id)) continue;
           w.mis.prog[id] = Math.min(m.goal, (w.mis.prog[id] || 0) + 1);
-          if (w.mis.prog[id] >= m.goal) { w.mis.done.push(id); chips += fPrice(m.r); avisos.push({ tipo: 'mision', id, fichas: fPrice(m.r) }); }
+          if (w.mis.prog[id] >= m.goal) { w.mis.done.push(id); coins += m.r; avisos.push({ tipo: 'mision', id, monedas: m.r }); }
         }
       }
       for (const a of C.ACHS) {
         if (w.ach.done.includes(a.id)) continue;
-        if (valorLogro(w, a) >= a.goal) { w.ach.done.push(a.id); chips += fPrice(a.r); avisos.push({ tipo: 'logro', id: a.id, fichas: fPrice(a.r) }); }
+        if (valorLogro(w, a) >= a.goal) { w.ach.done.push(a.id); coins += a.r; avisos.push({ tipo: 'logro', id: a.id, monedas: a.r }); }
       }
       if (key) w.evk = w.evk.concat(key).slice(-120);
       if (SE) sumarXP(w, avisos.reduce((a, x) => a + (x.tipo === 'mision' ? SE.xp.mision : SE.xp.logro), 0));
-      if (chips) mover(t, uid, w, { chips, tipo: 'misiones y logros', ref: avisos.map((x) => x.id).join(',') });
+      if (coins) mover(t, uid, w, { coins, tipo: 'misiones y logros', ref: avisos.map((x) => x.id).join(',') });
       return avisos;
     }
 
