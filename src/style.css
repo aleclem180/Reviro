@@ -1208,3 +1208,6 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
 .xtiles .mode.ic img{height:min(90%,170px);max-width:46%}
 .xtiles .mode.ic span{max-width:54%}
 @media (max-width:520px){.xtiles .mode.ic img{max-width:42%;right:2px}.xtiles .mode.ic span{max-width:60%}.xtiles .mode.ic b{font-size:1.08rem}}
+/* La Huella: tarjetas de rival un poco más compactas (entran 4 por hoja en la compu) */
+.rvl .rv{padding-top:5px;padding-bottom:5px}
+.rv .rvav{margin-bottom:9px}
