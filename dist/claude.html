@@ -2174,7 +2174,7 @@ function pageBody(){switch(view){
   case 'torneos':return toursPageHTML();case 'tour':return tourHTML();case 'tournew':return tourNewHTML();case 'shop':return shopHTML();
   case 'profile':return profileHTML();case 'missions':return missionsHTML();case 'ranking':return rankingHTML();case 'room':return roomHTML()}return''}
 function render(){const v=$('#view');routeSync();document.body.dataset.view=view;
-  if(view==='game'){if(v.firstElementChild&&v.firstElementChild.classList.contains('game'))morphInto(v,gameHTML());else v.innerHTML=gameHTML()}
+  if(view==='game'){if(v.firstElementChild&&v.firstElementChild.classList.contains('game')){const before=cardRects(v);morphGame(v);flipCards(v,before)}else gameFresh(v,gameHTML())}
   else{/* en el ingreso no se pierde lo que ya escribiste cuando la pantalla se vuelve a dibujar (por ejemplo, al fallar Google) */
     const keep=view==='auth'?[...v.querySelectorAll('input[id]')].map(el=>[el.id,el.type==='checkbox'?el.checked:el.value]):null;
     v.innerHTML=(GATES.includes(view)||view==='room'?'':tabsHTML())+`<div class="page pg-${view}">${pageBody()}</div>`;
@@ -2297,6 +2297,33 @@ function morphKids(a,b){const bc=[...b.childNodes];
     if(!na){a.appendChild(nb);continue}
     morphNode(na,nb)}
   while(a.childNodes.length>bc.length)a.removeChild(a.lastChild)}
+/* cartas que cambian de lugar (las que quedan en la mano cuando tirás una, la que va de la mano a la mesa):
+   en vez de saltar, se deslizan desde donde estaban. Solo se anima transform, que lo hace la placa de video. */
+const RMOTION=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function cardRects(root){const m=new Map();if(RMOTION)return m;root.querySelectorAll('.hand [data-card], .played .card').forEach(el=>{const k=el.getAttribute('data-card')||(el.querySelector('img.cart')||{}).dataset?.c;if(k&&!m.has(k))m.set(k,el.getBoundingClientRect())});return m}
+function flipCards(root,before){if(!before.size||typeof Element.prototype.animate!=='function')return;
+  root.querySelectorAll('.hand [data-card], .played .card').forEach(el=>{const k=el.getAttribute('data-card')||(el.querySelector('img.cart')||{}).dataset?.c;const r0=k&&before.get(k);if(!r0)return;
+    const r1=el.getBoundingClientRect();const dx=r0.left-r1.left,dy=r0.top-r1.top;if(Math.abs(dx)<2&&Math.abs(dy)<2)return;
+    const sc=r1.width?r0.width/r1.width:1;const fromHand=el.classList.contains('card')&&el.closest('.played');
+    if(fromHand)el.classList.remove('land');
+    try{el.animate([{transform:`translate(${dx}px,${dy}px) scale(${sc})`},{transform:'none'}],{duration:fromHand?300:220,easing:'cubic-bezier(.2,.8,.3,1)',composite:'add'})}
+    catch(e){el.animate([{transform:`translate(${dx}px,${dy}px)`},{transform:'none'}],{duration:220,easing:'cubic-bezier(.2,.8,.3,1)'})}})}
+/* la mesa se arma por partes (arriba, marcador, paño, turno, mano, botones). En cada render solo se leen y se
+   actualizan las partes cuyo texto cambió desde la vez anterior: tirar una carta no vuelve a armar el marcador,
+   un aviso o un cambio de turno no tocan la mano, y si no cambió nada no se hace nada. */
+let GPARTS=null,LASTPARTS=null,LASTCNT=null,LANGSEEN='';
+const partNodes=html=>{const t=document.createElement('template');t.innerHTML=html;if(LANG!=='es')trTree(t.content);return [...t.content.children]};
+function gameFresh(v,html){v.innerHTML=html;if(LANG!=='es')trTree(v);LASTPARTS=GPARTS?GPARTS.slice():null;LASTCNT=GPARTS?GPARTS.map(p=>partNodes(p).length):null;LANGSEEN=LANG}
+function morphGame(v){const html=gameHTML();const og=v.firstElementChild;
+  if(!GPARTS||!og||!og.classList.contains('game')||!LASTPARTS||LASTPARTS.length!==GPARTS.length||LANGSEEN!==LANG){gameFresh(v,html);return}
+  const kids=[...og.children];if(kids.length!==LASTCNT.reduce((a,b)=>a+b,0)){gameFresh(v,html);return}
+  const cnt=[];let idx=0;
+  for(let i=0;i<GPARTS.length;i++){const n0=LASTCNT[i];if(GPARTS[i]===LASTPARTS[i]){cnt[i]=n0;idx+=n0;continue}
+    const nk=partNodes(GPARTS[i]),old=kids.slice(idx,idx+n0);cnt[i]=nk.length;
+    if(old.length===nk.length)old.forEach((o,k)=>{if(o.tagName===nk[k].tagName&&o.className.split(' ')[0]===nk[k].className.split(' ')[0])morphNode(o,nk[k]);else o.replaceWith(nk[k])});
+    else{const ref=old.length?old[0]:(kids[idx+n0]||null);nk.forEach(n=>og.insertBefore(n,ref));old.forEach(o=>o.remove())}
+    idx+=n0}
+  LASTPARTS=GPARTS.slice();LASTCNT=cnt}
 function morphInto(el,html){const t=document.createElement('div');t.innerHTML=html;if(LANG!=='es')trTree(t);morphKids(el,t)}
 
 let ACTH={m:null,h:0};
@@ -2523,15 +2550,17 @@ function gameHTML(){if(!G)return'';const h=G.hand,me=mySeat,mt=myTeam(),a=actor(
   const tapTip=TUT&&co&&co.x&&L.play&&SET.tap2!==false&&myCards.some(c=>co.x({t:'play',card:c}))?(SELCARD?' Ahora tocala otra vez para tirarla.':' Tocá la carta y tocala otra vez para tirarla.'):'';
   const coachBox=TUT&&co&&!h.ended?`<div class="coach"><small>Lección ${TUT.i+1} de ${LESSONS.length} · ${esc(LESSONS[TUT.i].title)}</small><p>${esc((co.t||'')+tapTip)}</p></div>`:'';
   const b0=FX.bump&&FX.bump[mt]?'bump':'',b1=FX.bump&&FX.bump[1-mt]?'bump':'';
-  return `<section class="game">
-    <div class="gtop"><button class="btn ${confirmExit?'warn':'ghost'}" data-a="exit">${confirmExit?(inProgress()&&countsOnline(G)?(G.stake?'Salir: derrota y perdés la apuesta':'Salir: cuenta como derrota'):inProgress()&&CAMP?'Salir: perdés los porotos':inProgress()&&G.stake?'Salir: perdés la apuesta':'Confirmar salida'):'Salir'}</button>${info?`<span class="gtinfo">${info}</span>`:''}<span class="gtr"><button type="button" class="logbtn" data-a="logtoggle" aria-expanded="${LOGOPEN}" aria-controls="glog">Registro<i aria-hidden="true"></i></button>${mode==='online'?`<span class="note">Mesa ${esc(T?T.code:'')}</span>`:`<span class="note">${({facil:'Fácil',medio:'Medio',dificil:'Difícil'})[G.diff]}</span>`}</span></div>
-    <div class="score"><div class="sc us"><span class="lbl">Nosotros</span><b class="${b0}">${sc[mt]}</b>${fosforos(sc[mt],G.target)}</div>
+  /* la mesa en partes: render() vuelve a armar solo las que cambiaron (ver morphGame) */
+  GPARTS=[
+    `<div class="gtop"><button class="btn ${confirmExit?'warn':'ghost'}" data-a="exit">${confirmExit?(inProgress()&&countsOnline(G)?(G.stake?'Salir: derrota y perdés la apuesta':'Salir: cuenta como derrota'):inProgress()&&CAMP?'Salir: perdés los porotos':inProgress()&&G.stake?'Salir: perdés la apuesta':'Confirmar salida'):'Salir'}</button>${info?`<span class="gtinfo">${info}</span>`:''}<span class="gtr"><button type="button" class="logbtn" data-a="logtoggle" aria-expanded="${LOGOPEN}" aria-controls="glog">Registro<i aria-hidden="true"></i></button>${mode==='online'?`<span class="note">Mesa ${esc(T?T.code:'')}</span>`:`<span class="note">${({facil:'Fácil',medio:'Medio',dificil:'Difícil'})[G.diff]}</span>`}</span></div>`,
+    `<div class="score"><div class="sc us"><span class="lbl">Nosotros</span><b class="${b0}">${sc[mt]}</b>${fosforos(sc[mt],G.target)}</div>
       <div class="mid"><b>a ${G.target}</b>${G.flor?'con flor':'sin flor'}<br>${G.stake?fmt(G.stake)+' fichas':'amistosa'}</div>
-      <div class="sc them"><span class="lbl">Ellos</span><b class="${b1}">${sc[1-mt]}</b>${fosforos(sc[1-mt],G.target)}</div></div>
-    <div class="tablerow"><div class="felt n${G.n} pano-${pano.id}" style="background:${panoBg(pano.id)};border-color:${pano.edge}">${seatsHTML.join('')}<div class="center">${center}</div></div>${glog}</div>
-    ${turnSlotHTML()}${coachBox}
-    ${hand}
-    <div class="actions">${actionsHTML(L)}${TUT?'':socialHTML()}${absentNote}</div></section>`}
+      <div class="sc them"><span class="lbl">Ellos</span><b class="${b1}">${sc[1-mt]}</b>${fosforos(sc[1-mt],G.target)}</div></div>`,
+    `<div class="tablerow"><div class="felt n${G.n} pano-${pano.id}" style="background:${panoBg(pano.id)};border-color:${pano.edge}">${seatsHTML.join('')}<div class="center">${center}</div></div>${glog}</div>`,
+    `${turnSlotHTML()}${coachBox}`,
+    hand,
+    `<div class="actions">${actionsHTML(L)}${TUT?'':socialHTML()}${absentNote}</div>`];
+  return `<section class="game">${GPARTS.join('')}</section>`}
 function logText(e){if(e.k==='hand')return e.mano===mySeat?`Mano ${e.no}: sos mano vos`:`Mano ${e.no}: es mano ${nameOf(e.mano)}`;
   if(e.k==='baza')return e.r==='P'?`Baza ${e.i}: parda`:`Baza ${e.i} para ${teamName(e.r).toLowerCase()}`;
   if(e.k==='pts')return `${teamName(e.tm)} suma ${e.p} (${e.why})`;if(e.k==='txt')return e.t;
@@ -2624,8 +2653,12 @@ async function commit(ng){confirmMazo=false;
   finally{busy=false;if(!ok&&T&&T.game)setG(T.game);reconcile();render();drive()}}
 const TABID=Math.random().toString(36).slice(2,9);
 const gsig=g=>g?g.matchId+'|'+g.seq+'|'+g.handNo+'|'+JSON.stringify(g.hand.cards)+'|'+JSON.stringify(g.scores):'';
-/* la mesa en la base manda: si lo que veo no coincide, me quedo con lo de la base */
-function reconcile(){if(busy||mode!=='online'||!T||!T.game)return;if(!G||gsig(G)!==gsig(T.game))setG(T.game)}
+/* la mesa en la base manda: si lo que veo no coincide, me quedo con lo de la base.
+   Pero nunca para atrás: una foto vieja de la base (llega después de que ya mandé mi jugada) no puede deshacer
+   lo que ya se ve en la mesa. Eso hacía que la carta o el canto aparecieran, se fueran y volvieran a aparecer. */
+const mtime=id=>{const t=parseInt(String(id||'').split('-').pop(),36);return isFinite(t)?t:0};
+function fresher(ng,g){if(!g||!ng)return true;if(ng.matchId!==g.matchId)return mtime(ng.matchId)>=mtime(g.matchId);return ng.seq>=g.seq}
+function reconcile(){if(busy||mode!=='online'||!T||!T.game)return;if(!G||(gsig(G)!==gsig(T.game)&&fresher(T.game,G)))setG(T.game)}
 function drive(){clearTimeout(driveT);if(!G||view!=='game')return;const ctrl=mode==='offline'||(mode==='online'&&mySeat>=0&&controllerSeat()===mySeat);if(!ctrl||G.matchOver)return;
   if(G.hand.ended){if(TUT)return;const seq=G.seq;driveT=setTimeout(()=>{if(G&&G.seq===seq&&G.hand.ended&&!G.matchOver)commit(nextHand(G))},3400);return}
   const a=actor(G);if(a<0)return;const absent=isAbsent(a);if(!G.seats[a].bot&&!absent)return;const seq=G.seq;
@@ -2668,7 +2701,7 @@ function onTable(snap,first){if(!snap.exists){toast(first?'No existe una mesa co
   if(FB&&T.status==='finished'&&T.result&&mySeat>=0)fbRecord(T.code,T.result.matchId);
   if(T.status==='closed'){toast('El anfitrión cerró la mesa');leaveTable(true);return}
   if(T.status==='waiting'){view='room';G=null;if(first&&mySeat<0){const i=T.seats.findIndex(s=>!s.id&&!s.bot);if(i>=0&&T.stake<=WAL.chips){if(FB)NET.rooms.join(T.code).catch(()=>{});else sit(i)}}}
-  else if(T.game){mode='online';view='game';if(!busy&&(!G||gsig(G)!==gsig(T.game)))setG(T.game);
+  else if(T.game){mode='online';view='game';if(!busy&&(!G||(gsig(G)!==gsig(T.game)&&fresher(T.game,G))))setG(T.game);
     if(mySeat>=0&&T.stake)applyTx(G.matchId+':in',{chips:-T.stake});settle(G)}
   render();drive()}
 async function getLease(ref){for(let k=0;k<8;k++){const r=await ref.acquire({holder:uid+':'+TABID,ttlMs:1500});if(r.acquired)return true;await new Promise(res=>setTimeout(res,Math.min(1600,Math.max(120,(r.expiresAt?Date.parse(r.expiresAt)-Date.now():300)+40))))}return false}
@@ -3608,7 +3641,10 @@ function mpPendHTML(){if(!FB||!isOwnerV)return'';const P=PENDPUR||[];
   return `<section class="box admin grow">${PENDPUR===null?'<p class="note">Cargando…</p>':fitList('adm-pend',P,x=>`<li><span style="flex:1">${esc(x.username||'Jugador')} · ${fmt(x.coins)} monedas<small>$ ${fmt(x.ars)} · ${esc(tFmtDate(x.at))}</small></span><button class="btn sm brass" data-a="mpok" data-id="${esc(x.id)}">Acreditar</button><button class="btn sm ghost" data-a="mpno" data-id="${esc(x.id)}">Rechazar</button></li>`,'flist','<p class="note">No hay pagos esperando.</p>')}
     <p class="note" style="margin:0">Antes de acreditar, fijate en tu cuenta de Mercado Pago que el pago haya entrado.</p></section>`}
 /* ---------- eventos ---------- */
-document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closest('[data-a],[data-set],[data-card]');if(LOGOPEN&&!e.target.closest('.glog,.logbtn')){LOGOPEN=false;if(!t){render();return}}if(SELCARD&&!(t&&t.dataset.card)){SELCARD=null;if(!t){render();return}}if(!t)return;
+/* en la mesa, un segundo toque al mismo botón dentro de 350 ms se ignora (evita cantar dos veces o subir sin querer).
+   Las cartas no entran: tirar es tocar dos veces a propósito. */
+let LASTBTN=null,LASTBTNT=0;
+document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closest('[data-a],[data-set],[data-card]');if(t&&view==='game'&&!t.hasAttribute('data-card')&&t.closest('.game .actions,.game .chips,.senapop')){const now=performance.now();if(t===LASTBTN&&now-LASTBTNT<350)return;LASTBTN=t;LASTBTNT=now}if(LOGOPEN&&!e.target.closest('.glog,.logbtn')){LOGOPEN=false;if(!t){render();return}}if(SELCARD&&!(t&&t.dataset.card)){SELCARD=null;if(!t){render();return}}if(!t)return;
   if(t.dataset.a==='close'&&t.classList.contains('over')&&e.target!==t)return;
   if(t.dataset.set){const k=t.dataset.set,v=t.dataset.v;const val=v==='true'?true:v==='false'?false:(isNaN(+v)?v:+v);
     if(k==='anot.target'){ANOT.target=val;ANOT.s=ANOT.s.map(x=>Math.min(x,val));saveAnot();render();return}
