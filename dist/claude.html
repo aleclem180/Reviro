@@ -2182,8 +2182,11 @@ function render(){const v=$('#view');routeSync();document.body.dataset.view=view
   if(view==='game'){if(v.firstElementChild&&v.firstElementChild.classList.contains('game')){const before=cardRects(v);morphGame(v);flipCards(v,before)}else gameFresh(v,gameHTML())}
   else{/* en el ingreso no se pierde lo que ya escribiste cuando la pantalla se vuelve a dibujar (por ejemplo, al fallar Google) */
     const keep=view==='auth'?[...v.querySelectorAll('input[id]')].map(el=>[el.id,el.type==='checkbox'?el.checked:el.value]):null;
+    /* si alguien está escribiendo en un campo, después de redibujar se le devuelve el foco y el cursor donde estaba */
+    const ae=document.activeElement,fid=ae&&ae.id&&v.contains(ae)&&typing()?ae.id:null;let sel=null;if(fid){try{sel=[ae.selectionStart,ae.selectionEnd]}catch(e){}}
     v.innerHTML=(GATES.includes(view)||view==='room'?'':tabsHTML())+`<div class="page pg-${view}">${pageBody()}</div>`;
-    if(keep)for(const [id,val] of keep){const el=document.getElementById(id);if(!el)continue;if(el.type==='checkbox')el.checked=val;else if(val&&!el.value)el.value=val}}
+    if(keep)for(const [id,val] of keep){const el=document.getElementById(id);if(!el)continue;if(el.type==='checkbox')el.checked=val;else if(val&&!el.value)el.value=val}
+    if(fid){const el=document.getElementById(fid);if(el){el.focus({preventScroll:true});if(sel&&sel[0]!=null)try{el.setSelectionRange(sel[0],sel[1])}catch(e){}}}}
   if(view==='torneos'||view==='tour')requestAnimationFrame(animatePots);
   if(view==='game'&&FX.deal){clearTimeout(REPAINT);const hn=G&&G.handNo;REPAINT=setTimeout(()=>{if(view!=='game'||!G||G.handNo!==hn)return;document.querySelectorAll('.hand img.cart').forEach(im=>{const u=CARDIMG[im.dataset.c];if(u&&im.getAttribute('src')!==u)im.src=u});const hd=document.querySelector('.hand');if(hd){hd.style.transform='translateZ(0)';requestAnimationFrame(()=>requestAnimationFrame(()=>{hd.style.transform=''}))}},760)}
   $('#overlay').innerHTML=overlayHTML();FX={};musicUpdate();
@@ -2357,7 +2360,10 @@ function fitPass(){sizeMap();let ch=false;const nw={};document.querySelectorAll(
     per=Math.max(1,Math.min(n,per));if((FITN[k]||Math.min(n,4))!==per){nw[k]=per;ch=true}});
   if(ch&&FITPASS++<6){Object.assign(FITN,nw);render()}else if(!ch)FITPASS=0}
 try{document.fonts&&document.fonts.ready.then(()=>{FITPASS=0;if(view!=='game')fitPass()})}catch(e){}
-let RSZ=null;window.addEventListener('resize',()=>{clearTimeout(RSZ);RSZ=setTimeout(()=>{if(view!=='game'){FITPASS=0;render()}},150)});
+/* al girar o cambiar el tamaño se reacomodan las hojas. Pero en Android abrir el teclado también achica la ventana:
+   si se está escribiendo, no se redibuja (redibujar sacaba el foco del campo y el teclado se cerraba). */
+const typing=()=>{const a=document.activeElement;return !!a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA'||a.isContentEditable)&&a.type!=='checkbox'&&a.type!=='range'};
+let RSZ=null;window.addEventListener('resize',()=>{clearTimeout(RSZ);RSZ=setTimeout(()=>{if(view!=='game'&&!typing()){FITPASS=0;render()}},150)});
 
 /* pestañas dentro de una hoja */
 const PT={};
