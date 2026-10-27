@@ -35,6 +35,22 @@ const AVS=[
   spec:{bg:'#3a2a7a',skin:SK[4],hair:'long',hc:'#2b1b12',eyes:'wink',mouth:'grin',blush:true,hat:'galera',hatc:'#e0453a',shirt:'#2ea36b',outfit:'levita',prop:'serpentinas'}},
  {id:'influencer',name:'La Influencer',price:600,bio:'Graba cada mano. Si gana, sube historia.',
   spec:{bg:'#f3b6c9',skin:SK[2],hair:'long',hc:'#e8c06a',eyes:'lashes',mouth:'lips',earring:true,ring:true,shirt:'#ffffff',outfit:'top',bare:true,prop:'phone'}},
+ {id:'deportista',name:'El Runner de Palermo',price:450,bio:'Corre diez kilómetros antes del truco y te cuenta el ritmo por kilómetro.',
+  spec:{bg:'#2fa37a',skin:SK[1],hair:'short',hc:'#3a2a1c',eyes:'happy',mouth:'grin',hat:'vincha',band:'#e8f03a',shirt:'#ff6a3d',outfit:'top',bare:true,prop:'phone'}},
+ {id:'psicoanalista',name:'El Psicoanalista',price:550,bio:'No canta truco: te pregunta por qué querés cantarlo.',
+  spec:{lid:true,bg:'#5e6f8a',skin:SK[0],hair:'sides',hc:'#bdbdbd',brow:'#9a9a9a',eyes:'glasses',mouth:'flat',facial:'beard',fc:'#cfcfcf',shirt:'#e9dcc2',outfit:'cardigan',prop:'cafe'}},
+ {id:'tiawhatsapp',name:'La Tía del Grupo',price:400,bio:'Manda buenos días con brillitos y canta el envido en un audio de seis minutos.',
+  spec:{bg:'#e58fb0',skin:SK[1],hair:'rulos',hc:'#a0522d',eyes:'glasses',mouth:'smile',blush:true,earring:true,shirt:'#7a3fa0',shawl:'#f2c46a',outfit:'chal',prop:'phone'}},
+ {id:'kiosquero',name:'El Kiosquero',price:350,bio:'Abierto las 24 horas. Nunca tiene cambio, pero siempre tiene un ancho.',
+  spec:{lid:true,bg:'#d9822b',skin:SK[2],hair:'short',hc:'#1e1612',eyes:'tired',mouth:'smirk',facial:'mustache',shirt:'#3b5a7a',outfit:'sweater',prop:'naipes'}},
+ {id:'astrologa',name:'La Astróloga de la Tele',price:500,bio:'Mercurio está retrógrado, así que el retruco es tuyo… o no.',
+  spec:{bg:'#3a2a7a',skin:SK[0],hair:'long',hc:'#7a1f3a',eyes:'lashes',mouth:'lips',earring:true,ring:true,shirt:'#b88a2a',outfit:'top',bare:true,prop:'naipes'}},
+ {id:'vegano',name:'El Vegano del Asado',price:450,bio:'Va a todos los asados con su berenjena y una mirada de juicio.',
+  spec:{bg:'#6f9a3a',skin:SK[1],hair:'bun',hc:'#5a3a22',eyes:'dot',mouth:'flat',facial:'beard',shirt:'#e9dcc2',outfit:'delantal',bare:true,prop:'girasol'}},
+ {id:'delivery',name:'El Pibe del Delivery',price:350,bio:'Juega en el semáforo en rojo y te entrega la mano en quince minutos.',
+  spec:{bg:'#e0453a',skin:SK[3],hair:'short',hc:'#141414',eyes:'dot',mouth:'grin',hat:'cap',hatc:'#f2a516',shirt:'#f2a516',jacket:'#e0453a',outfit:'campera',sleeve:'#e0453a',prop:'pizza'}},
+ {id:'zumba',name:'La Profe de Zumba',price:450,bio:'Cuenta los puntos de a ocho tiempos y festeja cada baza con un paso.',
+  spec:{bg:'#f29fb3',skin:SK[2],hair:'long',hc:'#2b1b12',eyes:'wink',mouth:'grin',blush:true,hat:'vincha',band:'#3ad1e8',shirt:'#c23bd6',outfit:'top',bare:true,prop:'wave'}},
 ];
 const AVM=Object.fromEntries(AVS.map(a=>[a.id,a]));
 const GUARDA_URL="url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2728%27 height=%2712%27%3E%3Crect width=%2728%27 height=%2712%27 fill=%27%23efe0bf%27/%3E%3Crect width=%2728%27 height=%271.4%27 fill=%27%232a170b%27/%3E%3Crect y=%2710.6%27 width=%2728%27 height=%271.4%27 fill=%27%232a170b%27/%3E%3Cpath d=%27M14 2.2L19 6L14 9.8L9 6Z%27 fill=%27%232a170b%27/%3E%3Cpath d=%27M14 4.2L16.4 6L14 7.8L11.6 6Z%27 fill=%27%23b0261c%27/%3E%3Cpath d=%27M0 3L3.4 6L0 9ZM28 3L24.6 6L28 9Z%27 fill=%27%23b0261c%27/%3E%3C/svg%3E')";
@@ -352,6 +368,14 @@ const LINES={
  tanguero:{truco:['Truco, con corte y quebrada','Truco, en dos por cuatro'],envido:['Envido, como un bandoneón'],quiero:['Quiero, compadre'],noquiero:['No quiero, esta noche no'],win:['¡La mano se va con el tango!'],lose:['Fue un tango arrabalero'],greet:['Buenas noches, señores'],reply:['Qué milonga la suya']},
  murguera:{truco:['¡Truco, que arranca el corso!','Truco con platillo'],envido:['Envido, ¡a bailar!'],quiero:['¡Quiero, que suene el bombo!'],noquiero:['No quiero, me guardo para el carnaval'],win:['¡Fiesta en el barrio!'],lose:['Se terminó el corso'],greet:['¡Que empiece la murga!'],reply:['¡Saltá, saltá!']},
  influencer:{truco:['¡Truco! Esto va a historia','Truco, dale like'],envido:['Envido, ¿me seguís?'],quiero:['Quiero, estoy grabando'],noquiero:['No, se me cae el wifi'],win:['¡Se vino el viral!'],lose:['Esto no lo subo'],greet:['¡Hola, mis amores!'],reply:['Te etiqueto']},
+ deportista:{truco:['Truco, a ritmo de cuatro y media','Truco, y ni transpiré'],envido:['Envido, con las pulsaciones a mil'],quiero:['Quiero, entré en zona'],noquiero:['No quiero, hoy es día de descanso'],win:['¡Récord personal!','Esto lo subo a la aplicación'],lose:['Me faltó hidratación'],greet:['¿Después salimos a correr?'],reply:['Respirá por la nariz']},
+ psicoanalista:{truco:['Truco… ¿y eso qué te genera?','Truco. Asociá libremente'],envido:['Envido. Hablemos de tu madre'],quiero:['Quiero. Lo seguimos la próxima sesión'],noquiero:['No quiero. Lo trabajamos en terapia'],win:['Se terminó la sesión'],lose:['Fue un acto fallido'],greet:['Pasá, recostate en el diván'],reply:['¿Y vos qué sentís?']},
+ tiawhatsapp:{truco:['¡Truco! Compartan','Truco, bendiciones para todos'],envido:['Envido, les mando un audio'],quiero:['¡Quiero, qué lindo!'],noquiero:['No quiero, me quedé sin datos'],win:['¡Feliz jueves, gané!'],lose:['Esto es una cadena, reenviala'],greet:['¡Buen día, familia!'],reply:['¿Vieron lo que mandé?']},
+ kiosquero:{truco:['Truco, y no tengo cambio','Truco, ¿algo más?'],envido:['Envido, te lo doy en caramelos'],quiero:['Quiero, ¿te lo pongo en bolsita?'],noquiero:['No quiero, cerrado por inventario'],win:['Gracias, vuelva pronto'],lose:['Hoy no se fía, mañana sí'],greet:['¿Qué te doy?'],reply:['Hay alfajores']},
+ astrologa:{truco:['Truco, lo dicen los astros','Truco, con Venus en la casa ocho'],envido:['Envido, con Mercurio retrógrado'],quiero:['Quiero, soy de fuego'],noquiero:['No quiero, hay luna en Escorpio'],win:['Estaba escrito'],lose:['Fue la carta natal'],greet:['¿De qué signo sos?'],reply:['Ascendente en truco']},
+ vegano:{truco:['Truco, de origen vegetal','Truco, sin crueldad animal'],envido:['Envido, cero proteína animal'],quiero:['Quiero, y traje mi tofu'],noquiero:['No quiero, me ofende'],win:['¡Ganó la berenjena!'],lose:['Me distrajo el olor a chori'],greet:['¿Hay algo sin carne?'],reply:['Es una elección de vida']},
+ delivery:{truco:['Truco, llego en cinco','Truco, ¡voy en camino!'],envido:['Envido, y sin propina'],quiero:['Quiero, ya lo retiré'],noquiero:['No quiero, me cancelaron el pedido'],win:['¡Pedido entregado!'],lose:['Me tocó un piso catorce sin ascensor'],greet:['¿Departamento B?'],reply:['Calificame con cinco estrellas']},
+ zumba:{truco:['¡Truco, cinco, seis, siete, ocho!','Truco, ¡arriba esas manos!'],envido:['Envido, ¡y cadera!'],quiero:['¡Quiero, sin parar!'],noquiero:['No quiero, pausa para hidratarse'],win:['¡Eso, eso, eso!'],lose:['Era la última canción'],greet:['¡Buen día, a moverse!'],reply:['¡Que no decaiga!']},
 };
 const pickLine=(av,cat)=>{const b=(LINES[av]||LINES[String(av).split(':')[0]]||LINES.gaucho)[cat];return b&&b.length?b[Math.floor(Math.random()*b.length)]:null};
 function lineCat(t){if(/Truco|Retruco|Vale cuatro/.test(t))return'truco';if(/nvido/.test(t))return'envido';if(t==='¡Quiero!')return'quiero';if(t==='No quiero')return'noquiero';return null}

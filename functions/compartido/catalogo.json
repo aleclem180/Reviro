@@ -67,6 +67,38 @@
   {
    "id": "influencer",
    "price": 600
+  },
+  {
+   "id": "deportista",
+   "price": 450
+  },
+  {
+   "id": "psicoanalista",
+   "price": 550
+  },
+  {
+   "id": "tiawhatsapp",
+   "price": 400
+  },
+  {
+   "id": "kiosquero",
+   "price": 350
+  },
+  {
+   "id": "astrologa",
+   "price": 500
+  },
+  {
+   "id": "vegano",
+   "price": 450
+  },
+  {
+   "id": "delivery",
+   "price": 350
+  },
+  {
+   "id": "zumba",
+   "price": 450
   }
  ],
  "DORSOS": [
