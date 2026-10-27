@@ -1047,3 +1047,6 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
   .duelside .bazas{flex-direction:column}
   .duelstat{max-width:84px;font-size:.66rem;bottom:8px;right:8px}
 }
+/* la carta que ganó la baza queda encima de la que perdió (si es parda, queda como cayó) */
+.bcol.l .slot:first-child{z-index:3}
+.bcol.w .slot:last-child{z-index:3}
