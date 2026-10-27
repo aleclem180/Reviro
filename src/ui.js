@@ -1249,10 +1249,14 @@ function mapSVG(){const main=pathOf(AR_MAIN),tdf=pathOf(AR_TDF),isl=AR_ISL.map(p
   o+=`<rect x="-15" y="-11" width="230" height="434" rx="4" fill="none" stroke="#4a3626" stroke-width=".8"/><rect x="-12.5" y="-8.5" width="225" height="429" rx="3" fill="none" stroke="#4a3626" stroke-width=".35"/>
     <rect x="-18" y="-14" width="236" height="440" rx="6" fill="url(#mapvig)" pointer-events="none"/>`;
   return o+'</svg>'}
+/* el premio del jefe: una muestra chiquita del dorso o del paño y su nombre, a la derecha de los porotos */
+const PRIZE_SHORT={sietecolores:'7 Colores',ibera:'Iberá',vinedo:'Viñedo',monte:'Monte',faro:'Faro'};
+function rivalPrize(p){if(!p)return'';const d=p[0]==='dorso',it=d?DM[p[1]]:PM[p[1]];
+  return `<span class="rvp" title="Premio: ${esc(prizeLabel(p))}"><i class="${d?'d':'p'}" style="background:${d?backBg(p[1]):panoBg(p[1])}" aria-hidden="true"></i><span class="vh">Premio: ${esc(prizeLabel(p))}</span><span aria-hidden="true">${esc(PRIZE_SHORT[p[1]]||it.name)}</span></span>`}
 function rivalCard(r){const open=rivalOpen(r),wins=(WAL.gira&&WAL.gira.beat[r.id])||0;const my=WAL.copas||0;
   const win=copasDelta(my,r.copas,true),lose=copasDelta(my,r.copas,false);
-  return `<li class="rv ${r.boss?'boss':''} ${open?'':'locked'}"><span class="rvav" role="img" aria-label="Dificultad: ${String(r.lvl).replace('.',',')} de 5 estrellas">${avatarSVG(r.av,46)}${starRing(r.lvl,r.boss)}</span><div class="rvi"><b>${esc(r.name)}</b><small>${r.boss?'Jefe de la zona · Premio: '+esc(prizeLabel(BOSS_PRIZE[r.zone]))+' · ':''}${r.boss?'a 30':'a 15'} · ${DIFFNAME[r.diff]}</small>
-    <small><span class="cup"><i class="poroto" aria-hidden="true"></i>${fmt(r.copas)}</span> · <span title="Si ganás / si perdés">+${win} / ${lose}</span>${wins?` · ✓ ${wins}`:''}</small></div>
+  return `<li class="rv ${r.boss?'boss':''} ${open?'':'locked'}"><span class="rvav" role="img" aria-label="Dificultad: ${String(r.lvl).replace('.',',')} de 5 estrellas">${avatarSVG(r.av,46)}${starRing(r.lvl,r.boss)}</span><div class="rvi"><b>${esc(r.name)}</b><small>${r.boss?'Jefe · ':''}${r.boss?'a 30':'a 15'} · ${DIFFNAME[r.diff]}</small>
+    <small class="rvn"><span class="cup"><i class="poroto" aria-hidden="true"></i>${fmt(r.copas)}</span><span class="rvd" title="Si ganás / si perdés">+${win}/${String(lose).replace('-','−')}</span>${r.boss?rivalPrize(BOSS_PRIZE[r.zone]):''}${wins?`<span class="rvw" title="Veces que le ganaste">✓ ${wins}</span>`:''}</small></div>
     ${open?`<button class="btn ${r.boss?'prim':'brass'} sm" data-a="girago" data-id="${r.id}">Jugar</button>`:`<span class="rvlock" title="Se desbloquea con ${fmt(r.need)} porotos">🔒︎ <b>${fmt(r.need)}</b></span>`}</li>`}
 function giraHTML(){const c=WAL.copas||0,z=ZM[giraZone]||ZONES[0],open=zoneOpen(z);const next=ZONES.find(x=>!zoneOpen(x));
   const prevNeed=next?((ZONES[ZONES.indexOf(next)-1]||{need:0}).need):0;const pct=next?Math.round((c-prevNeed)*100/Math.max(1,next.need-prevNeed)):100;
