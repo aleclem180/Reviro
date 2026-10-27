@@ -122,7 +122,9 @@ function limb(d,w,col){return `<path class="lo" d="${d}" stroke="${OL}" stroke-w
 let AVN=0;
 /* la cabeza se dibuja en el sistema de 64 (centro 32,30) y se ubica en (50,28) escalada */
 const HEADT='translate(50 32.4) scale(.84 .95) translate(-32 -30)';
-function avatarSVG(id,px,full){const sid=String(id),kit=sid.split(':')[1],a=AVM[sid]||AVM[sid.split(':')[0]]||AVM.gaucho,k='av'+(++AVN);
+/* ids fijos por dibujo (no un contador): repintar el mismo personaje da el mismo SVG y la mesa no se rehace */
+function avKey(sid,px,full){const t=sid+'|'+px+'|'+full;let h=5381;for(let i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0;return 'av'+(h>>>0).toString(36)}
+function avatarSVG(id,px,full){const sid=String(id),kit=sid.split(':')[1],a=AVM[sid]||AVM[sid.split(':')[0]]||AVM.gaucho,k=avKey(sid,px,full);
   /* La Hincha tiene un retrato por camiseta: hincha:azuloro, hincha:banda… */
   const PH=kit?PHOTOS[a.id+':'+kit]:PHOTOS[a.id];if(PH){const crop=full===undefined?px<60:!full;return `<svg class="av" viewBox="${crop?PH.face:'0 0 100 100'}" width="${px}" height="${px}" role="img" aria-label="${a.name}"${crop?'':' style="border-radius:16px"'}><image href="${PH.src}" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/></svg>`}
   const KT=a.id==='hincha'&&KITM[kit||'arg'],p=KT?Object.assign({},a.spec,{kit:KT.id,sleeve:KT.sleeve,k1:KT.c1,k2:KT.c2}):a.spec;
