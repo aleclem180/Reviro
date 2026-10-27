@@ -112,6 +112,9 @@ one = head + "\n<style>\n" + style + "</style>\n\n" + body + "\n<script>\n" + sc
 (ROOT / "dist" / "claude.html").write_text(one, encoding="utf-8")
 
 # para GitHub, lo generado no cuenta como código del proyecto
-attrs = ["dist/** linguist-generated=true", "index.html linguist-generated=true", "src/textos.js linguist-generated=true", "src/marca.js linguist-generated=true"] + [f"{r}/index.html linguist-generated=true" for r in ROUTES]
+attrs = ["dist/** linguist-generated=true", "index.html linguist-generated=true", "src/textos.js linguist-generated=true", "src/marca.js linguist-generated=true", "functions/compartido/** linguist-generated=true"] + [f"{r}/index.html linguist-generated=true" for r in ROUTES]
 (ROOT / ".gitattributes").write_text("\n".join(attrs) + "\n", encoding="utf-8")
+# servidor (functions/): el mismo motor y el mismo catálogo que la página
+import subprocess
+subprocess.run(["node", str(ROOT / "tools" / "node" / "compartido.js")], check=True, stdout=subprocess.DEVNULL)
 print(f"index.html, {len(ROUTES)} hojas y dist/claude.html listos")

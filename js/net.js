@@ -1001,6 +1001,8 @@ function mapPath(p) {
   if (/^looks(\/|$)/.test(p)) return 'profiles' + p.slice(5);
   const m = /^data\/users\/([^/]+)\/wallet$/.exec(p);
   if (m) return 'wallets/' + m[1];
+  const mp = /^data\/users\/([^/]+)\/prefs$/.exec(p);   // modo servidor: lo que el jugador sí puede guardar (personaje, apodo, amigos…)
+  if (mp) return 'userdata/' + mp[1];
   return p;
 }
 const isRooms = (p) => /^tables(\/|$)/.test(p);
@@ -1015,7 +1017,7 @@ function dref(path) {
   return {
     id: r.id, path,
     get: async () => wrap(await getDoc(r), rooms),
-    set: (d) => setDoc(r, clean(d)),
+    set: (d, o) => setDoc(r, clean(d), o && o.merge ? { merge: true } : {}),
     update: (d) => updateDoc(r, clean(d)),
     delete: () => deleteDoc(r),
     onSnapshot: (next, err) => onSnapshot(r, (s) => next(wrap(s, rooms)), err),
@@ -1113,7 +1115,38 @@ const roomCap = {
 };
 
 /* ------------------------------------------------------------------ */
+/* Modo servidor                                                       */
+/* ------------------------------------------------------------------ */
+/*
+  Cuando config/servidor.on es true, las partidas online y la billetera las maneja el servidor
+  (Cloud Functions, ver functions/ y docs/SERVIDOR.md): cada jugador recibe solo sus cartas y nadie puede
+  escribir su propio saldo. Mientras está apagado, todo funciona como siempre.
+*/
+const FN_REGION = 'southamerica-east1';
+let FNS = null;
+async function fns() {
+  if (!FNS) { const m = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js'); FNS = { m, f: m.getFunctions(app, FN_REGION) }; }
+  return FNS;
+}
+const srv = {
+  on: false,
+  async estado() { try { const s = await getDoc(doc(fs, 'config', 'servidor')); srv.on = !!(s.exists() && s.data().on); } catch (e) { srv.on = false; } return srv.on; },
+  watch(cb) { return onSnapshot(doc(fs, 'config', 'servidor'), (s) => { const v = !!(s.exists() && s.data().on); if (v !== srv.on) { srv.on = v; cb(v); } }, () => {}); },
+  async call(name, data) {
+    const { m, f } = await fns();
+    try { return (await m.httpsCallable(f, name)(data || {})).data; }
+    catch (e) { const er = new Error(e.message || 'No se pudo'); er.code = (e.details && e.details.code) || e.code; throw er; }
+  },
+  /** Para saber si las funciones están subidas antes de prender el modo servidor. */
+  probar: () => srv.call('billetera', { op: 'iniciar' }),
+  async activar(on) { await setDoc(doc(fs, 'config', 'servidor'), { on: !!on, at: Date.now(), by: me().uid }); audit(on ? 'prender modo servidor' : 'apagar modo servidor', 'config/servidor'); },
+  watchMano: (code, uid, cb) => onSnapshot(doc(fs, 'rooms', String(code).toUpperCase(), 'manos', uid), (s) => cb(s.exists() ? s.data() : null), () => cb(null)),
+  watchMovimientos: (uid, cb) => onSnapshot(query(collection(fs, 'wallets', uid, 'movimientos'), orderBy('at', 'desc'), limit(30)), (s) => cb(s.docs.map((d) => d.data())), () => cb([])),
+};
+
+/* ------------------------------------------------------------------ */
 window.NET = {
+  srv,
   ADMIN_EMAILS, EMPTY_STATS, decodeRoom,
   auth: { register, google, redirectError: () => { const e = REDIRERR; REDIRERR = null; return e; }, googleName: () => (me() && me().displayName) || '', completeProfile, acceptTerms, TERMS_V, login, logout, resetPassword, resendVerification, onChange, isAdmin, loadUser, user: () => USER },
   rooms: { createRoom, updateSeats, sit, join, startRoom, commitMove, leaveRoom },

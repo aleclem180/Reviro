@@ -149,8 +149,32 @@ function renderWallet(){$('#chips').textContent=fmt(WAL.chips);$('#coins').textC
 const itemOf=(type,id)=>(type==='av'?AVM:type==='dorso'?DM:type==='kit'?KITM:PM)[id];
 const myAv=()=>WAL.eq.av==='hincha'?kitAv(WAL.eq.kit):WAL.eq.av;
 const owns=(type,id,price)=>{const it=itemOf(type,id);if(it&&it.boss)return !!(WAL.gira&&WAL.gira.bosses.includes(it.boss));return !price||WAL.owned.includes(type+':'+id)};
+/* ---------- modo servidor: la billetera y las partidas online las maneja el servidor (ver functions/ y docs/SERVIDOR.md) ---------- */
+const SRV=()=>!!(typeof FB!=='undefined'&&FB&&window.NET&&NET.srv&&NET.srv.on);
+const SRV_FIELDS=['chips','coins','owned','stats','mis','ach','evk','applied','tours','daily','tutPaid'];
+const PREF_FIELDS=['eq','nick','fcode','registered','copas','gira','tut','friends','th2','lang','langAt'];
+let walUnsub=null;
+const misTitle=id=>{const m=MISSIONS.find(x=>x.id===id)||ACHS.find(x=>x.id===id);return m?m.t:id};
+/* lo que llega del servidor: solo los campos de dinero y progreso (lo demás es del jugador) */
+function mergeSrv(d){const before=new Set([...((WAL.mis&&WAL.mis.done)||[]),...((WAL.ach&&WAL.ach.done)||[])]);
+  const o={};for(const k of SRV_FIELDS)if(d[k]!==undefined)o[k]=d[k];mergeWal(o);if(Array.isArray(d.tutPaid))WAL.tutPaid=d.tutPaid;
+  if(walReady){const nw=[...((WAL.mis&&WAL.mis.done)||[]).map(id=>['Misión cumplida: ',id]),...((WAL.ach&&WAL.ach.done)||[]).map(id=>['Logro: ',id])].filter(([,id])=>!before.has(id));
+    if(nw.length){sfx('buy');toast(nw.map(([p,id])=>p+misTitle(id)).join(' · '))}}}
+/* las operaciones de billetera que antes hacía la página, ahora se le piden al servidor */
+async function srvTx(key,d){let op=null;const arg={};
+  if(key.startsWith('daily-'))op='diario';else if(key.startsWith('tut-')){op='tutorial';arg.i=+key.slice(4)}else if(key==='ref-new')op='referidoNuevo';
+  else if(key.startsWith('pack-')){op='pack';arg.i=d.packI}else if(key.startsWith('load-')){op='cargar';arg.fichas=d.chips}
+  if(!op)return false;   // premios de partidas, torneos, referidos, compras y ajustes: los paga el servidor solo
+  try{const r=await NET.srv.call('billetera',Object.assign({op},arg));if(r&&typeof r.chips==='number'){WAL.chips=r.chips;WAL.coins=r.coins;renderWallet()}return !!(r&&r.ok&&!r.ya)}
+  catch(e){toast(e.message||'No se pudo');return false}}
 async function loadWallet(){try{const l=JSON.parse(localStorage.getItem(walKey())||'null');if(l)mergeWal(l)}catch(e){}
   if(db&&uid){try{walRef=db.doc('data/users/'+uid+'/wallet');const s=await walRef.get();if(s.exists)mergeWal(s.data())}catch(e){walRef=null}}
+  if(SRV()&&db&&uid){try{const p=await db.doc('data/users/'+uid+'/prefs').get();if(p.exists)mergeWal(p.data())}catch(e){}
+    try{await NET.srv.call('billetera',{op:'iniciar'})}catch(e){}
+    if(walUnsub)walUnsub();walUnsub=walRef.onSnapshot(x=>{if(x.exists){mergeSrv(x.data());renderWallet();if(view!=='game')render()}},()=>{});
+    walReady=true;renderWallet();
+    srvTx('daily-').then(ok=>{if(ok)toast('Premio del día: +30 monedas')});
+    if(syncLang())saveWallet();if(!WAL.fcode){WAL.fcode=genFriendCode();saveWallet()}writeLooks();render();return}
   walReady=true;renderWallet();
   const today=new Date().toLocaleDateString('en-CA');
   /* premio del día: 30 monedas y, si te quedaste corto, las fichas se completan hasta 1.000 */
@@ -163,8 +187,9 @@ function mergeWal(d){for(const k of ['chips','coins','daily','th2','nick','fcode
   if(Array.isArray(d.owned))WAL.owned=d.owned;if(d.mis)WAL.mis=d.mis;if(d.ach)WAL.ach={cnt:d.ach.cnt||{},done:d.ach.done||[]};if(Array.isArray(d.evk))WAL.evk=d.evk;if(Array.isArray(d.tut))WAL.tut=d.tut;if(Array.isArray(d.friends))WAL.friends=d.friends;if(d.gira)WAL.gira={beat:d.gira.beat||{},bosses:d.gira.bosses||[]};if(d.tours&&typeof d.tours==='object')WAL.tours=d.tours;if(Array.isArray(d.applied))WAL.applied=d.applied;
   if(d.eq)WAL.eq=Object.assign({},WAL.eq,d.eq);if(d.stats)WAL.stats=Object.assign({},WAL.stats,d.stats)}
 async function saveWallet(){const body=JSON.parse(JSON.stringify(WAL));try{localStorage.setItem(walKey(),JSON.stringify(body))}catch(e){}
+  if(SRV()){if(db&&uid){const pr={};for(const k of PREF_FIELDS)if(body[k]!==undefined)pr[k]=body[k];try{await db.doc('data/users/'+uid+'/prefs').set(pr)}catch(e){}}return}
   if(walRef){try{await walRef.set(body)}catch(e){walRef=null}}}
-function applyTx(key,d){walQ=walQ.then(async()=>{if(WAL.applied.includes(key))return false;
+function applyTx(key,d){if(SRV()){walQ=walQ.then(()=>srvTx(key,d));return walQ}walQ=walQ.then(async()=>{if(WAL.applied.includes(key))return false;
     if((d.coins||0)<0&&WAL.coins+d.coins<0)return false;if(d.own&&(d.chips||0)<0&&WAL.chips+d.chips<0)return false;
     WAL.chips=Math.max(0,WAL.chips+(d.chips||0));WAL.coins=Math.max(0,WAL.coins+(d.coins||0));
     if(d.coins>0&&d.earn)WAL.stats.earned+=d.coins;
@@ -175,6 +200,7 @@ function applyTx(key,d){walQ=walQ.then(async()=>{if(WAL.applied.includes(key))re
     WAL.applied=WAL.applied.concat(key).slice(-80);renderWallet();await saveWallet();render();return true});return walQ}
 let lastLooks='';
 async function writeLooks(){if(!db||!uid)return;const st=WAL.stats,body={av:myAv(),dorso:WAL.eq.dorso,pts:st.pts||0,won:st.won,played:st.played,best:st.best,nick:WAL.nick||'',code:WAL.fcode||'',copas:WAL.copas||0,friends:(WAL.friends||[]).slice(0,100)};const v=JSON.stringify(body);if(v===lastLooks)return;lastLooks=v;
+  if(SRV()){delete body.pts;delete body.won;delete body.played;delete body.best;try{await db.doc('looks/'+uid).set(body,{merge:true})}catch(e){lastLooks=''}return}
   try{await db.doc('looks/'+uid).set(body)}catch(e){lastLooks=''}}
 async function fetchLooks(ids){if(!db)return;const miss=ids.filter(id=>id&&!(id in LOOKS));if(!miss.length)return;miss.forEach(id=>LOOKS[id]=null);
   await Promise.all(miss.map(async id=>{try{const s=await db.doc('looks/'+id).get();LOOKS[id]=s.exists?s.data():{}}catch(e){LOOKS[id]={}}}));render()}
@@ -182,7 +208,9 @@ function equip(type,id){WAL.eq[type]=id;if(type==='kit'&&owns('av','hincha',AVM.
 /* la tienda cobra en fichas; quien tiene monedas (ganadas o compradas) también puede pagar con ellas.
    Al revés nunca: las monedas no se convierten en fichas. */
 const FXR=5,fPrice=p=>p*FXR,chipI='<i class="chip" aria-hidden="true"></i>';
-async function buy(type,id,price,name,cur){const coins=cur==='coins';const ok=await applyTx('buy-'+type+'-'+id,coins?{coins:-price,own:type+':'+id}:{chips:-fPrice(price),own:type+':'+id});
+async function buy(type,id,price,name,cur){const coins=cur==='coins';
+  if(SRV()){try{const r=await NET.srv.call('billetera',{op:'comprar',tipo:type,id,moneda:coins?'monedas':'fichas'});if(r&&typeof r.chips==='number'){WAL.chips=r.chips;WAL.coins=r.coins;if(!WAL.owned.includes(type+':'+id))WAL.owned=WAL.owned.concat(type+':'+id);renderWallet()}sfx('buy');toast('¡Compraste '+name+'!');equip(type,id)}
+    catch(e){toast(e.message||'No se pudo comprar')}return}const ok=await applyTx('buy-'+type+'-'+id,coins?{coins:-price,own:type+':'+id}:{chips:-fPrice(price),own:type+':'+id});
   if(ok){sfx('buy');toast('¡Compraste '+name+'!');equip(type,id)}else toast(coins?'No te alcanzan las monedas':'No te alcanzan las fichas')}
 
 /* ---------- jugadores ---------- */
@@ -591,7 +619,7 @@ function gameHTML(){if(!G)return'';const h=G.hand,me=mySeat,mt=myTeam(),a=actor(
     if(tr&&tr.until>now)bub=`<div class="bubble ${tr.cls} pop">${esc(tr.t)}</div>`;
     else if(h.said[s]&&(Date.now()-(SAIDAT[s]||0)<3600||[h.flor.pending,h.env.pending,h.truco.pending].some(x=>x&&x.caller===s))){const sy=SAYS[s];bub=`<div class="bubble ${FX.pop&&FX.pop[s]?'pop':''}">${esc(h.said[s])}${sy&&sy.canon===h.said[s]&&sy.line?`<span class="line">${esc(sy.line)}</span>`:''}</div>`}
     const us=team(s)===mt;
-    let rest='';if(s!==me){rest=h.ended?`<div class="reveal">${h.cards[s].map(c=>cardHTML(c)).join('')}</div>`:`<div class="backs" aria-label="${h.cards[s].length} cartas">${h.cards[s].map(()=>`<i style="background:${backBg(look.dorso)}"></i>`).join('')}</div>`}
+    let rest='';if(s!==me){rest=h.ended?`<div class="reveal">${h.cards[s].filter(c=>c!=='?').map(c=>cardHTML(c)).join('')}</div>`:`<div class="backs" aria-label="${h.cards[s].length} cartas">${h.cards[s].map(()=>`<i style="background:${backBg(look.dorso)}"></i>`).join('')}</div>`}
     const badge=`<div class="badge ${us?'us':''} ${a===s?'active':''}">${avatarSVG(look.av,32)}<span>${esc(nameOf(s))}${isAbsent(s)?' · bot':''}</span>${G.mano===s?'<span class="m" title="Es mano">mano</span>':''}</div>`;
     if(G.n===2)seatsHTML.push(`<div class="seat pos-${pos}">${pos==='bottom'?badge:`<div class="seathead">${badge}${rest}</div>`}${bub}</div>`);
     else seatsHTML.push(`<div class="seat pos-${pos}">${pos==='bottom'?`<div class="played">${cards}</div>${badge}`:`<div class="seathead">${badge}${rest}</div><div class="played">${cards}</div>`}${bub}</div>`)}
@@ -609,7 +637,7 @@ function gameHTML(){if(!G)return'';const h=G.hand,me=mySeat,mt=myTeam(),a=actor(
   if(TUT&&h.ended){const nx=TUT.i+1<LESSONS.length;center=`<div class="result"><b>¡Lección cumplida!</b><span>${esc(co&&co.done||'')}</span><span>+20 monedas la primera vez</span><div class="btns">${nx?`<button class="btn prim" data-a="lesson" data-i="${TUT.i+1}">Siguiente lección</button>`:''}<button class="btn" data-a="tomenu">${nx?'Menú':'Volver al menú'}</button></div></div>`}
   else if(h.ended&&!G.matchOver){const gains=h.gains.map(x=>`${teamName(x.tm)} +${x.p} por ${x.why}`).join(' · ');
     center=`<div class="result"><b>${h.ended.winner===mt?'La mano es nuestra':'La mano es de ellos'}</b><span>${esc(gains)}</span>${mode==='offline'||(me>=0&&controllerSeat()===mySeat)?'<button class="btn prim" data-a="next">Repartir</button>':'<span>Reparte la próxima en un ratito…</span>'}</div>`}
-  const myCards=me>=0?h.cards[me]:[];const L=me>=0?legal(G,me):{};
+  const myCards=me>=0?h.cards[me].filter(c=>c!=='?'):[];const L=me>=0?legal(G,me):{};
   if(SELCARD&&(!L.play||!myCards.includes(SELCARD)))SELCARD=null;
   const hand=`<div class="hand ${L.play?'':'wait'} ${SELCARD?'picking':''}">${myCards.map((c,i)=>`<button type="button" class="${FX.deal?'dealt':''} ${SELCARD===c?'sel':''} ${TUT&&L.play&&coachNow()&&coachNow().x&&tutAllowed({t:'play',card:c})?'tutpick':''}" aria-pressed="${SELCARD===c}" style="animation-delay:${i*90}ms" data-card="${c}" ${L.play&&!busy&&tutAllowed({t:'play',card:c})?'':'disabled'} aria-label="${SELCARD===c?'Tocá de nuevo para tirar':'Elegir esta carta'}">${cardHTML(c)}</button>`).join('')}</div>`;
   let info='';if(SET.help&&me>=0&&!h.ended&&h.results.length===0){const o=h.orig[me];info=G.flor&&hasFlor(o)?`<span>Tenés flor: <b>${florVal(o)}</b></span>`:`<span>Tu envido: <b>${envidoOf(o)}</b></span>`}
@@ -681,13 +709,13 @@ function overlayHTML(){
   if(view==='game'&&G&&G.matchOver){const won=G.matchOver.winner===myTeam();const st=G.stake;const TT=mode==='online'&&T&&T.tour;const can=!TT&&(mode==='offline'||isHost);
     const rw=lastReward&&lastReward.matchId===G.matchId?lastReward.coins:null;
     let conf='';if(won&&FX.over){const suits=['O','C','E','B'];for(let i=0;i<26;i++){const s=suits[i%4];conf+=`<svg viewBox="0 0 24 24" style="left:${(Math.random()*100).toFixed(1)}%;animation-delay:${(Math.random()*.9).toFixed(2)}s;color:${SUITCOL[s]}"><use href="#s${s}"/></svg>`}}
-    const canc=G.matchOver.cancelled,k=canc?'nada':won?'win':'lose',dos=G.n===4,a1=G.scores[myTeam()],a2=G.scores[1-myTeam()];
+    const srvRw=SRV()&&T&&T.rewards?T.rewards[uid]:null;const canc=G.matchOver.cancelled,k=canc?'nada':won?'win':'lose',dos=G.n===4,a1=G.scores[myTeam()],a2=G.scores[1-myTeam()];
     const sub=canc?'Alguien se fue en los primeros 30 segundos: se devolvieron todas las entradas.':won?`${dos?'Ganaron':'Ganaste'} ${a1} a ${a2}${G.matchOver.forfeit?', el rival abandonó':''}`:`${dos?'Perdieron':'Perdiste'} ${a1} a ${a2}${G.matchOver.forfeit?', por abandono':''}`;
     return `<div class="over">${conf?`<div class="confetti" aria-hidden="true">${conf}</div>`:''}<div class="panel endp ${k} ${FX.over?'anim':''}">
       <div class="cartel ${k} ${FX.over?'anim':''}" role="status"><div class="c-rays" aria-hidden="true"></div><div class="c-av">${avatarSVG(myAv(),88,true)}</div>
         <div class="c-rib">${VOLUTA}<b>${canc?'Cancelada':won?'¡Victoria!':'Derrota'}</b>${VOLUTA.replace('class="vol"','class="vol r"')}</div></div>
       <p class="c-sub">${sub}</p>${TT?`<p class="note">${esc(T.tour.name)} · ${esc(T.tour.label||'')}: ${won?'pasás a la siguiente':'quedaste afuera de este cruce'}.</p>`:''}
-      ${st&&mySeat>=0?`<p class="big"><i class="chip"></i>${won?'+ '+fmt(st*2):'− '+fmt(st)} fichas</p>`:''}
+      ${st&&mySeat>=0?`<p class="big"><i class="chip"></i>${won?'+ '+fmt(srvRw&&srvRw.chips!=null?srvRw.chips:stakeTable(G)?tablePrize(st,G.n):st*2):'− '+fmt(st)} fichas</p>`:''}
       ${rw?`<p class="big">${coinI}+ ${fmt(rw)} monedas</p>`:''}${CAMP?giraOverHTML():''}
       <div class="btns">${TT?`<button class="btn prim" data-a="tourback">Volver al torneo</button>`:can?`<button class="btn prim" data-a="rematch" ${st>WAL.chips?'disabled':''}>Revancha</button>`:'<p class="note">Esperando la revancha del anfitrión</p>'}<button class="btn" data-a="tomenu">${CAMP?'Volver al mapa':'Menú'}</button></div>${canc?'':`<button type="button" class="btn share" data-a="sharemk">${SHAREICO}Compartir el resultado</button>`}</div></div>`}
   return''}
@@ -699,7 +727,10 @@ function startSolo(){TUT=null;mySena=null;CAMP=null;if(FB){fbStartAI();return}co
   mode='offline';mySeat=0;view='game';confirmExit=false;panel=null;
   setG(newMatch({...cfg,seats,matchId:'solo-'+Date.now().toString(36)}));
   if(stake)applyTx(G.matchId+':in',{chips:-stake});render();drive()}
-function settle(g){if(!g||!g.matchOver||mySeat<0)return;const key=g.matchId+':done';if(WAL.applied.includes(key))return;
+const SHOWNRW=new Set();
+function settle(g){if(!g||!g.matchOver||mySeat<0)return;
+  if(SRV()&&mode==='online'){const rw=T&&T.rewards&&T.rewards[uid];if(rw&&!SHOWNRW.has(g.matchId)){SHOWNRW.add(g.matchId);lastReward={matchId:g.matchId,coins:rw.coins||0};
+      const av=(rw.avisos||[]).map(x=>(x.tipo==='mision'?'Misión cumplida: ':'Logro: ')+misTitle(x.id));if(av.length)setTimeout(()=>toast(av.join(' · ')),1200);render()}return}const key=g.matchId+':done';if(WAL.applied.includes(key))return;
   const won=g.matchOver.winner===myTeam();const prize=mode==='online'?60:({facil:20,medio:40,dificil:80})[g.diff]||40;const coins=won?prize:5;
   const pts=won?(mode==='online'?30:({facil:3,medio:8,dificil:15})[g.diff]||8):0;
   const mo=g.matchOver;let chips=won&&g.stake?g.stake*2:0;
@@ -730,7 +761,14 @@ const gsig=g=>g?g.matchId+'|'+g.seq+'|'+g.handNo+'|'+JSON.stringify(g.hand.cards
 const mtime=id=>{const t=parseInt(String(id||'').split('-').pop(),36);return isFinite(t)?t:0};
 function fresher(ng,g){if(!g||!ng)return true;if(ng.matchId!==g.matchId)return mtime(ng.matchId)>=mtime(g.matchId);return ng.seq>=g.seq}
 function reconcile(){if(busy||mode!=='online'||!T||!T.game)return;if(!G||(gsig(G)!==gsig(T.game)&&fresher(T.game,G)))setG(T.game)}
-function drive(){clearTimeout(driveT);if(!G||view!=='game')return;const ctrl=mode==='offline'||(mode==='online'&&mySeat>=0&&controllerSeat()===mySeat);if(!ctrl||G.matchOver)return;
+/* modo servidor: quien maneja la mesa le avisa al servidor que es momento de que juegue el bot, de repartir
+   o de revisar a alguien que no responde. El servidor decide si corresponde. */
+function srvDrive(){if(!G||view!=='game'||G.matchOver||mySeat<0||!T||controllerSeat()!==mySeat)return;const seq=G.seq,code=T.code;let wait=null;
+  if(G.hand.ended)wait=2800;else{const a=actor(G);if(a<0)return;const st=G.seats[a];
+    if(st.bot||(T.abandonos&&T.abandonos[st.id]))wait=850+Math.random()*700;else if(a!==mySeat&&isAbsent(a))wait=5000;else return}
+  driveT=setTimeout(async()=>{if(!G||G.seq!==seq)return;let r=null;try{r=await NET.srv.call('salaAvanzar',{code,seq})}catch(e){}
+    if(G&&G.seq===seq&&!(r&&r.ok)){clearTimeout(driveT);driveT=setTimeout(drive,2500)}},wait)}
+function drive(){clearTimeout(driveT);if(!G||view!=='game')return;if(SRV()&&mode==='online'){srvDrive();return}const ctrl=mode==='offline'||(mode==='online'&&mySeat>=0&&controllerSeat()===mySeat);if(!ctrl||G.matchOver)return;
   if(G.hand.ended){if(TUT)return;const seq=G.seq;driveT=setTimeout(()=>{if(G&&G.seq===seq&&G.hand.ended&&!G.matchOver)commit(nextHand(G))},3400);return}
   const a=actor(G);if(a<0)return;const absent=isAbsent(a);if(!G.seats[a].bot&&!absent)return;const seq=G.seq;
   if(absent&&stakeTable(G)){const id=G.seats[a].id,left=(goneSince[id]||Date.now())+GRACE+60000-Date.now();
@@ -740,7 +778,14 @@ function drive(){clearTimeout(driveT);if(!G||view!=='game')return;const ctrl=mod
     if(TUT){const sc=LESSONS[TUT.i].script[TUT.step];if(sc){try{act(G,a,sc);ac=sc;TUT.step++}catch(e){}}}
     let hint=null;if(mode==='offline'&&G.n===4&&a===2&&mySena&&mySena.handNo===G.handNo)hint=senaHint(G,mySena.ks,0);
     try{if(!ac)ac=aiAct(G,a,absent?'dificil':undefined,hint);commit(act(G,a,ac))}catch(e){console.error(e)}},850+Math.random()*700)}
-function doAction(ac){if(busy||!G||mySeat<0||actor(G)!==mySeat)return;if(TUT&&!tutAllowed(ac)){toast('Seguí la indicación de la lección');return}try{commit(act(G,mySeat,ac))}catch(e){console.error(e);toast('Esa jugada no es válida ahora')}}
+/* modo servidor: la jugada la valida y la aplica el servidor. La carta tirada se ve salir enseguida;
+   si el servidor no la acepta, la mesa vuelve a como estaba. */
+async function srvAct(ac){const code=T&&T.code;if(!code||!G)return;const seq=G.seq;confirmMazo=false;
+  if(ac.t==='play'){try{setG(act(G,mySeat,ac))}catch(e){}}
+  busy=true;render();let r=null;
+  try{r=await NET.srv.call('salaJugar',{code,seq,accion:ac})}catch(e){toast(e.message&&e.code!=='internal'?e.message:'No se pudo enviar la jugada. Revisá tu conexión.')}
+  busy=false;if(!(r&&r.ok)&&T&&T.game)setG(T.game);else if(T&&T.game&&fresher(T.game,G)&&gsig(T.game)!==gsig(G))setG(T.game);render();drive()}
+function doAction(ac){if(busy||!G||mySeat<0||actor(G)!==mySeat)return;if(TUT&&!tutAllowed(ac)){toast('Seguí la indicación de la lección');return}if(SRV()&&mode==='online'){srvAct(ac);return}try{commit(act(G,mySeat,ac))}catch(e){console.error(e);toast('Esa jugada no es válida ahora')}}
 function showTransient(s,t,cls,ms=3600){transient[s]={t,cls,until:Date.now()+ms};render();setTimeout(()=>{if(transient[s]&&transient[s].until<=Date.now()){delete transient[s];if(view==='game')render()}},ms+50)}
 function sendReact(k){if(!REACTS[k]||mySeat<0)return;panel=null;showTransient(mySeat,REACTS[k],'react');
   if(mode==='online'&&R)R.emit('react',{seat:mySeat,k}).catch(()=>{});
@@ -763,17 +808,25 @@ async function createTable(){const on=SET.on;if(on.stake>WAL.chips){toast('No te
   catch(e){toast('No se pudo crear la mesa. Necesitás permiso para editar esta página.')}}
 async function joinRoom(code){if(!roomCap)return;try{if(R){await R.leave().catch(()=>{});R=null}
   R=await roomCap.join('reviro-'+code.toLowerCase());roomJoinedAt=Date.now();PEERS=null;R.on('react',onReactMsg,()=>{});R.on('sena',onSenaMsg,()=>{});R.onPeers(ch=>{PEERS=ch.peers;presenceTick()},()=>{});R.presence({here:true,uid}).catch(()=>{})}catch(e){R=null}}
-function openTable(code){code=code.toUpperCase();if(unsubTable)unsubTable();tableRef=db.doc('tables/'+code);T=null;view='room';G=null;panel=null;
+let MYHAND=null,manoUnsub=null;
+/* modo servidor: la mesa pública trae las cartas tapadas; las mías llegan aparte, solo para mí */
+function mergeMine(g){if(!g||!SRV()||mySeat<0)return g;const h=g.hand;if(h.ended)return g;
+  if(MYHAND&&MYHAND.matchId===g.matchId&&MYHAND.handNo===g.handNo&&MYHAND.seat===mySeat){const pl=new Set();for(const b of h.bazas)for(const x of b.plays)if(x.seat===mySeat)pl.add(x.card);
+    h.orig[mySeat]=MYHAND.orig.slice();h.cards[mySeat]=MYHAND.orig.filter(c=>!pl.has(c))}
+  return g}
+function openTable(code){code=code.toUpperCase();if(unsubTable)unsubTable();
+  if(manoUnsub){manoUnsub();manoUnsub=null}MYHAND=null;
+  if(SRV()&&uid)manoUnsub=NET.srv.watchMano(code,uid,d=>{MYHAND=d;if(T&&T.game)T.game=mergeMine(T.game);if(G&&!busy){G=mergeMine(G);if(view==='game')render()}});tableRef=db.doc('tables/'+code);T=null;view='room';G=null;panel=null;
   try{localStorage.setItem('reviro.table',code)}catch(e){}render();joinRoom(code);
   let first=true;unsubTable=tableRef.onSnapshot(s=>{onTable(s,first);first=false},()=>toast('Se cortó la conexión con la mesa'))}
 function onTable(snap,first){if(!snap.exists){toast(first?'No existe una mesa con ese código':'La mesa se cerró');leaveTable(true);return}
-  T=snap.data();mySeat=T.seats.findIndex(s=>s.id===uid);isHost=T.host===uid;
+  T=snap.data();mySeat=T.seats.findIndex(s=>s.id===uid);isHost=T.host===uid;if(SRV()&&T.game)T.game=mergeMine(T.game);
   if(FB&&T.tour)tourOnTable();
-  if(FB&&T.status==='finished'&&T.result&&mySeat>=0)fbRecord(T.code,T.result.matchId);
+  if(FB&&!SRV()&&T.status==='finished'&&T.result&&mySeat>=0)fbRecord(T.code,T.result.matchId);
   if(T.status==='closed'){toast('El anfitrión cerró la mesa');leaveTable(true);return}
   if(T.status==='waiting'){view='room';G=null;if(first&&mySeat<0){const i=T.seats.findIndex(s=>!s.id&&!s.bot);if(i>=0&&T.stake<=WAL.chips){if(FB)NET.rooms.join(T.code).catch(()=>{});else sit(i)}}}
   else if(T.game){mode='online';view='game';if(!busy&&(!G||(gsig(G)!==gsig(T.game)&&fresher(T.game,G))))setG(T.game);
-    if(mySeat>=0&&T.stake)applyTx(G.matchId+':in',{chips:-T.stake});settle(G)}
+    if(mySeat>=0&&T.stake&&!SRV())applyTx(G.matchId+':in',{chips:-T.stake});settle(G);if(CAMP&&G&&G.matchOver)settleGira(G)}
   render();drive()}
 async function getLease(ref){for(let k=0;k<8;k++){const r=await ref.acquire({holder:uid+':'+TABID,ttlMs:1500});if(r.acquired)return true;await new Promise(res=>setTimeout(res,Math.min(1600,Math.max(120,(r.expiresAt?Date.parse(r.expiresAt)-Date.now():300)+40))))}return false}
 async function withLease(fn){if(!await getLease(tableRef)){toast('Alguien está moviendo los asientos, probá de nuevo');return}
@@ -784,10 +837,11 @@ async function sit(i){if(FB){try{const r=await NET.rooms.sit(T.code,i);if(!r.ok)
 async function setSeat(i,val){if(FB){try{await NET.rooms.updateSeats(T.code,s=>{s[i]=val;return s})}catch(e){toast('No se pudo cambiar el asiento')}return}
   try{await withLease(async d=>{const seats=d.seats.slice();seats[i]=val;await tableRef.update({seats})})}catch(e){toast('No se pudo cambiar el asiento')}}
 async function startOnline(){if(!T)return;
+  if(SRV()){try{await NET.srv.call('salaEmpezar',{code:T.code})}catch(e){toast(e.message||'No se pudo empezar la partida')}return}
   if(FB){try{const r=await NET.rooms.startRoom(T.code,(seats,d)=>newMatch({n:d.n,target:d.target,stake:d.stake,flor:d.flor!==false,seats:seats.map(s=>({id:s.id,bot:!!s.bot})),matchId:d.code+'-'+Date.now().toString(36),diff:d.diff||'medio'}));if(!r.ok)toast('No se pudo empezar la partida')}catch(e){toast('No se pudo empezar la partida')}return}
   const g=newMatch({n:T.n,target:T.target,stake:T.stake,flor:T.flor!==false,seats:T.seats.map(s=>({id:s.id,bot:!!s.bot})),matchId:T.code+'-'+Date.now().toString(36),diff:'medio'});
   try{await tableRef.update({status:'playing',game:g,startedAt:Date.now()})}catch(e){toast('No se pudo empezar la partida')}}
-async function leaveTable(silent){const ref=tableRef,t=T;if(unsubTable){unsubTable();unsubTable=null}if(R){R.leave().catch(()=>{});R=null}
+async function leaveTable(silent){const ref=tableRef,t=T;if(unsubTable){unsubTable();unsubTable=null}if(manoUnsub){manoUnsub();manoUnsub=null}MYHAND=null;if(R){R.leave().catch(()=>{});R=null}
   if(FB&&t){const c=t.code;abandonP.finally(()=>NET.rooms.leaveRoom(c)).catch(()=>{});abandonP=Promise.resolve()}
   else if(!silent&&ref&&t&&t.status==='waiting'){try{if(t.host===uid)await ref.update({status:'closed'});else{if(await getLease(ref)){const s=await ref.get();if(s.exists)await ref.update({seats:s.data().seats.map(x=>x.id===uid?{id:null,bot:false}:x)})}}}catch(e){}}
   try{localStorage.removeItem('reviro.table')}catch(e){}T=null;tableRef=null;G=null;mode=null;view='menu';panel=null;clearTimeout(driveT);render()}
@@ -801,6 +855,9 @@ const inProgress=()=>!!(G&&!G.matchOver&&mySeat>=0&&!TUT);
 const humansIn=g=>g?g.seats.filter(s=>s.id&&!s.bot).length:0;
 const countsOnline=g=>mode==='online'&&humansIn(g)>=2;
 function abandonCurrent(){if(!inProgress())return;const g=G;
+  if(SRV()&&mode==='online'&&T){const code=T.code,tt=T.tour,st=stakeTable(g),early=st&&Date.now()-((T&&T.startedAt)||0)<30000;abandonP=NET.srv.call('salaSalir',{code}).catch(()=>{});
+    if(CAMP)settleGira(Object.assign({},g,{matchOver:{winner:1}}));
+    toast(early?'Te fuiste al arrancar: se cancela la partida y se devuelven las entradas':st?'Abandonaste: perdés tu entrada':tt?'Abandonaste: perdés este partido del torneo':countsOnline(g)?'Abandonaste la partida: cuenta como derrota':CAMP?'Abandonaste: perdés los porotos de esta partida':'Saliste de la partida');return}
   /* mesa con entrada: en los primeros 30 segundos se cancela y se devuelve todo; después, el que se va pierde su entrada */
   if(stakeTable(g)){const early=Date.now()-((T&&T.startedAt)||g.startedAt||0)<30000;
     if(early){const ng=endWith({winner:-1,cancelled:true});abandonP=forceEnd(ng)();applyTx(g.matchId+':done',{chips:g.stake});toast('Te fuiste al arrancar: se cancela la partida y se devuelven las entradas');return}
@@ -813,7 +870,7 @@ function abandonCurrent(){if(!inProgress())return;const g=G;
   if(FB&&mode==='online'&&T){const code=T.code,tt=T.tour;abandonP=NET.stats.recordAbandon(code).then(r=>{if(r&&r.stats)MYUSER=Object.assign({},MYUSER,{stats:r.stats})})
     .then(()=>tt?NET.tour.forfeit(code).then(()=>NET.tour.reportResult(tt.tid,tt.mid)):null).catch(()=>{})}
   toast(FB&&mode==='online'&&T&&T.tour?'Abandonaste: perdés este partido del torneo':countsOnline(g)?'Abandonaste la partida: cuenta como derrota':CAMP?'Abandonaste: perdés los porotos de esta partida':'Saliste de la partida')}
-function toMenu(){if(UPDATE_PENDING&&!(view==='game'&&inProgress())){location.reload();return}TUT=null;mySena=null;const wasCamp=!!CAMP;CAMP=null;if(mode==='online')leaveTable(true);else{G=null;mode=null;view=wasCamp?'gira':'menu';panel=null;clearTimeout(driveT);render()}}
+function toMenu(){if(UPDATE_PENDING&&!(view==='game'&&inProgress())){location.reload();return}TUT=null;mySena=null;const wasCamp=!!CAMP;CAMP=null;if(mode==='online'){leaveTable(true);if(wasCamp){view='gira';render()}}else{G=null;mode=null;view=wasCamp?'gira':'menu';panel=null;clearTimeout(driveT);render()}}
 
 /* ---------- presencia online: quién está y quién maneja la mesa ---------- */
 let PEERS=null,roomJoinedAt=0;const goneSince={};
@@ -843,40 +900,13 @@ function senaHint(g,ks,from){const map={cejas:['1E'],guino:['1B'],bocader:['7E']
   return H.cards||H.weak||H.env?H:null}
 
 /* ---------- misiones y logros ---------- */
-const MISSIONS=[
- {id:'manos5',t:'Ganá 5 manos',ev:'hand_won',goal:5,r:40},
- {id:'retruco2',t:'Ganá 2 manos con retruco querido',ev:'retruco_won',goal:2,r:60},
- {id:'envido3',t:'Ganá 3 envidos',ev:'envido_won',goal:3,r:50},
- {id:'falta1',t:'Ganá un falta envido',ev:'falta_won',goal:1,r:80},
- {id:'flor1',t:'Sumá puntos con una flor',ev:'flor_won',goal:1,r:60},
- {id:'partida1',t:'Ganá una partida',ev:'match_won',goal:1,r:50},
- {id:'dificil1',t:'Ganale a la máquina en Difícil',ev:'match_won_dificil',goal:1,r:120},
- {id:'online1',t:'Jugá una partida online',ev:'online_played',goal:1,r:60},
- {id:'vale4',t:'Ganá una mano con vale cuatro',ev:'vale4_won',goal:1,r:100},
- {id:'parda1',t:'Ganá una mano que tuvo parda',ev:'parda_won',goal:1,r:50},
- {id:'mazo2',t:'Hacé que el rival se vaya al mazo 2 veces',ev:'mazo_rival',goal:2,r:40},
- {id:'jugar3',t:'Jugá 3 partidas',ev:'match_played',goal:3,r:50},
-];
-const ACHS=[
- {id:'primera',t:'Primera de muchas',d:'Ganá tu primera partida',ev:'match_won',goal:1,r:50},
- {id:'diez',t:'Ya sos de la mesa',d:'Ganá 10 partidas',ev:'match_won',goal:10,r:150},
- {id:'cien',t:'Cien manos',d:'Ganá 100 manos',ev:'hand_won',goal:100,r:200},
- {id:'faltero',t:'El Faltero',d:'Ganá un falta envido',ev:'falta_won',goal:1,r:80},
- {id:'florista',t:'Florista',d:'Sumá puntos con 10 flores',ev:'flor_won',goal:10,r:150},
- {id:'vale4x5',t:'Cuatro al hilo',d:'Ganá 5 manos con vale cuatro',ev:'vale4_won',goal:5,r:150},
- {id:'dificil',t:'Le ganaste a la Difícil',d:'Ganale a la máquina en Difícil',ev:'match_won_dificil',goal:1,r:150},
- {id:'maestro',t:'Maestro del truco',d:'10 victorias en Difícil',ev:'match_won_dificil',goal:10,r:400},
- {id:'online10',t:'Habitué del club',d:'Jugá 10 partidas online',ev:'online_played',goal:10,r:200},
- {id:'racha5',t:'Racha de cinco',d:'Ganá 5 partidas seguidas',ev:'@streak',goal:5,r:150},
- {id:'coleccion',t:'Coleccionista',d:'Tené 6 personajes',ev:'@avatars',goal:6,r:120},
- {id:'alumno',t:'Alumno aplicado',d:'Completá el tutorial',ev:'tutorial_done',goal:1,r:60},
-];
+/* MISSIONS y ACHS están en src/cat.js: los usa también el servidor */
 function dayHash(s){let h=0;for(const ch of s)h=(h*31+ch.charCodeAt(0))>>>0;return h}
 function ensureMissions(){const today=new Date().toLocaleDateString('en-CA');if(WAL.mis&&WAL.mis.date===today)return;
   const ids=MISSIONS.map(m=>m.id);let x=dayHash(today);const pick=[];while(pick.length<3){x=(x*1103515245+12345)>>>0;const id=ids[x%ids.length];if(!pick.includes(id))pick.push(id)}
   WAL.mis={date:today,ids:pick,prog:{},done:[]}}
 function achValue(a){if(a.ev==='@streak')return Math.max(WAL.stats.best||0,WAL.stats.abest||0);if(a.ev==='@avatars')return AVS.filter(x=>owns('av',x.id,x.price)).length;return (WAL.ach.cnt[a.ev]||0)}
-function recordEvents(key,evs){walQ=walQ.then(async()=>{if(key&&WAL.evk.includes(key))return;ensureMissions();const msgs=[];let chips=0;
+function recordEvents(key,evs){if(SRV())return walQ;walQ=walQ.then(async()=>{if(key&&WAL.evk.includes(key))return;ensureMissions();const msgs=[];let chips=0;
     for(const ev of evs){WAL.ach.cnt[ev]=(WAL.ach.cnt[ev]||0)+1;
       for(const id of WAL.mis.ids){const m=MISSIONS.find(x=>x.id===id);if(!m||m.ev!==ev||WAL.mis.done.includes(id))continue;
         WAL.mis.prog[id]=Math.min(m.goal,(WAL.mis.prog[id]||0)+1);if(WAL.mis.prog[id]>=m.goal){WAL.mis.done.push(id);chips+=fPrice(m.r);msgs.push('Misión cumplida: '+m.t+' (+'+fmt(fPrice(m.r))+' fichas)')}}}
@@ -1170,6 +1200,7 @@ function tablaHTML(){const c=WAL.copas||0;const table=RIVALS.map(r=>({n:r.name,c
 function startGira(rid){const r=RM[rid];if(!r||!zoneOpen(ZM[r.zone]))return;TUT=null;mySena=null;
   CAMP={rid,before:WAL.copas||0};cfg={n:2,target:r.boss?30:15,stake:0,diff:r.diff,flor:SET.hflor!==false};
   botLooks={1:{av:r.av,dorso:['pampa','cuero','marino','noche','celeste','oro','fileteado','bordo','viento'][ZONES.findIndex(z=>z.id===r.zone)]||'pampa'}};
+  if(SRV()){confirmExit=false;panel=null;NET.rooms.createRoom({n:2,target:cfg.target,flor:cfg.flor,stake:0,diff:r.diff,bots:1}).then(code=>NET.srv.call('salaEmpezar',{code}).then(()=>openTable(code))).catch(e=>{CAMP=null;toast(e.message||'No se pudo armar la partida')});return}
   mode='offline';mySeat=0;view='game';confirmExit=false;panel=null;
   const gm=newMatch({...cfg,seats:[{me:true},{bot:true}],matchId:'gira-'+rid+'-'+Date.now().toString(36)});gm.skill=r.skill;setG(gm);render();drive()}
 function settleGira(g){if(!CAMP||!g.matchOver||CAMP.done===g.matchId)return;const C=CAMP;C.done=g.matchId;const r=RM[C.rid];const won=g.matchOver.winner===0;
@@ -1316,8 +1347,8 @@ function settingsHTML(){const tg=(k,l,sub,inv)=>`<div class="toggle"><span>${l}<
   if(tab==='cuenta')body=`<section class="box"><p style="margin:0">Jugás como <b>${esc(myDisp())}</b>${PREMIUM?' · <span class="prem">Premium</span>':''}</p>${myEmail?`<p class="note" style="margin:0">Cuenta: ${esc(myEmail)}</p>`:''}
       <p class="note" style="margin:0">Tu código de amigo es <b>${esc(WAL.fcode||'—')}</b>. El apodo y los amigos se manejan desde Perfil.</p>
       <button class="btn" data-a="nav" data-v="profile">Ir a Perfil</button><button class="btn ghost" data-a="terms">Términos y condiciones</button>${fbAccountHTML()}</section>`;
-  if(tab==='admin'){const ao=FB?[['usuarios','Jugadores'],['salas','Salas'],['cobros','Cobros'],['links','Links de pago'],['registro','Registro'],['premium','Premium']]:[['premium','Premium']];const [at,atabs]=ptabs('adm',ao,ao[0][0]);
-    body=atabs+(at==='usuarios'?fbUsersHTML():at==='salas'?fbRoomsHTML():at==='cobros'?mpPendHTML():at==='links'?mpAdminHTML():at==='registro'?auditHTML():adminHTML())}
+  if(tab==='admin'){const ao=FB?[['usuarios','Jugadores'],['salas','Salas'],['cobros','Cobros'],['links','Links de pago'],['registro','Registro'],['premium','Premium'],['servidor','Servidor']]:[['premium','Premium']];const [at,atabs]=ptabs('adm',ao,ao[0][0]);
+    body=atabs+(at==='usuarios'?fbUsersHTML():at==='salas'?fbRoomsHTML():at==='cobros'?mpPendHTML():at==='links'?mpAdminHTML():at==='registro'?auditHTML():at==='servidor'?srvAdminHTML():adminHTML())}
   return phd('Ajustes','','profile')+tabs+`<div class="pbody">${body}</div>`}
 /* ---------- bienvenida ---------- */
 function welcomeHTML(){return `<div class="gate">${fileteHTML('gtitle')}<section class="box"><h2>¡Bienvenido a la mesa, ${esc(myDisp())}!</h2>
@@ -1361,7 +1392,9 @@ function turnBarHTML(){const t=turnInfo();if(!t)return'';const pct=Math.round(t.
   return `<div class="turnbar ${t.a===mySeat?'mine':''} ${t.rem<8000?'low':''}" role="timer" aria-label="Tiempo para jugar"><span class="tt" id="tbart">${esc(t.a===mySeat?'Tu turno':nameOf(t.a))} · <b>${Math.ceil(t.rem/1000)}</b> s</span><span class="tr"><i id="tbari" style="transform:scaleX(${(pct/100).toFixed(3)})"></i></span></div>`}
 function turnTick(){const t=turnInfo();if(!t)return;const i=document.getElementById('tbari'),s=document.getElementById('tbart');
   if(i){i.style.transform=`scaleX(${(t.rem/TURN_MS).toFixed(3)})`;const bar=i.closest('.turnbar');if(bar)bar.classList.toggle('low',t.rem<8000)}if(s)s.innerHTML=esc(t.a===mySeat?'Tu turno':nameOf(t.a))+' · <b>'+Math.ceil(t.rem/1000)+'</b> s';
-  if(t.rem<=0&&controllerSeat()===mySeat&&lastTimeout!==G.seq&&!busy){lastTimeout=G.seq;const who=nameOf(t.a);
+  if(SRV()&&t.rem<=0&&controllerSeat()===mySeat&&lastTimeout!==G.seq&&!busy&&T){lastTimeout=G.seq;const who=nameOf(t.a),seq=G.seq;
+    NET.srv.call('salaAvanzar',{code:T.code,seq}).then(r=>{if(r&&r.ok)toast('Se acabó el tiempo: el bot jugó por '+(t.a===mySeat?'vos':who));else setTimeout(()=>{if(G&&G.seq===seq)lastTimeout=-1},2000)}).catch(()=>setTimeout(()=>{lastTimeout=-1},2000));return}
+  if(!SRV()&&t.rem<=0&&controllerSeat()===mySeat&&lastTimeout!==G.seq&&!busy){lastTimeout=G.seq;const who=nameOf(t.a);
     try{commit(act(G,t.a,aiAct(G,t.a,'medio')));toast('Se acabó el tiempo: el bot jugó por '+(t.a===mySeat?'vos':who))}catch(e){}}}
 
 
@@ -1416,6 +1449,7 @@ async function onFbUser(info,fresh){AUTHINFO=info;
   if(!info.user&&!(NET.auth.user())){AUTHV='complete';view='auth';render();return}
   const u=NET.auth.user();if(uid===info.uid&&view!=='auth'&&!fresh)return;
   uid=info.uid;db=NET.db;usr=NET.usr;roomCap=NET.roomCap;myName=u.username;myEmail=info.email;isOwnerV=NET.auth.isAdmin();PREMIUM=isOwnerV;
+  if(NET.srv){await NET.srv.estado();if(!srvWatch)srvWatch=NET.srv.watch(()=>{if(!(view==='game'&&inProgress()))location.reload();else UPDATE_PENDING=true})}
   await loadWallet();
   if(!WAL.nick)WAL.nick=u.username;
   if(!WAL.registered){WAL.registered=true;WAL.eq.av=AVM[u.avatar]?u.avatar:'gaucho';saveWallet();writeLooks();view='welcome';setTimeout(claimReferral,1500)}
@@ -1424,8 +1458,8 @@ async function onFbUser(info,fresh){AUTHINFO=info;
   if(u.banned){view='banned';render();return}
   if(!u.terms||u.terms.version!==NET.auth.TERMS_V)overlayView='termsAccept';
   subLobby();subFriends();subPremium();subAdmin();subFbAdmin();subInvites();subTours();subPay();subRewards();checkInviteHash();
-  NET.stats.recordPending().catch(()=>{});render()}
-const RECORDED=new Set();
+  if(!SRV())NET.stats.recordPending().catch(()=>{});render()}
+const RECORDED=new Set();let srvWatch=null;
 function fbRecord(code,matchId){if(RECORDED.has(matchId))return;RECORDED.add(matchId);
   NET.stats.recordMatch(code).then(r=>{if(r&&r.stats){MYUSER=Object.assign({},MYUSER,{stats:r.stats});NET.ref.markPlayed();render()}}).catch(()=>RECORDED.delete(matchId))}
 function fbStatsHTML(){const s=(MYUSER&&MYUSER.stats)||NET.EMPTY_STATS;const cs=s.currentStreak||0;
@@ -1453,10 +1487,21 @@ function fbUsersHTML(){if(!FB||!isOwnerV)return'';const users=ADM_USERS||[];
   return `<section class="box admin grow"><input class="tin" id="admq" type="search" placeholder="Buscar por usuario o apodo interno" value="${esc(ADMQ)}" autocomplete="off">
     <div class="admbar"><div class="seg" role="group"><button type="button" data-a="admsort" data-v="nombre" aria-pressed="${ADMSORT==='nombre'}">A-Z</button><button type="button" data-a="admsort" data-v="fichas" aria-pressed="${ADMSORT==='fichas'}">Más fichas</button></div>${ADM_WAL?`<small class="note">En total: <b>${fmt(Object.values(ADM_WAL).reduce((t,w)=>t+w.chips,0))}</b> fichas</small>`:''}</div>${ADM_USERS===null?'<p class="note">Cargando…</p>':fitList('adm-users',admFilter(users),u=>{const s=u.stats||{};const adm=u.role==='admin';return `<li>${avatarSVG(AVM[u.avatar]?u.avatar:'gaucho',34)}<span style="flex:1">${esc(u.username||'—')}${adm?' <span class="prem">Admin</span>':''}${u.banned?' <span class="prem" style="background:var(--bad)">Suspendido</span>':''}<small>${walOf(u.uid)?`<b class="admchips" title="Fichas"><i class="chip" aria-hidden="true"></i>${fmt(walOf(u.uid).chips)}</b> · `:ADM_WAL===null?'':'sin billetera · '}${fmt(s.played||0)} partidas · ${s.played?Math.round((s.winRate||0)*100):0}% ganadas</small></span><button class="btn sm" data-a="admuser" data-id="${esc(u.uid)}">Ver</button>${u.uid===uid?'':`<button class="btn sm ${adm?'warn':'brass'}" data-a="admrole" data-id="${esc(u.uid)}" data-v="${adm?'player':'admin'}">${adm?'Quitar admin':'Hacer admin'}</button>`}${admNick(u.uid)?`<span class="anick row2" translate="no" title="Apodo interno (solo admins)">${esc(admNick(u.uid))}</span>`:''}</li>`},'flist')}
     <p class="note" style="margin:0">El admin fijo es alejandro.clemente05@gmail.com, con el mail verificado.</p></section>`}
+/* ---------- admin: prender o apagar el modo servidor ---------- */
+let SRVTEST=null;
+function srvAdminHTML(){const on=SRV();
+  return `<section class="box admin grow"><p style="margin:0"><b>Modo servidor: ${on?'prendido':'apagado'}</b></p>
+    <p class="note" style="margin:0">${on?'Las partidas online y la billetera las maneja el servidor: cada jugador ve solo sus cartas, cada jugada se valida y nadie puede cambiar su propio saldo. Cada movimiento de fichas y monedas queda anotado.':'Hoy las partidas y los saldos los maneja la página de cada jugador. Para blindarlos, subí las funciones del servidor (ver docs/SERVIDOR.md en el repositorio) y después prendé el modo servidor acá.'}</p>
+    ${SRVTEST?`<p class="note" style="margin:0">${esc(SRVTEST)}</p>`:''}
+    <div class="btns" style="justify-content:flex-start">${on?'<button class="btn warn" data-a="srvoff">Apagar modo servidor</button>':'<button class="btn" data-a="srvtest">Probar el servidor</button><button class="btn prim" data-a="srvon">Prender modo servidor</button>'}</div>
+    <p class="note" style="margin:0">Necesita el plan Blaze de Firebase y las reglas nuevas publicadas. Al prender o apagar, todos los jugadores recargan la página.</p></section>`}
+async function srvSwitch(on){if(on){SRVTEST='Probando el servidor…';render();try{await NET.srv.probar()}catch(e){SRVTEST='El servidor no responde: todavía no están subidas las funciones ('+(e.code||e.message)+').';render();return}}
+  try{await NET.srv.activar(on);SRVTEST=null;toast(on?'Modo servidor prendido':'Modo servidor apagado');setTimeout(()=>location.reload(),600)}catch(e){SRVTEST='No se pudo guardar: '+(e.message||'');render()}}
 function fbAccountHTML(){if(!FB)return'';const ver=AUTHINFO&&AUTHINFO.emailVerified;
   return `${ver?'':`<div class="demo">Todavía no verificaste tu mail. ${NET.ADMIN_EMAILS.includes((myEmail||'').toLowerCase())?'Hasta que lo verifiques no se activan tus permisos de admin. ':''}<button class="btn sm" data-a="reverify">Reenviar mail</button></div>`}
     <button class="btn ghost" data-a="logout">Cerrar sesión</button>`}
 async function fbStartAI(){const n=+SET.n,stake=+SET.stake;if(stake>WAL.chips){toast('No te alcanzan las fichas');return}
+  if(SRV()){try{const code=await NET.rooms.createRoom({n,target:+SET.target,flor:SET.flor===true||SET.flor==='true',stake,diff:SET.diff,bots:n-1});await NET.srv.call('salaEmpezar',{code});openTable(code)}catch(e){toast(e.message||'No se pudo armar la partida. Revisá tu conexión.')}return}
   try{const code=await NET.rooms.createRoom({n,target:+SET.target,flor:SET.flor===true||SET.flor==='true',stake,diff:SET.diff,bots:n-1});
     await NET.rooms.startRoom(code,(seats,d)=>newMatch({n:d.n,target:d.target,stake:d.stake,flor:d.flor!==false,seats:seats.map(s=>({id:s.id,bot:!!s.bot})),matchId:code+'-'+Date.now().toString(36),diff:d.diff||'medio'}));
     openTable(code)}catch(e){toast('No se pudo armar la partida. Revisá tu conexión.')}}
@@ -1474,7 +1519,7 @@ function openTour(tid){if(tvUnsub)tvUnsub();TV={tid,t:null,entries:[],matches:[]
   TVB=null;tvUnsub=NET.tour.watch(tid,x=>{if(!TV||TV.tid!==tid)return;Object.assign(TV,x,{loaded:true});if(view==='tour')render()})}
 /* cobra solo el premio o el reintegro de los torneos en los que te anotaste */
 function tourClaims(){for(const t of TOURS||[]){const mine=WAL.tours&&WAL.tours[t.id];if(!mine||mine.claimed||TCLAIM.has(t.id))continue;if(t.status!=='finished'&&t.status!=='cancelled')continue;TCLAIM.add(t.id);
-  NET.tour.claim(t.id).then(r=>{const v=Object.assign({},mine,{claimed:true});
+  (SRV()?NET.srv.call('torneo',{op:'cobrar',tid:t.id}).then(r=>{if(r&&r.ok&&r.amount>0){sfx('pts');toast(r.kind==='premio'?`¡Saliste ${r.place}.º en ${t.name}! Cobraste ${fmt(r.amount)} fichas`:`Se canceló ${t.name}: te devolvimos ${fmt(r.amount)} fichas`)}return null}):NET.tour.claim(t.id)).then(r=>{if(r===null)return;const v=Object.assign({},mine,{claimed:true});
     if(r&&r.amount>0){applyTx('tour:'+t.id+':claim',{chips:r.amount,tour:{id:t.id,v}}).then(()=>{sfx('pts');toast(r.kind==='premio'?`¡Saliste ${r.place}.º en ${t.name}! Cobraste ${fmt(r.amount)} fichas`:`Se canceló ${t.name}: te devolvimos ${fmt(r.amount)} fichas`)})}
     else applyTx('tour:'+t.id+':noprize',{tour:{id:t.id,v}})}).catch(()=>TCLAIM.delete(t.id))}}
 const pad2=n=>String(n).padStart(2,'0');
@@ -1599,13 +1644,13 @@ function tourFriendHTML(){const fr=[...friendSet()];const t=TV&&TV.t;return `<di
   ${fitList('tfr',fr,id=>`<li>${avatarSVG((LOOKS[id]&&LOOKS[id].av)||'gaucho',30)}<span style="flex:1">${esc(dispName(id)||'Amigo')}</span><button class="btn sm prim" data-a="tourwith" data-id="${esc(id)}" ${tourBusy||(t&&t.buyIn>WAL.chips)?'disabled':''}>Elegir</button></li>`,'flist')}
   <button class="btn ghost" data-a="close">Cerrar</button></div></div>`}
 async function tourJoin(team,invite){const t=TV&&TV.t;if(!t||tourBusy)return;if(t.buyIn>WAL.chips){toast('No te alcanzan las fichas');return}
-  tourBusy=true;render();try{const r=await NET.tour.register(t.id,{name:myDisp(),av:WAL.eq.av,team:team||null,invite:invite||null});tourBusy=false;
+  tourBusy=true;render();try{const r=SRV()?await NET.srv.call('torneo',{op:'inscribir',tid:t.id,name:myDisp(),av:WAL.eq.av,team:team||null,invite:invite||null}):await NET.tour.register(t.id,{name:myDisp(),av:WAL.eq.av,team:team||null,invite:invite||null});tourBusy=false;
     if(r.ok&&invite){try{await db.collection('invites').add({from:uid,to:invite,kind:'tour',tid:t.id,name:t.name,at:Date.now()})}catch(e){}}
-    if(!r.ok){toast({lleno:'Ya se llenó el cupo',cerrado:'La inscripción ya cerró',ya:'Ya estás inscripto',pareja:'Esa pareja ya está completa',reservada:'Ese lugar está reservado para otro amigo'}[r.reason]||'No se pudo inscribir');render();return}
+    if(!r.ok){toast({lleno:'Ya se llenó el cupo',cerrado:'La inscripción ya cerró',ya:'Ya estás inscripto',pareja:'Esa pareja ya está completa',reservada:'Ese lugar está reservado para otro amigo',fichas:'No te alcanzan las fichas.'}[r.reason]||'No se pudo inscribir');render();return}
     await applyTx('tour:'+t.id+':in:'+r.at,{chips:-(r.buyIn||0),tour:{id:t.id,v:{at:r.at}}});sfx('buy');toast(r.buyIn?`Inscripto: pagaste ${fmt(r.buyIn)} fichas`:'¡Inscripto!')}
   catch(e){tourBusy=false;render();toast('No se pudo inscribir. Revisá tu conexión.')}}
 async function tourLeave(){const t=TV&&TV.t;if(!t||tourBusy)return;if(tourConfirm!=='leave'){tourConfirm='leave';render();return}tourConfirm=null;
-  tourBusy=true;render();try{const r=await NET.tour.unregister(t.id);tourBusy=false;if(!r.ok){toast('El torneo ya empezó');render();return}
+  tourBusy=true;render();try{const r=SRV()?await NET.srv.call('torneo',{op:'baja',tid:t.id}):await NET.tour.unregister(t.id);tourBusy=false;if(!r.ok){toast('El torneo ya empezó');render();return}
     await applyTx('tour:'+t.id+':out:'+r.at,{chips:r.buyIn||0,tour:{id:t.id,v:null}});toast('Te diste de baja'+(r.buyIn?`: te devolvimos ${fmt(r.buyIn)} fichas`:''))}
   catch(e){tourBusy=false;render();toast('No se pudo. Revisá tu conexión.')}}
 async function tourStart(){const t=TV&&TV.t;if(!t||tourBusy)return;if(tourConfirm!=='start'){tourConfirm='start';render();return}tourConfirm=null;
@@ -1620,7 +1665,7 @@ function tourOnTable(){if(!T||!T.tour||mySeat<0)return;const code=T.code;
   if(T.status==='waiting'){const here=T.here||{};
     if(!here[uid]&&!TOPEN.has(code)){TOPEN.add(code);NET.tour.openMatch(T.tour.tid,T.tour.mid).catch(()=>TOPEN.delete(code))}
     const all=T.seats.filter(s=>s.id&&!s.bot).every(s=>here[s.id]);
-    if(all&&!TSTART.has(code)){TSTART.add(code);NET.tour.startMatchRoom(code,tourBuild).then(r=>{if(!r.ok)TSTART.delete(code)}).catch(()=>TSTART.delete(code))}}
+    if(all&&!TSTART.has(code)){TSTART.add(code);(SRV()?NET.srv.call('salaEmpezar',{code}):NET.tour.startMatchRoom(code,tourBuild)).then(r=>{if(!r.ok)TSTART.delete(code)}).catch(()=>TSTART.delete(code))}}
   if(T.status==='finished'&&T.result&&!TREP.has(T.result.matchId)){TREP.add(T.result.matchId);NET.tour.reportResult(T.tour.tid,T.tour.mid).catch(()=>TREP.delete(T.result.matchId))}}
 function tourRoomHTML(){const here=T.here||{};const wait=Math.max(0,5*60e3-(Date.now()-(T.created||Date.now())));
   return `<div class="room"><h3 style="margin:0;color:var(--muted);font-size:.78rem;letter-spacing:.14em;text-transform:uppercase">Torneo · ${esc(T.tour.label||'')}</h3><div class="code" style="font-size:1.6rem">${esc(T.tour.name||'')}</div>
@@ -1647,16 +1692,16 @@ let PAYCFG=null,MYPUR=[],PENDPUR=null,PAYSTEP=-1,payUnsubs=[];const PAYAPPLY=new
 let REFS=[],AUDIT=null,ADMU=null;const REFPAY=new Set(),GRANTAPPLY=new Set();
 /* referidos y ajustes de saldo: se cobran solos, una sola vez */
 function subRewards(){if(!FB)return;try{
-  payUnsubs.push(NET.ref.watchMine(l=>{REFS=l;for(const x of l)if(x.played&&!x.paidReferrer&&!REFPAY.has(x.id)){REFPAY.add(x.id);const n=(MYUSER&&MYUSER.refBonus)||NET.REF_DEFAULT;
+  payUnsubs.push(NET.ref.watchMine(l=>{REFS=l;for(const x of l)if(!SRV()&&x.played&&!x.paidReferrer&&!REFPAY.has(x.id)){REFPAY.add(x.id);const n=(MYUSER&&MYUSER.refBonus)||NET.REF_DEFAULT;
       applyTx('ref:'+x.id,{chips:n}).then(()=>NET.ref.markPaid(x.id)).then(()=>{sfx('buy');toast(`${x.username||'Tu amigo'} jugó su primera partida: +${fmt(n)} fichas`)}).catch(()=>REFPAY.delete(x.id))}
     if(view==='profile')render()}));
-  payUnsubs.push(NET.grants.watchMine(l=>{for(const x of l)if(!GRANTAPPLY.has(x.id)){GRANTAPPLY.add(x.id);
+  if(!SRV())payUnsubs.push(NET.grants.watchMine(l=>{for(const x of l)if(!GRANTAPPLY.has(x.id)){GRANTAPPLY.add(x.id);
       applyTx('grant:'+x.id,{chips:x.chips||0,coins:x.coins||0}).then(()=>NET.grants.markApplied(x.id)).then(()=>{const p=[];if(x.chips)p.push((x.chips>0?'+':'')+fmt(x.chips)+' fichas');if(x.coins)p.push((x.coins>0?'+':'')+fmt(x.coins)+' monedas');toast('Ajuste del admin: '+p.join(' y ')+(x.reason?' ('+x.reason+')':''))}).catch(()=>GRANTAPPLY.delete(x.id))}}));
   if(isOwnerV)payUnsubs.push(NET.admin.watchAudit(l=>{AUDIT=l;if(view==='settings')render()}))}catch(e){}}
 /* el que llega con el link de un amigo: al registrarse, queda como su referido y recibe monedas de bienvenida */
 function claimReferral(){let code=null;try{code=localStorage.getItem('reviro.ref')}catch(e){}if(!code||code===WAL.fcode)return;
   try{localStorage.removeItem('reviro.ref')}catch(e){}
-  NET.ref.byCode(code).then(r=>r&&r!==uid?NET.ref.claim(r):false).then(ok=>{if(ok)applyTx('ref-new',{chips:NET.REF_NEW}).then(()=>toast(`Te sumaste con la invitación de un amigo: +${fmt(NET.REF_NEW)} fichas`))}).catch(()=>{})}
+  NET.ref.byCode(code).then(r=>r&&r!==uid?NET.ref.claim(r):false).then(ok=>{if(ok)applyTx('ref-new',{chips:NET.REF_NEW}).then(ok2=>SRV()&&!ok2?null:toast(`Te sumaste con la invitación de un amigo: +${fmt(NET.REF_NEW)} fichas`))}).catch(()=>{})}
 function refBoxHTML(){if(!FB)return'';const n=(MYUSER&&MYUSER.refBonus)||NET.REF_DEFAULT,played=REFS.filter(x=>x.played).length;
   return `<section class="box grow"><p class="note" style="margin:0">Por cada amigo que se registre con tu link y juegue su primera partida online, ganás <b>${fmt(n)}</b> fichas. Tu amigo arranca con ${fmt(NET.REF_NEW)} fichas de regalo.</p>
     <div class="row" style="flex-wrap:nowrap"><a class="btn wa" href="${waHref(waInviteText())}" target="_blank" rel="noopener">${WAICO} Invitar por WhatsApp</a><button class="btn" data-a="copylink">Copiar link</button></div>
@@ -1665,7 +1710,9 @@ function refBoxHTML(){if(!FB)return'';const n=(MYUSER&&MYUSER.refBonus)||NET.REF
 function bannedHTML(){const r=MYUSER&&MYUSER.bannedReason;return `<div class="gate">${fileteHTML('gtitle')}<section class="box"><h2>Tu cuenta está suspendida</h2><p>${r?'Motivo: '+esc(r)+'. ':''}Si creés que es un error, hablá con el administrador.</p><button class="btn ghost" data-a="logout">Cerrar sesión</button></section></div>`}
 
 /* ---------- administración: vista completa de un jugador ---------- */
-function openAdmUser(id){ADMU={uid:id,loading:true};overlayView='admuser';render();NET.admin.user(id).then(d=>{if(ADMU&&ADMU.uid===id){ADMU=Object.assign({uid:id},d);render()}}).catch(()=>{ADMU={uid:id,error:true};render()})}
+let admMovUnsub=null;
+function openAdmUser(id){ADMU={uid:id,loading:true};overlayView='admuser';render();
+  if(admMovUnsub){admMovUnsub();admMovUnsub=null}if(SRV())admMovUnsub=NET.srv.watchMovimientos(id,l=>{if(ADMU&&ADMU.uid===id){ADMU.movs=l;if(overlayView==='admuser')render()}});NET.admin.user(id).then(d=>{if(ADMU&&ADMU.uid===id){ADMU=Object.assign({uid:id},d);render()}}).catch(()=>{ADMU={uid:id,error:true};render()})}
 function admUserHTML(){const d=ADMU||{};const u=d.user;
   if(d.loading||!u)return `<div class="over" data-a="close"><div class="panel" data-stop><p class="note">${d.error?'No se pudo cargar el jugador.':'Cargando…'}</p><button class="btn ghost" data-a="close">Cerrar</button></div></div>`;
   const s=u.stats||{},w=d.wallet||{};
@@ -1673,6 +1720,7 @@ function admUserHTML(){const d=ADMU||{};const u=d.user;
     <div class="row" style="align-items:center;gap:12px;flex-wrap:nowrap">${avatarSVG(AVM[u.avatar]?u.avatar:'gaucho',56)}<div style="text-align:left;min-width:0"><h2 style="font-size:1.6rem">${esc(u.username||'—')}${admTag(d.uid)}</h2><p class="note" style="margin:0">${u.role==='admin'?'Admin':'Jugador'}${u.banned?' · <b style="color:var(--bad)">Suspendido</b>':''}${u.terms?' · aceptó los términos':' · sin aceptar términos'}</p></div></div>
     <div class="stats"><div class="stat-b"><small>Partidas</small><b>${fmt(s.played||0)}</b></div><div class="stat-b"><small>Ganadas</small><b>${fmt(s.wins||0)}</b></div><div class="stat-b"><small>Racha</small><b>${s.currentStreak||0}</b></div>
       <div class="stat-b"><small>Fichas</small><b>${fmt(w.chips||0)}</b></div><div class="stat-b"><small>Monedas</small><b>${fmt(w.coins||0)}</b></div><div class="stat-b"><small>Referidos</small><b>${(d.referred||[]).length}</b></div></div>
+    ${d.movs&&d.movs.length?`<div class="aform"><h3>Últimos movimientos</h3><ul class="flist movs">${d.movs.slice(0,8).map(m=>`<li><span style="flex:1">${esc(m.tipo||'')}<small>${esc(tFmtDate(m.at))}</small></span><b>${m.fichas?(m.fichas>0?'+':'')+fmt(m.fichas)+' fichas':''}${m.fichas&&m.monedas?' · ':''}${m.monedas?(m.monedas>0?'+':'')+fmt(m.monedas)+' monedas':''}</b></li>`).join('')}</ul></div>`:''}
     <p class="note" style="text-align:left">${d.referredBy?'Llegó invitado por otro jugador. ':''}${(d.purchases||[]).length?'Compras: '+d.purchases.map(x=>fmt(x.coins)+' monedas ('+x.status+')').join(', ')+'.':'Sin compras.'}</p>
     <form class="aform" data-form="admnick"><h3>Apodo interno</h3><div class="row" style="flex-wrap:nowrap"><input class="tin" id="anick" maxlength="30" value="${esc(admNick(d.uid))}" placeholder="Ej.: el primo de Juan" autocomplete="off"><button class="btn" type="submit">Guardar</button></div><p class="note" style="margin:0">Solo lo ven los admins, para reconocerlo. El jugador no se entera. Vacío lo borra.</p></form>
     <form class="aform" data-form="admgrant"><h3>Ajustar saldo</h3><div class="row" style="flex-wrap:nowrap"><label class="field"><span>Fichas (+/−)</span><input class="tin" id="agchips" type="number" step="1" value="0"></label><label class="field"><span>Monedas (+/−)</span><input class="tin" id="agcoins" type="number" step="1" value="0"></label></div>
@@ -1728,6 +1776,9 @@ document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closes
   case 'nav':overlayView=null;view=t.dataset.v;render();return;
   case 'ptab':PT[t.dataset.k]=t.dataset.v;render();return;
   case 'lang':setLang(t.dataset.v);return;
+  case 'srvtest':SRVTEST='Probando el servidor…';render();NET.srv.probar().then(()=>{SRVTEST='El servidor responde bien: ya se puede prender.';render()}).catch(e=>{SRVTEST='El servidor no responde: todavía no están subidas las funciones ('+(e.code||e.message)+').';render()});return;
+  case 'srvon':srvSwitch(true);return;
+  case 'srvoff':srvSwitch(false);return;
   case 'admsort':ADMSORT=t.dataset.v;FITP['adm-users']=0;render();return;
   case 'pg':{const k=t.dataset.k;FITP[k]=Math.max(0,(FITP[k]||0)+(+t.dataset.d));render();return}
   case 'ov':overlayView=t.dataset.v;render();return;
@@ -1747,14 +1798,14 @@ document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closes
   case 'mppay':PAYSTEP=+t.dataset.i;setTimeout(render,50);return;
   case 'mpcancel':PAYSTEP=-1;render();return;
   case 'mpdone':{const p=PACKS[+t.dataset.i];PAYSTEP=-1;NET.pay.request(+t.dataset.i,p.coins,p.ars).then(()=>toast('Listo: cuando se confirme el pago, las monedas se suman solas')).catch(()=>toast('No se pudo avisar el pago. Probá de nuevo.'));render();return}
-  case 'mpok':case 'mpno':NET.pay.decide(t.dataset.id,a==='mpok').then(()=>toast(a==='mpok'?'Monedas acreditadas':'Pago rechazado')).catch(()=>toast('No se pudo'));return;
+  case 'mpok':case 'mpno':(SRV()?NET.srv.call('admin',{op:'compra',id:t.dataset.id,ok:a==='mpok'}):NET.pay.decide(t.dataset.id,a==='mpok')).then(()=>toast(a==='mpok'?'Monedas acreditadas':'Pago rechazado')).catch(()=>toast('No se pudo'));return;
   case 'hkit':HKIT=t.dataset.id;render();return;
   case 'shoptab':shopTab=t.dataset.v;render();return;
   case 'prebuy':pendingBuy=t.dataset.t+':'+t.dataset.id+(t.dataset.c?':coins':'');render();return;
   case 'buy':{const ty=t.dataset.t,id=t.dataset.id,list=ty==='av'?AVM:ty==='dorso'?DM:ty==='kit'?KITM:PM,it=list[id];pendingBuy=null;if(it)buy(ty,id,it.price,it.name,t.dataset.c);return}
   case 'equip':equip(t.dataset.t,t.dataset.id);return;
   case 'prepack':if(!PREMIUM){toast('Solo para cuentas premium');return}pendingBuy='pack:'+t.dataset.i;render();return;
-  case 'pack':{if(!PREMIUM){toast('Solo para cuentas premium');return}const p=PACKS[+t.dataset.i];pendingBuy=null;if(p){applyTx('pack-'+Date.now(),{coins:p.coins}).then(()=>{sfx('buy');toast('Compra de prueba: +'+fmt(p.coins)+' monedas, sin cobro')})}return}
+  case 'pack':{if(!PREMIUM){toast('Solo para cuentas premium');return}const p=PACKS[+t.dataset.i];pendingBuy=null;if(p){applyTx('pack-'+Date.now(),{coins:p.coins,packI:+t.dataset.i}).then(()=>{sfx('buy');toast('Compra de prueba: +'+fmt(p.coins)+' monedas, sin cobro')})}return}
   case 'add':if(!PREMIUM){toast('Solo para cuentas premium');return}applyTx('load-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),{chips:+t.dataset.v});overlayView=null;toast('Cargaste '+fmt(t.dataset.v)+' fichas de práctica');render();return;
   case 'tour':openTour(t.dataset.id);return;
   case 'soloopts':overlayView='soloopts';render();return;
@@ -1767,7 +1818,7 @@ document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closes
   case 'tourcancel':tourCancel();return;
   case 'tourplay':tourPlay(t.dataset.mid);return;
   case 'tourwo':if(TV&&TV.t)NET.tour.walkover(TV.t.id,t.dataset.mid,t.dataset.w).then(()=>toast('Partido dado por ganado')).catch(()=>toast('No se pudo'));return;
-  case 'tourforce':if(T&&T.tour)NET.tour.startMatchRoom(T.code,tourBuild,true).then(r=>{if(!r.ok)toast('Todavía no se puede')}).catch(()=>toast('No se pudo empezar'));return;
+  case 'tourforce':if(T&&T.tour)(SRV()?NET.srv.call('salaEmpezar',{code:T.code,force:true}).catch(e=>({ok:false})):NET.tour.startMatchRoom(T.code,tourBuild,true)).then(r=>{if(!r.ok)toast('Todavía no se puede')}).catch(()=>toast('No se pudo empezar'));return;
   case 'tourback':{const tid=T&&T.tour&&T.tour.tid;if(view==='game'&&inProgress()){toast('Terminá la partida primero');return}leaveTable(true);if(tid)openTour(tid);return}
   case 'solo':overlayView=null;startSolo();return;
   case 'create':overlayView=null;createTable();return;
@@ -1809,7 +1860,7 @@ document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closes
   case 'prem':setPremium(t.dataset.id,t.dataset.on==='1');return;
   case 'rscope':rankScope=t.dataset.v;render();return;
   case 'copylink':{const l=friendLink();try{navigator.clipboard.writeText(l).then(()=>toast('Link copiado: mandáselo a tu amigo'),()=>toast(l))}catch(err){toast(l)}return}
-  case 'next':if(G&&G.hand.ended&&!G.matchOver&&(mode==='offline'||controllerSeat()===mySeat)){clearTimeout(driveT);commit(nextHand(G))}return;
+  case 'next':if(G&&G.hand.ended&&!G.matchOver&&(mode==='offline'||controllerSeat()===mySeat)){clearTimeout(driveT);if(SRV()&&mode==='online'&&T){const seq=G.seq;NET.srv.call('salaAvanzar',{code:T.code,seq}).then(r=>{if(!(r&&r.ok))drive()}).catch(()=>drive())}else commit(nextHand(G))}return;
   case 'quiero':case 'noquiero':case 'flor':case 'achico':case 'contra':case 'resto':doAction({t:a});return;
   case 'mazo':if(!confirmMazo){confirmMazo=true;render();return}confirmMazo=false;doAction({t:'mazo'});return;
   case 'panel':panel=panel===t.dataset.v?null:t.dataset.v;render();return;
@@ -1842,7 +1893,7 @@ document.addEventListener('focusin',e=>{const f=e.target;if(f.matches&&f.matches
 document.addEventListener('submit',e=>{const fa=e.target.closest('[data-form="login"],[data-form="register"],[data-form="complete"],[data-form="reset"]');if(fa){e.preventDefault();authSubmit(fa.dataset.form);return}
   const fnk=e.target.closest('[data-form="admnick"]');if(fnk&&ADMU){e.preventDefault();const v=fval('anick');NET.admin.setNote(ADMU.uid,v).then(()=>toast(v.trim()?'Apodo interno guardado':'Apodo interno borrado')).catch(()=>toast('No se pudo guardar'));return}
   const fg=e.target.closest('[data-form="admgrant"]');if(fg&&ADMU){e.preventDefault();const c=+fval('agchips')||0,m=+fval('agcoins')||0;if(!c&&!m){toast('Poné cuántas fichas o monedas');return}
-    NET.admin.grant(ADMU.uid,{chips:c,coins:m,reason:fval('agreason')}).then(()=>{toast('Ajuste enviado: se le suma cuando abra Reviro');openAdmUser(ADMU.uid)}).catch(()=>toast('No se pudo'));return}
+    (SRV()?NET.srv.call('admin',{op:'ajustar',uid:ADMU.uid,chips:c,coins:m,motivo:fval('agreason')}).then(()=>{toast('Saldo ajustado');openAdmUser(ADMU.uid)}):NET.admin.grant(ADMU.uid,{chips:c,coins:m,reason:fval('agreason')}).then(()=>{toast('Ajuste enviado: se le suma cuando abra Reviro');openAdmUser(ADMU.uid)})).catch(()=>toast('No se pudo'));return}
   const fr2=e.target.closest('[data-form="admref"]');if(fr2&&ADMU){e.preventDefault();NET.admin.setRefBonus(ADMU.uid,fval('arefb')).then(()=>{toast('Premio por referido guardado');openAdmUser(ADMU.uid)}).catch(()=>toast('No se pudo'));return}
   const fb2=e.target.closest('[data-form="admban"]');if(fb2&&ADMU&&ADMU.user){e.preventDefault();const on=!ADMU.user.banned;NET.admin.setBanned(ADMU.uid,on,fval('abanr')).then(()=>{toast(on?'Cuenta suspendida':'Cuenta reactivada');openAdmUser(ADMU.uid)}).catch(()=>toast('No se pudo'));return}
   const fm=e.target.closest('[data-form="mpcfg"]');if(fm){e.preventDefault();NET.pay.saveConfig({links:PACKS.map((_,i)=>($('#mpl'+i)||{}).value||''),alias:($('#mpalias')||{}).value||''}).then(()=>toast('Cobros guardados')).catch(()=>toast('No se pudo guardar'));return}

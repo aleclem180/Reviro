@@ -423,6 +423,35 @@ const CARDART={
 /* Las fotos y los dibujos vienen incrustados en el código. Para la pantalla se pasan a "blob" (una dirección corta):
    así cada vez que se redibuja la mesa no se copian cientos de kilobytes de texto. El original queda en .data,
    que es lo que usan los dibujos SVG que se pintan como imagen (cartas y dorsos). */
+/* misiones del día y logros: los comparte la interfaz con el servidor (functions/) */
+const MISSIONS=[
+ {id:'manos5',t:'Ganá 5 manos',ev:'hand_won',goal:5,r:40},
+ {id:'retruco2',t:'Ganá 2 manos con retruco querido',ev:'retruco_won',goal:2,r:60},
+ {id:'envido3',t:'Ganá 3 envidos',ev:'envido_won',goal:3,r:50},
+ {id:'falta1',t:'Ganá un falta envido',ev:'falta_won',goal:1,r:80},
+ {id:'flor1',t:'Sumá puntos con una flor',ev:'flor_won',goal:1,r:60},
+ {id:'partida1',t:'Ganá una partida',ev:'match_won',goal:1,r:50},
+ {id:'dificil1',t:'Ganale a la máquina en Difícil',ev:'match_won_dificil',goal:1,r:120},
+ {id:'online1',t:'Jugá una partida online',ev:'online_played',goal:1,r:60},
+ {id:'vale4',t:'Ganá una mano con vale cuatro',ev:'vale4_won',goal:1,r:100},
+ {id:'parda1',t:'Ganá una mano que tuvo parda',ev:'parda_won',goal:1,r:50},
+ {id:'mazo2',t:'Hacé que el rival se vaya al mazo 2 veces',ev:'mazo_rival',goal:2,r:40},
+ {id:'jugar3',t:'Jugá 3 partidas',ev:'match_played',goal:3,r:50},
+];
+const ACHS=[
+ {id:'primera',t:'Primera de muchas',d:'Ganá tu primera partida',ev:'match_won',goal:1,r:50},
+ {id:'diez',t:'Ya sos de la mesa',d:'Ganá 10 partidas',ev:'match_won',goal:10,r:150},
+ {id:'cien',t:'Cien manos',d:'Ganá 100 manos',ev:'hand_won',goal:100,r:200},
+ {id:'faltero',t:'El Faltero',d:'Ganá un falta envido',ev:'falta_won',goal:1,r:80},
+ {id:'florista',t:'Florista',d:'Sumá puntos con 10 flores',ev:'flor_won',goal:10,r:150},
+ {id:'vale4x5',t:'Cuatro al hilo',d:'Ganá 5 manos con vale cuatro',ev:'vale4_won',goal:5,r:150},
+ {id:'dificil',t:'Le ganaste a la Difícil',d:'Ganale a la máquina en Difícil',ev:'match_won_dificil',goal:1,r:150},
+ {id:'maestro',t:'Maestro del truco',d:'10 victorias en Difícil',ev:'match_won_dificil',goal:10,r:400},
+ {id:'online10',t:'Habitué del club',d:'Jugá 10 partidas online',ev:'online_played',goal:10,r:200},
+ {id:'racha5',t:'Racha de cinco',d:'Ganá 5 partidas seguidas',ev:'@streak',goal:5,r:150},
+ {id:'coleccion',t:'Coleccionista',d:'Tené 6 personajes',ev:'@avatars',goal:6,r:120},
+ {id:'alumno',t:'Alumno aplicado',d:'Completá el tutorial',ev:'tutorial_done',goal:1,r:60},
+];
 function blobify(o){for(const k in o){const v=o[k];if(!v||typeof v.src!=='string'||!v.src.startsWith('data:'))continue;v.data=v.src;
   try{const i=v.src.indexOf(','),mime=v.src.slice(5,v.src.indexOf(';')),bin=atob(v.src.slice(i+1)),u=new Uint8Array(bin.length);for(let j=0;j<bin.length;j++)u[j]=bin.charCodeAt(j);v.src=URL.createObjectURL(new Blob([u],{type:mime}))}catch(e){}}}
 blobify(PHOTOS);blobify(CARDART);

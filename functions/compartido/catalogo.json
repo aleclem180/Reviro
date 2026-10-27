@@ -1,0 +1,469 @@
+{
+ "AVS": [
+  {
+   "id": "gaucho",
+   "price": 0
+  },
+  {
+   "id": "estudiante",
+   "price": 0
+  },
+  {
+   "id": "tachero",
+   "price": 0
+  },
+  {
+   "id": "veterano",
+   "price": 300
+  },
+  {
+   "id": "hincha",
+   "price": 300
+  },
+  {
+   "id": "asador",
+   "price": 300
+  },
+  {
+   "id": "abuela",
+   "price": 300
+  },
+  {
+   "id": "godin",
+   "price": 350
+  },
+  {
+   "id": "cheto",
+   "price": 400
+  },
+  {
+   "id": "fisura",
+   "price": 400
+  },
+  {
+   "id": "dona",
+   "price": 400
+  },
+  {
+   "id": "mochilero",
+   "price": 450
+  },
+  {
+   "id": "rolinga",
+   "price": 500
+  },
+  {
+   "id": "hippie",
+   "price": 500
+  },
+  {
+   "id": "tanguero",
+   "price": 600
+  },
+  {
+   "id": "murguera",
+   "price": 600
+  },
+  {
+   "id": "influencer",
+   "price": 600
+  }
+ ],
+ "DORSOS": [
+  {
+   "id": "pampa",
+   "price": 0,
+   "boss": null
+  },
+  {
+   "id": "bordo",
+   "price": 0,
+   "boss": null
+  },
+  {
+   "id": "marino",
+   "price": 400,
+   "boss": null
+  },
+  {
+   "id": "cuero",
+   "price": 500,
+   "boss": null
+  },
+  {
+   "id": "celeste",
+   "price": 600,
+   "boss": null
+  },
+  {
+   "id": "noche",
+   "price": 700,
+   "boss": null
+  },
+  {
+   "id": "oro",
+   "price": 800,
+   "boss": null
+  },
+  {
+   "id": "fileteado",
+   "price": 900,
+   "boss": null
+  },
+  {
+   "id": "ombu",
+   "price": 0,
+   "boss": "ba"
+  },
+  {
+   "id": "cuarteto",
+   "price": 0,
+   "boss": "centro"
+  },
+  {
+   "id": "sietecolores",
+   "price": 0,
+   "boss": "noa"
+  },
+  {
+   "id": "viento",
+   "price": 0,
+   "boss": "patagonia"
+  },
+  {
+   "id": "cruzsur",
+   "price": 0,
+   "boss": "malvinas"
+  }
+ ],
+ "PANOS": [
+  {
+   "id": "quincho",
+   "price": 0,
+   "boss": null
+  },
+  {
+   "id": "cuerovaca",
+   "price": 900,
+   "boss": null
+  },
+  {
+   "id": "bordo",
+   "price": 0,
+   "boss": null
+  },
+  {
+   "id": "verde",
+   "price": 600,
+   "boss": null
+  },
+  {
+   "id": "azul",
+   "price": 700,
+   "boss": null
+  },
+  {
+   "id": "petroleo",
+   "price": 700,
+   "boss": null
+  },
+  {
+   "id": "bodegon",
+   "price": 1000,
+   "boss": null
+  },
+  {
+   "id": "cuero",
+   "price": 1100,
+   "boss": null
+  },
+  {
+   "id": "fileteado",
+   "price": 1200,
+   "boss": null
+  },
+  {
+   "id": "ibera",
+   "price": 0,
+   "boss": "litoral"
+  },
+  {
+   "id": "vinedo",
+   "price": 0,
+   "boss": "cuyo"
+  },
+  {
+   "id": "monte",
+   "price": 0,
+   "boss": "nea"
+  },
+  {
+   "id": "faro",
+   "price": 0,
+   "boss": "tdf"
+  }
+ ],
+ "KITS": [
+  {
+   "id": "arg",
+   "price": 0
+  },
+  {
+   "id": "azuloro",
+   "price": 150
+  },
+  {
+   "id": "banda",
+   "price": 150
+  },
+  {
+   "id": "roja",
+   "price": 150
+  },
+  {
+   "id": "azulgrana",
+   "price": 150
+  },
+  {
+   "id": "rojinegra",
+   "price": 150
+  },
+  {
+   "id": "azulamarilla",
+   "price": 150
+  },
+  {
+   "id": "albirroja",
+   "price": 150
+  },
+  {
+   "id": "franjaazul",
+   "price": 150
+  },
+  {
+   "id": "vazul",
+   "price": 150
+  },
+  {
+   "id": "verdiblanca",
+   "price": 150
+  },
+  {
+   "id": "tatengue",
+   "price": 150
+  }
+ ],
+ "PACKS": [
+  {
+   "coins": 1100,
+   "ars": 1000,
+   "tag": "+10% de regalo"
+  },
+  {
+   "coins": 3000,
+   "ars": 2500,
+   "tag": "+20% de regalo"
+  },
+  {
+   "coins": 6500,
+   "ars": 5000,
+   "tag": "+30% de regalo"
+  },
+  {
+   "coins": 14000,
+   "ars": 10000,
+   "tag": "+40% de regalo"
+  },
+  {
+   "coins": 30000,
+   "ars": 20000,
+   "tag": "+50% de regalo"
+  }
+ ],
+ "BOSS_PRIZE": {
+  "ba": [
+   "dorso",
+   "ombu"
+  ],
+  "litoral": [
+   "pano",
+   "ibera"
+  ],
+  "centro": [
+   "dorso",
+   "cuarteto"
+  ],
+  "cuyo": [
+   "pano",
+   "vinedo"
+  ],
+  "noa": [
+   "dorso",
+   "sietecolores"
+  ],
+  "nea": [
+   "pano",
+   "monte"
+  ],
+  "patagonia": [
+   "dorso",
+   "viento"
+  ],
+  "tdf": [
+   "pano",
+   "faro"
+  ],
+  "malvinas": [
+   "dorso",
+   "cruzsur"
+  ]
+ },
+ "MISSIONS": [
+  {
+   "id": "manos5",
+   "ev": "hand_won",
+   "goal": 5,
+   "r": 40
+  },
+  {
+   "id": "retruco2",
+   "ev": "retruco_won",
+   "goal": 2,
+   "r": 60
+  },
+  {
+   "id": "envido3",
+   "ev": "envido_won",
+   "goal": 3,
+   "r": 50
+  },
+  {
+   "id": "falta1",
+   "ev": "falta_won",
+   "goal": 1,
+   "r": 80
+  },
+  {
+   "id": "flor1",
+   "ev": "flor_won",
+   "goal": 1,
+   "r": 60
+  },
+  {
+   "id": "partida1",
+   "ev": "match_won",
+   "goal": 1,
+   "r": 50
+  },
+  {
+   "id": "dificil1",
+   "ev": "match_won_dificil",
+   "goal": 1,
+   "r": 120
+  },
+  {
+   "id": "online1",
+   "ev": "online_played",
+   "goal": 1,
+   "r": 60
+  },
+  {
+   "id": "vale4",
+   "ev": "vale4_won",
+   "goal": 1,
+   "r": 100
+  },
+  {
+   "id": "parda1",
+   "ev": "parda_won",
+   "goal": 1,
+   "r": 50
+  },
+  {
+   "id": "mazo2",
+   "ev": "mazo_rival",
+   "goal": 2,
+   "r": 40
+  },
+  {
+   "id": "jugar3",
+   "ev": "match_played",
+   "goal": 3,
+   "r": 50
+  }
+ ],
+ "ACHS": [
+  {
+   "id": "primera",
+   "ev": "match_won",
+   "goal": 1,
+   "r": 50
+  },
+  {
+   "id": "diez",
+   "ev": "match_won",
+   "goal": 10,
+   "r": 150
+  },
+  {
+   "id": "cien",
+   "ev": "hand_won",
+   "goal": 100,
+   "r": 200
+  },
+  {
+   "id": "faltero",
+   "ev": "falta_won",
+   "goal": 1,
+   "r": 80
+  },
+  {
+   "id": "florista",
+   "ev": "flor_won",
+   "goal": 10,
+   "r": 150
+  },
+  {
+   "id": "vale4x5",
+   "ev": "vale4_won",
+   "goal": 5,
+   "r": 150
+  },
+  {
+   "id": "dificil",
+   "ev": "match_won_dificil",
+   "goal": 1,
+   "r": 150
+  },
+  {
+   "id": "maestro",
+   "ev": "match_won_dificil",
+   "goal": 10,
+   "r": 400
+  },
+  {
+   "id": "online10",
+   "ev": "online_played",
+   "goal": 10,
+   "r": 200
+  },
+  {
+   "id": "racha5",
+   "ev": "@streak",
+   "goal": 5,
+   "r": 150
+  },
+  {
+   "id": "coleccion",
+   "ev": "@avatars",
+   "goal": 6,
+   "r": 120
+  },
+  {
+   "id": "alumno",
+   "ev": "tutorial_done",
+   "goal": 1,
+   "r": 60
+  }
+ ]
+}

@@ -2,6 +2,7 @@ dist/** linguist-generated=true
 index.html linguist-generated=true
 src/textos.js linguist-generated=true
 src/marca.js linguist-generated=true
+functions/compartido/** linguist-generated=true
 online/index.html linguist-generated=true
 torneos/index.html linguist-generated=true
 torneo/index.html linguist-generated=true
