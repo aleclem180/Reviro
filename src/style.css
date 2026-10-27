@@ -986,3 +986,8 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
 /* ingreso y registro en celulares: sin la barra de abajo, la hoja usa todo el alto y se baja entera */
 @media (max-width:720px){body[data-view=auth] #view,body[data-view=login] #view,body[data-view=register] #view,body[data-view=welcome] #view,body[data-view=boot] #view,body[data-view=banned] #view{padding-bottom:env(safe-area-inset-bottom,0px)}
   body[data-view=auth] .page,body[data-view=register] .page{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:max(24px,env(safe-area-inset-bottom,0px));scroll-padding:80px 0}}
+/* cartas de la mesa más grandes: la mano cede un poco de alto y la fórmula aprovecha mejor el paño */
+.felt.n2>.seat,.felt.n2>.center{--pc:clamp(38px,calc((100cqh - 120px) / 3),100px)}
+.felt.n4>.seat,.felt.n4>.center{--pc:clamp(32px,min(calc((100cqh - 150px) / 4),calc(100cqw / 5.2)),76px)}
+.game .hand{--hw:clamp(74px,min(33vw,13.5dvh),160px)!important}
+@media (max-height:700px){.game .hand{--hw:clamp(68px,min(31vw,12dvh),160px)!important}}
