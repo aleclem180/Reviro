@@ -1111,3 +1111,12 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
 .rv.locked{opacity:.72}.rv.locked svg{filter:grayscale(.85) brightness(.8)}
 .rv .rvlock{flex:none;display:inline-flex;align-items:center;gap:4px;font-size:.8rem;color:var(--muted);padding:4px 8px;border:1px dashed var(--line);border-radius:999px;white-space:nowrap}
 .rv .rvlock b{color:var(--text,inherit);font-variant-numeric:tabular-nums}
+/* La Huella: las estrellas de dificultad en arco alrededor del redondel */
+.rv .rvav{position:relative;flex:none;width:46px;height:46px;margin:0 6px 12px}
+.rv .rvav>svg:first-child{display:block;border-radius:50%}
+.rv .rvst{position:absolute;left:-9px;top:-9px;width:64px;height:70px;overflow:visible;pointer-events:none}
+.rvst .rg{fill:none;stroke:rgba(240,197,72,.55);stroke-width:1.6}
+.rvst.boss .rg{stroke:#f0c548;stroke-width:2.4}
+.rvst .se{fill:#3a2616;stroke:rgba(240,197,72,.85);stroke-width:1;stroke-linejoin:round}
+.rvst .sf{fill:#f6c437;stroke:#8a5a12;stroke-width:.6;stroke-linejoin:round}
+.rv.locked .rvst{filter:grayscale(.7);opacity:.8}

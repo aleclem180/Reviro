@@ -1184,10 +1184,22 @@ const RIVALS_Z={
 };
 /* need: los porotos para desbloquearlo (repartidos entre la apertura de la zona y la de la siguiente).
    copas: su nivel para la tabla y para calcular cuánto se gana o se pierde. */
+/* estrellas dentro de la zona: del primero (1) al jefe (5), en medias estrellas */
+const DIFFNAME={facil:'fácil',medio:'medio',dificil:'difícil'};
+const STARLV=[1,1.5,2,2.5,3,3.5,4,5];
 const RIVALS=ZONES.flatMap((z,zi)=>{const end=(ZONES[zi+1]||{need:z.need+600}).need,span=end-z.need,list=RIVALS_Z[z.id];
   return list.map(([id,name,av],i)=>{const boss=i===list.length-1,need=z.need+Math.round(i*span/list.length/5)*5,copas=boss?end+50:z.need+Math.round((i+1)*span/list.length/5)*5;
-    const skill=Math.min(1,Math.max(.05,copas/2400+(boss?.08:0)));return{id,zone:z.id,name,av,copas,need,boss,skill,diff:skill<.3?'facil':skill<.65?'medio':'dificil'}})});
+    /* dificultad: sube rival a rival y zona a zona (cada uno juega mejor que el anterior); el jefe, un escalón más */
+    const skill=+Math.min(1,.05+.9*(zi*list.length+i+(boss?1:0))/(ZONES.length*list.length)).toFixed(3);
+    const lvl=STARLV[Math.round(i*(STARLV.length-1)/Math.max(1,list.length-1))];
+    return{id,zone:z.id,name,av,copas,need,boss,skill,lvl,diff:skill<.3?'facil':skill<.65?'medio':'dificil'}})});
 const rivalOpen=r=>zoneOpen(ZM[r.zone])&&(WAL.copas||0)>=r.need;
+/* las estrellas alrededor del redondel del rival, en arco por debajo */
+const STAR_PTS=(()=>{const o=[];for(let k=0;k<10;k++){const r=k%2?2.7:6.2,an=-Math.PI/2+k*Math.PI/5;o.push((r*Math.cos(an)).toFixed(2)+','+(r*Math.sin(an)).toFixed(2))}return o.join(' ')})();
+function starRing(lv,boss){const ang=[142,116,90,64,38];let o='';
+  ang.forEach((d,k)=>{const x=(32+27*Math.cos(d*Math.PI/180)).toFixed(1),y=(32+27*Math.sin(d*Math.PI/180)).toFixed(1),f=Math.max(0,Math.min(1,lv-k));
+    o+=`<g transform="translate(${x} ${y})"><polygon points="${STAR_PTS}" class="se"/>${f>0?`<polygon points="${STAR_PTS}" class="sf" ${f<1?'clip-path="url(#starhalf)"':''}/>`:''}</g>`});
+  return `<svg class="rvst ${boss?'boss':''}" viewBox="0 0 64 70" aria-hidden="true"><defs><clipPath id="starhalf"><rect x="-7" y="-7" width="7" height="14"/></clipPath></defs><circle cx="32" cy="32" r="24.5" class="rg"/>${o}</svg>`}
 const stars=k=>{const n=Math.max(1,Math.min(5,Math.round(k*5)));return '★'.repeat(n)+'☆'.repeat(5-n)};
 const RM=Object.fromEntries(RIVALS.map(r=>[r.id,r]));
 const TITLES=[[0,'Pichón'],[150,'Aprendiz de pulpería'],[350,'Baqueano'],[600,'Truquero de ley'],[900,'Taita'],[1250,'Gaucho mayor'],[1650,'Maestro del truco'],[2100,'Leyenda del Último Faro'],[2600,'Guardián de las Islas']];
@@ -1237,7 +1249,7 @@ function mapSVG(){const main=pathOf(AR_MAIN),tdf=pathOf(AR_TDF),isl=AR_ISL.map(p
   return o+'</svg>'}
 function rivalCard(r){const open=rivalOpen(r),wins=(WAL.gira&&WAL.gira.beat[r.id])||0;const my=WAL.copas||0;
   const win=copasDelta(my,r.copas,true),lose=copasDelta(my,r.copas,false);
-  return `<li class="rv ${r.boss?'boss':''} ${open?'':'locked'}">${avatarSVG(r.av,46)}<div class="rvi"><b>${esc(r.name)}</b><small>${r.boss?'Jefe de la zona · Premio: '+esc(prizeLabel(BOSS_PRIZE[r.zone]))+' · ':''}<span class="stars" aria-label="Nivel ${Math.round(r.skill*5)} de 5">${stars(r.skill)}</span> · ${r.boss?'a 30':'a 15'}</small>
+  return `<li class="rv ${r.boss?'boss':''} ${open?'':'locked'}"><span class="rvav" role="img" aria-label="Dificultad: ${String(r.lvl).replace('.',',')} de 5 estrellas">${avatarSVG(r.av,46)}${starRing(r.lvl,r.boss)}</span><div class="rvi"><b>${esc(r.name)}</b><small>${r.boss?'Jefe de la zona · Premio: '+esc(prizeLabel(BOSS_PRIZE[r.zone]))+' · ':''}${r.boss?'a 30':'a 15'} · ${DIFFNAME[r.diff]}</small>
     <small><span class="cup"><i class="poroto" aria-hidden="true"></i>${fmt(r.copas)}</span> · <span title="Si ganás / si perdés">+${win} / ${lose}</span>${wins?` · ✓ ${wins}`:''}</small></div>
     ${open?`<button class="btn ${r.boss?'prim':'brass'} sm" data-a="girago" data-id="${r.id}">Jugar</button>`:`<span class="rvlock" title="Se desbloquea con ${fmt(r.need)} porotos">🔒︎ <b>${fmt(r.need)}</b></span>`}</li>`}
 function giraHTML(){const c=WAL.copas||0,z=ZM[giraZone]||ZONES[0],open=zoneOpen(z);const next=ZONES.find(x=>!zoneOpen(x));
@@ -1259,7 +1271,7 @@ function tablaHTML(){const c=WAL.copas||0;const table=RIVALS.map(r=>({n:r.name,c
 function startGira(rid){const r=RM[rid];if(!r||!rivalOpen(r))return;TUT=null;mySena=null;
   CAMP={rid,before:WAL.copas||0};cfg={n:2,target:r.boss?30:15,stake:0,diff:r.diff,flor:SET.hflor!==false};
   botLooks={1:{av:r.av,dorso:['pampa','cuero','marino','noche','celeste','oro','fileteado','bordo','viento'][ZONES.findIndex(z=>z.id===r.zone)]||'pampa'}};
-  if(SRV()){confirmExit=false;panel=null;NET.rooms.createRoom({n:2,target:cfg.target,flor:cfg.flor,stake:0,diff:r.diff,bots:1}).then(code=>NET.srv.call('salaEmpezar',{code}).then(()=>openTable(code))).catch(e=>{CAMP=null;toast(e.message||'No se pudo armar la partida')});return}
+  if(SRV()){confirmExit=false;panel=null;NET.rooms.createRoom({n:2,target:cfg.target,flor:cfg.flor,stake:0,diff:r.diff,bots:1,skill:r.skill}).then(code=>NET.srv.call('salaEmpezar',{code}).then(()=>openTable(code))).catch(e=>{CAMP=null;toast(e.message||'No se pudo armar la partida')});return}
   mode='offline';mySeat=0;view='game';confirmExit=false;panel=null;
   const gm=newMatch({...cfg,seats:[{me:true},{bot:true}],matchId:'gira-'+rid+'-'+Date.now().toString(36)});gm.skill=r.skill;setG(gm);render();drive()}
 function settleGira(g){if(!CAMP||!g.matchOver||CAMP.done===g.matchId)return;const C=CAMP;C.done=g.matchId;const r=RM[C.rid];const won=g.matchOver.winner===0;
