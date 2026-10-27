@@ -1296,3 +1296,51 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
 /* los dibujos del inicio vienen sobre papel: se funden con el naipe */
 .naipe img{mix-blend-mode:multiply;border-radius:4px}
 .naipe img{-webkit-mask-image:radial-gradient(ellipse 58% 56% at 50% 50%,#000 62%,transparent 100%);mask-image:radial-gradient(ellipse 58% 56% at 50% 50%,#000 62%,transparent 100%);border-radius:0}
+/* ---------- naipes del inicio, versión 2: carta española con ventana y cinta ---------- */
+.naipe{background:linear-gradient(165deg,#faf3e1,#ead9b3);box-shadow:0 10px 22px rgba(0,0,0,.5),0 2px 0 rgba(255,255,255,.35) inset,inset 0 0 0 1px rgba(90,61,30,.35)}
+.naipe::before{content:'';position:absolute;inset:0;border-radius:inherit;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .36 0 0 0 0 .25 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");opacity:.22;pointer-events:none;mix-blend-mode:multiply}
+.naipe .nfr{inset:7px;border:1.5px solid color-mix(in srgb,var(--su) 70%,#3b2c1f);box-shadow:inset 0 0 0 3px #f6eed8,inset 0 0 0 4px color-mix(in srgb,var(--su) 35%,transparent);justify-content:flex-start;gap:0;padding:10px 9px 0}
+.naipe .nart{flex:1 1 0;min-height:0;width:100%;border-radius:6px;overflow:hidden;background:#f3e7cd;box-shadow:inset 0 0 0 1px rgba(59,44,31,.35),inset 0 2px 8px rgba(90,61,30,.25);display:flex;align-items:center;justify-content:center}
+.naipe .nart img{-webkit-mask-image:none;mask-image:none;mix-blend-mode:multiply;width:100%;height:100%;object-fit:cover;margin:0;flex:none;transition:transform .35s cubic-bezier(.3,.7,.4,1)}
+.naipe.n-torneos .nart img{object-fit:contain;padding:4px 0}
+.naipe:hover .nart img{transform:scale(1.05)}
+/* el título en una cinta del color del palo */
+.naipe b{flex:none;align-self:stretch;margin:8px -9px 0;padding:7px 6px 9px;background:linear-gradient(180deg,color-mix(in srgb,var(--su) 88%,#000),color-mix(in srgb,var(--su) 70%,#000));color:#fbf3df;font-size:clamp(.95rem,4.6cqw,1.35rem);text-shadow:0 1px 0 rgba(0,0,0,.35);border-radius:0 0 6px 6px;box-shadow:inset 0 1px 0 rgba(255,255,255,.25)}
+.naipe.ncen b{background:linear-gradient(180deg,#c9932a,#9a6a14);color:#fff8e6}
+.naipe .nfr{border-radius:8px}
+/* esquinas de naipe: un rombito del color del palo */
+.naipe .nesq{position:absolute;width:9px;height:9px;transform:rotate(45deg);background:var(--su);box-shadow:0 0 0 2px #f6eed8;z-index:2}
+.naipe .nesq.tl{left:11px;top:11px}.naipe .nesq.br{right:11px;bottom:11px;display:none}
+.naipe.ncen .nesq{background:#d9a441}
+.naipes{gap:0}
+.naipe{height:min(92%,50cqw,340px)}
+.naipe.ncen{height:min(100%,56cqw,380px);margin-inline:-3cqw}
+.naipe.ncen b{background:linear-gradient(180deg,#3d6f9f,#244a70)}
+.naipe.ncen .nesq{background:#2f5f8f}
+.naipe.ncen{box-shadow:0 14px 30px rgba(0,0,0,.6),0 0 0 2px rgba(240,197,72,.85),0 0 22px rgba(240,197,72,.25)}
+.naipe.n-torneos .nart{background:#efe3c6}
+.pg-menu .deal.home{justify-content:center}
+.naipes{flex:0 1 auto;height:min(100%,72cqw,400px)}
+.naipe{height:92%}
+.naipe.ncen{height:100%;margin-inline:-4cqw}
+.naipe:not(.ncen) b{font-size:clamp(.85rem,4.2cqw,1.25rem);padding-inline:12px}
+.naipes{height:min(100%,56cqw,400px)}
+.naipe.n-torneos .nart img{-webkit-mask-image:linear-gradient(90deg,transparent,#000 22%,#000 78%,transparent);mask-image:linear-gradient(90deg,transparent,#000 22%,#000 78%,transparent)}
+.naipe.n-torneos .nart{background:radial-gradient(70% 80% at 50% 50%,#ecdcb8,#f1e5c9)}
+.naipe.n-torneos .nart img{width:auto;height:100%;max-width:100%}
+/* Tienda: pestañas en una sola fila */
+.pg-shop .subtabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;justify-content:flex-start}
+.pg-shop .subtabs::-webkit-scrollbar{display:none}
+.pg-shop .subtabs button{flex:none}
+@media (max-width:420px){.pg-shop .subtabs button{padding:6px 11px;font-size:.86rem}}
+/* el pase dentro de la Tienda, compacto en pantallas bajas */
+.pase.inshop{flex:1 1 0;min-height:0}
+@media (max-height:700px){
+ .pase.inshop .phead{padding:8px 10px;gap:10px}
+ .pase.inshop .phead .btn{padding:6px 12px;font-size:.88rem}
+ .pase.inshop .pinfo small:first-of-type{display:none}
+}
+@media (min-width:721px){
+  .tabs.t5 button.tmain:not([aria-current="page"]){background:transparent;color:#e9bf55;box-shadow:inset 0 0 0 1.5px rgba(233,191,85,.55)}
+  .tabs.t5 button.tmain:not([aria-current="page"]) svg{stroke:#e9bf55}
+}

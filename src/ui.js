@@ -471,7 +471,7 @@ window.addEventListener('popstate',e=>{if(!ROUTING)return;const v=(e.state&&e.st
 const TABICO={"anotador":"<path d=\"M6 4h12v16H6z\"/><path d=\"M9 8h6M9 11.5h6M9 15h3\"/><path d=\"M9 4V2.8M15 4V2.8\"/>","shop":"<path d=\"M4 9h16l-1.2 10.5H5.2z\"/><path d=\"M8.5 9V7a3.5 3.5 0 0 1 7 0v2\"/><path d=\"M3.5 9l2-4h13l2 4\"/>","menu": "<path d=\"M5 6.5l6.5-2.2 3.2 12.4-6.5 2.2z\"/><path d=\"M12.6 4.6l6.6 1.6-2.9 12.6\"/>", "torneos": "<path d=\"M7 4h10v4a5 5 0 0 1-10 0z\"/><path d=\"M7 6H4.5a2.5 2.5 0 0 0 2.6 3.4M17 6h2.5a2.5 2.5 0 0 1-2.6 3.4\"/><path d=\"M12 13v4M8.5 20h7M10 17h4\"/>", "gira": "<path d=\"M9 4.5 4 6.5v13l5-2 6 2 5-2v-13l-5 2z\"/><path d=\"M9 4.5v13M15 6.5v13\"/>", "extra": "<path d=\"M7.5 10.5h9c0 5-1.8 9-4.5 9s-4.5-4-4.5-9z\"/><path d=\"M9 10.5c.4-2 1.5-3 3-3s2.6 1 3 3\"/><path d=\"M13.5 7.6 16.8 2.8\"/>", "profile": "<circle cx=\"12\" cy=\"8.5\" r=\"3.6\"/><path d=\"M5 20c.8-3.8 3.6-5.6 7-5.6s6.2 1.8 7 5.6\"/>"};
 /* cinco pestañas: Jugar va al centro y se destaca */
 function tabsHTML(){const t=[['anotador','Anotador'],['gira','La Huella'],['menu','Jugar'],['shop','Tienda'],['profile','Perfil']];
-  const cur=['tour','tournew','torneos','online','pase'].includes(view)?'menu':['settings','extra','missions','ranking','rules','tutorial'].includes(view)?'profile':view;
+  const cur=view==='pase'?'shop':['tour','tournew','torneos','online'].includes(view)?'menu':['settings','extra','missions','ranking','rules','tutorial'].includes(view)?'profile':view;
   return `<nav class="tabs t5" aria-label="Secciones">${t.map(([v,l])=>`<button type="button" class="${v==='menu'?'tmain':''}" data-a="nav" data-v="${v}" ${cur===v?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${TABICO[v]}</svg><span>${l}</span></button>`).join('')}</nav>`}
 function seg(key,opts,cur,dis){return `<div class="seg" role="group">${opts.map(([v,l])=>`<button type="button" data-set="${key}" data-v="${v}" aria-pressed="${String(cur)===String(v)}" ${dis&&dis(v)?'disabled':''}>${l}</button>`).join('')}</div>`}
 const STAKES=[0,50,100,250,500,1000];
@@ -491,22 +491,23 @@ function playHTML(){const remembered=(()=>{try{return localStorage.getItem('revi
   return `<section class="phead"><button type="button" class="pav" data-a="nav" data-v="shop" aria-label="Cambiar personaje">${avatarSVG(myAv(),54)}</button><div><b>${esc(myDisp())}</b><small>${esc(titleOf(WAL.copas||0))}${st&&st.played?` · ${st.played} partidas online · ${Math.round(st.winRate*100)}% ganadas`:''}</small></div><button type="button" class="btn sm ghost" data-a="nav" data-v="profile">Perfil</button></section>
   ${remembered&&onlineOk?`<button type="button" class="rowb hot slim" data-a="rejoin" data-code="${esc(remembered)}"><b>Volver a la mesa ${esc(remembered)}</b><small>Tu partida sigue ahí</small></button>`:''}
   <section class="deal home">${fileteHTML()}
-    ${paseTile('pban')}
     <div class="naipes">
       ${naipeTile('data-a="nav" data-v="torneos"','torneos','O','Torneos',FB?(openT?(openT===1?'Hay uno abierto':`Hay ${openT} abiertos`):'Mirá los que vienen'):'Con tu cuenta en la web')}
       ${naipeTile('data-a="nav" data-v="online"','online','E','Jugar online',onlineOk?(nOpen?`${nOpen} mesa${nOpen>1?'s':''} esperando gente`:'Con código o armá tu mesa'):'Con tu cuenta en la web','ncen')}
       ${naipeTile(`data-a="solo" ${SET.stake>WAL.chips?'disabled':''}`,'offline','B','Jugar offline','Contra la máquina')}
     </div>
     <button type="button" class="optline" data-a="soloopts">${esc(sum)} · <u>Cambiar</u></button>
+<a class="waline" href="${waHref(waInviteText())}" target="_blank" rel="noopener">${WAICO} Invitar amigos por WhatsApp</a>
   </section>
-  <a class="waline" href="${waHref(waInviteText())}" target="_blank" rel="noopener">${WAICO} Invitar amigos por WhatsApp</a>`}
+`}
 /* tarjetas de menú con aire de naipe: marco fino, número y palo de la figura en la esquina, tinte del palo */
 const modeTile=(attrs,art,t,d)=>`<button type="button" class="mode s${art.slice(-1)}" ${attrs}><img src="${CARDART[art].src}" alt="" aria-hidden="true"><span><b>${t}</b><small>${d}</small></span></button>`;
 /* tarjetas de Extra: un dibujo a lápiz de color propio de cada sección (src/art.js, ICON_ART) */
 const iconTile=(attrs,ic,su,t,d)=>`<button type="button" class="mode ic s${su}" ${attrs}><img src="${iconSrc(ic)}" alt="" aria-hidden="true" decoding="async"><span><b>${t}</b><small>${d}</small></span></button>`;
 /* el pase de temporada en Extra: tarjeta destacada con el nivel, la barra y lo que hay para cobrar */
 /* inicio: las opciones de juego como tres naipes grandes, con el dibujo a lápiz de cada una */
-const naipeTile=(attrs,ic,su,t,d,cls='')=>`<button type="button" class="naipe s${su} ${cls}" ${attrs}><span class="nfr"><img src="${INICIO_IMG[ic]||iconSrc(ic)}" alt="" aria-hidden="true" decoding="async"><b>${t}</b><small>${d}</small></span></button>`;
+/* naipe del inicio: marco de carta española, el dibujo en su ventana y el título en una cinta */
+const naipeTile=(attrs,ic,su,t,d,cls='')=>`<button type="button" class="naipe s${su} n-${ic} ${cls}" ${attrs} aria-label="${t}"><span class="nfr"><span class="nart"><img src="${INICIO_IMG[ic]||iconSrc(ic)}" alt="" aria-hidden="true" decoding="async"></span><b>${t}</b></span><i class="nesq tl" aria-hidden="true"></i><i class="nesq br" aria-hidden="true"></i></button>`;
 function paseTile(cls=''){const p=paseW(),lv=paseLvl(),act=paseActiva(),inLv=lv>=SEASON.levels?SEASON.xpLevel:(p.xp||0)%SEASON.xpLevel;
   let ready=0;for(const tr of ['free','prem'])for(let l=1;l<=lv;l++)if(paseRw(tr,l)&&!paseHas(tr,l)&&(tr==='free'||p.prem))ready++;
   const dias=Math.max(0,Math.ceil((Date.parse(SEASON.end+'T23:59:59-03:00')-Date.now())/864e5));
@@ -582,13 +583,14 @@ function fichaHTML(){if(!FICHA)return'';const {t,id}=FICHA,x=itemOf(t,id);if(!x)
   const L=t==='av'&&LINES[id];const fr=L?[['Canta','truco'],['Quiere','quiero'],['Si gana','win'],['Si pierde','lose']].filter(([,k])=>L[k]&&L[k][0]).map(([l,k])=>`<li><small>${l}</small><q>${esc(L[k][0])}</q></li>`).join(''):'';
   return `<div class="over" data-a="close"><div class="panel fpanel fp-${t}" data-stop><div class="fpic">${pic}</div><div class="ftxt"><h2>${esc(x.name)}</h2><p class="fbio">${esc(x.bio)}</p>${fr?`<ul class="frases">${fr}</ul>`:''}
     <div class="fbuy">${buyBtn(t,id,x.price,x.name)}</div><button class="btn ghost" data-a="close">Cerrar</button></div></div></div>`}
-function shopHTML(){const sub=[['av','Personajes'],['dorso','Dorsos'],['pano','Paños'],['coins','Monedas']];if(shopTab==='kit')shopTab='av';
+function shopHTML(){const sub=[['pase','Pase'],['av','Personajes'],['dorso','Dorsos'],['pano','Paños'],['coins','Monedas']];if(shopTab==='kit')shopTab='av';
   let body='';
   if(shopTab==='av')body=fitList('shop-av',AVS,a=>{if(a.id!=='hincha')return shopItem('av',a,avatarSVG(a.id,96,true));const has=owns('av','hincha',a.price);
       return `<div class="item ${WAL.eq.av==='hincha'?'on':''}"><div class="prev">${avatarSVG(kitAv(KITM[WAL.eq.kit]?WAL.eq.kit:'arg'),96,true)}</div><b>${esc(a.name)}</b><p>${KITS.length} camisetas para elegir.</p>${has?`<button class="btn ink" data-a="ov" data-v="kits">Camisetas</button>`:buyBtn('av','hincha',a.price,a.name)}</div>`},'items');
   if(shopTab==='dorso')body=fitList('shop-dorso',DORSOS,d=>shopItem('dorso',d,`<div class="bigback" style="background:${backBg(d.id)}"></div>`),'items');
   if(shopTab==='pano')body=fitList('shop-pano',PANOS,p=>shopItem('pano',p,`<div class="swatch pano-${p.id}" style="background:${panoBg(p.id)};border-color:${p.edge}">${cardHTML('1E')}${cardHTML('7O')}</div>`),'items');
   const earn='Las monedas sirven también para pagar en la tienda. Se ganan jugando: 20, 40 u 80 por partida ganada según la dificultad, 60 por partida online, 5 por jugar aunque pierdas y 30 cada día.';
+  if(shopTab==='pase')return phd('Tienda',`<span class="pill">${chipI}${fmt(WAL.chips)}</span>`)+`<div class="subtabs" role="group">${sub.map(([k,l])=>`<button type="button" data-a="shoptab" data-v="${k}" aria-pressed="${shopTab===k}">${l}</button>`).join('')}</div>`+paseHTML(true);
   if(shopTab==='coins'&&FB)body=mpShopHTML();
   else if(shopTab==='coins'&&!PREMIUM)body=premLock()+`<p class="note">${earn}</p>`;
   else if(shopTab==='coins')body=`<div class="demo"><b>Modo prueba.</b> Acá no se cobra nada: los paquetes se acreditan gratis para que veas cómo funciona la tienda.</div>
@@ -982,12 +984,12 @@ function paseCell(track,l){const r=paseRw(track,l),p=paseW(),lv=paseLvl();
     :r.t==='dorso'?`<span class="pv"><i class="pdorso" style="background:${backBg(r.v)}"></i><b>${esc(DM[r.v].name)}</b></span>`:`<span class="pv"><i class="ppano" style="background:${panoBg(r.v)}"></i><b>${esc(PM[r.v].name)}</b></span>`;
   const st=got?'<span class="pst ok" aria-label="Cobrado">✓</span>':lock?'<span class="pst" aria-label="Con el pase">🔒︎</span>':reach?`<button class="btn sm prim" data-a="pasecobrar" data-t="${track}" data-l="${l}">Cobrar</button>`:'';
   return `<div class="pcell ${got?'got':''} ${reach&&!got&&!lock?'ready':''} ${lock?'lock':''}">${vis}${st}</div>`}
-function paseHTML(){const p=paseW(),lv=paseLvl(),per=pasePer(),pages=Math.ceil(SEASON.levels/per);
+function paseHTML(inShop){const p=paseW(),lv=paseLvl(),per=pasePer(),pages=Math.ceil(SEASON.levels/per);
   if(PASEPG===null||PASEPG>=pages)PASEPG=Math.min(pages-1,Math.floor(Math.min(lv,SEASON.levels-1)/per));
   const from=PASEPG*per+1,lvls=Array.from({length:per},(_,i)=>from+i).filter(l=>l<=SEASON.levels);
   const inLv=lv>=SEASON.levels?SEASON.xpLevel:(p.xp||0)%SEASON.xpLevel;
   const dias=Math.max(0,Math.ceil((Date.parse(SEASON.end+'T23:59:59-03:00')-Date.now())/864e5)),act=paseActiva();
-  return phd('Pase de temporada','','menu')+`<div class="pbody pase">
+  return (inShop?'':phd('Pase de temporada','','shop'))+`<div class="pbody pase ${inShop?'inshop':''}">
     <section class="box phead"><div class="plv"><small>Nivel</small><b>${lv}</b></div>
       <div class="pinfo"><b>${esc(SEASON.name)}</b><small>${act?(dias===1?'Termina mañana':'Termina en '+dias+' días'):'La temporada terminó'}</small>
         <div class="bar"><i style="width:${Math.round(inLv*100/SEASON.xpLevel)}%"></i></div><small>${lv>=SEASON.levels?'¡Llegaste al último nivel!':inLv+' de '+SEASON.xpLevel+' para el nivel '+(lv+1)}</small></div>
@@ -1876,7 +1878,7 @@ document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closes
   const a=t.dataset.a;
   if(a!=='anreset')anotConfirm=false;if(a!=='mazo')confirmMazo=false;if(a!=='exit')confirmExit=false;if(!['tourleave','tourstart','tourcancel'].includes(a))tourConfirm=null;if(a!=='buy'&&a!=='prebuy'&&a!=='pack'&&a!=='prepack')pendingBuy=null;
   switch(a){
-  case 'nav':overlayView=null;view=t.dataset.v;render();return;
+  case 'nav':overlayView=null;view=t.dataset.v;if(view==='pase'){view='shop';shopTab='pase'}render();return;
   case 'ptab':PT[t.dataset.k]=t.dataset.v;render();return;
   case 'lang':setLang(t.dataset.v);return;
   case 'pasecobrar':paseCobrar(t.dataset.t,+t.dataset.l);return;
