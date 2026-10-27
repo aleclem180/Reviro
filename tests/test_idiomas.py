@@ -5,7 +5,7 @@ from playwright.async_api import async_playwright
 from util import servidor, pagina, RAIZ
 
 HOJAS = ["menu", "online", "torneos", "gira", "extra", "profile", "settings", "shop", "missions", "ranking",
-         "anotador", "rules", "tutorial"]
+         "anotador", "rules", "tutorial", "pase"]
 # los textos visibles y las etiquetas de accesibilidad de la página
 TEXTOS = r"""()=>{const o=new Set();const w=document.createTreeWalker(document.body,4);
  for(let n=w.nextNode();n;n=w.nextNode()){const p=n.parentElement;if(!p||p.closest('script,style,[translate="no"]'))continue;const t=n.data.trim();if(t)o.add(t)}

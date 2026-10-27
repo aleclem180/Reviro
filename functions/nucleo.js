@@ -61,7 +61,9 @@
     const walOf = (d) => { const w = Object.assign(WAL0(), d || {}); w.stats = Object.assign(WAL0().stats, (d && d.stats) || {});
       w.ach = { cnt: {}, done: [], ...((d && d.ach) || {}) }; w.ach.cnt = { ...(w.ach.cnt || {}) }; w.ach.done = (w.ach.done || []).slice();
       w.owned = (w.owned || []).slice(); w.applied = (w.applied || []).slice(); w.evk = (w.evk || []).slice(); w.tutPaid = (w.tutPaid || []).slice();
-      w.tours = { ...(w.tours || {}) }; return w; };
+      w.tours = { ...(w.tours || {}) };
+      if (d && d.pase && typeof d.pase === 'object') w.pase = { ...d.pase, cf: (d.pase.cf || []).slice(), cp: (d.pase.cp || []).slice() };
+      return w; };
     /** Anota un movimiento (con clave única: si ya se aplicó, no se repite). Devuelve false si no alcanza el saldo. */
     function mover(t, uid, w, { key, chips = 0, coins = 0, own = null, tipo, ref = null, earn = false }) {
       if (key && w.applied.includes(key)) return false;
@@ -74,6 +76,14 @@
       if (chips || coins || own) t.add('wallets/' + uid + '/movimientos', { tipo: tipo || key || 'ajuste', fichas: chips, monedas: coins, own, ref, saldo: { fichas: w.chips, monedas: w.coins }, at: ahora() });
       return true;
     }
+
+    /* ---------- pase de temporada ---------- */
+    const SE = C.SEASON;
+    const paseActiva = () => !!SE && hoy() >= SE.start && hoy() <= SE.end;
+    function pase(w) { if (!w.pase || w.pase.id !== SE.id) w.pase = { id: SE.id, xp: 0, prem: false, cf: [], cp: [] }; return w.pase; }
+    const nivel = (w) => Math.min(SE.levels, Math.floor((pase(w).xp || 0) / SE.xpLevel));
+    function sumarXP(w, n) { if (!SE || !paseActiva() || !n) return; pase(w).xp += n; }
+    const xpPartida = (won, on) => SE ? (SE.xp.partida + (won ? SE.xp.ganada : 0)) * (on ? SE.xp.online : 1) : 0;
 
     /* misiones del día (las mismas tres que calcula la página) */
     function dayHash(s) { let h = 0; for (const ch of s) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h; }
@@ -108,6 +118,7 @@
         if (valorLogro(w, a) >= a.goal) { w.ach.done.push(a.id); chips += fPrice(a.r); avisos.push({ tipo: 'logro', id: a.id, fichas: fPrice(a.r) }); }
       }
       if (key) w.evk = w.evk.concat(key).slice(-120);
+      if (SE) sumarXP(w, avisos.reduce((a, x) => a + (x.tipo === 'mision' ? SE.xp.mision : SE.xp.logro), 0));
       if (chips) mover(t, uid, w, { chips, tipo: 'misiones y logros', ref: avisos.map((x) => x.id).join(',') });
       return avisos;
     }
@@ -127,13 +138,14 @@
             w.daily = d0;
             const top = Math.max(0, R.DIARIO_FICHAS - w.chips);
             mover(t, uid, w, { key: 'daily-' + d0, coins: R.DIARIO_MONEDAS, chips: top, tipo: 'premio del día' });
+            if (SE) sumarXP(w, SE.xp.diario);
             res = { ok: true, monedas: R.DIARIO_MONEDAS, fichas: top };
           } else res = { ok: true, ya: true };
           asegurarMisiones(w);
         } else if (op === 'comprar') {
           await noSuspendido(ctx, t);
           const it = (ITEMS[d.tipo] || []).find((x) => x.id === d.id);
-          if (!it || !it.price || it.boss) throw err('no-se-vende');
+          if (!it || !it.price || it.boss || it.season) throw err('no-se-vende');
           const own = d.tipo + ':' + d.id;
           if (w.owned.includes(own)) return { ok: true, ya: true };
           const enMonedas = d.moneda === 'monedas';
@@ -152,6 +164,25 @@
           if (!r || w.applied.includes('ref-new')) return { ok: true, ya: true };
           mover(t, uid, w, { key: 'ref-new', chips: R.REF_NEW, tipo: 'invitación de un amigo', ref: r.referrer });
           res = { ok: true, fichas: R.REF_NEW };
+        } else if (op === 'paseComprar') {
+          if (!SE || !paseActiva()) throw err('estado', 'La temporada ya terminó');
+          const p = pase(w); if (p.prem) return { ok: true, ya: true };
+          if (!mover(t, uid, w, { coins: -SE.price, tipo: 'pase de temporada', ref: SE.id })) throw err('saldo', 'No te alcanzan las monedas');
+          p.prem = true;
+        } else if (op === 'paseCobrar') {
+          if (!SE) throw err('estado');
+          const track = d.track === 'prem' ? 'prem' : 'free', l = +d.l, p = pase(w);
+          const r = (track === 'prem' ? SE.prem : SE.free).find((x) => x.l === l);
+          if (!r) throw err('valor');
+          const list = track === 'prem' ? p.cp : p.cf;
+          if (list.includes(l)) return { ok: true, ya: true };
+          if (nivel(w) < l) throw err('estado', 'Todavía no llegaste a ese nivel');
+          if (track === 'prem' && !p.prem) throw err('estado', 'Ese premio es del pase');
+          if (track === 'prem' && r.t === 'chips') throw err('valor');   // el pase se paga con monedas: nunca da fichas
+          const own = r.t === 'dorso' || r.t === 'pano' ? r.t + ':' + r.v : null;
+          mover(t, uid, w, { chips: r.t === 'chips' ? r.v : 0, coins: r.t === 'coins' ? r.v : 0, own, tipo: 'pase: nivel ' + l, ref: SE.id + '-' + track });
+          list.push(l);
+          res = { ok: true, avisos: own ? eventos(t, uid, w, []) : [] };
         } else if (op === 'cargar' || op === 'pack') {
           const prem = await t.get('premium/' + uid);
           if (!(prem && prem.on) && !(await esAdmin(ctx, t))) throw err('premium', 'Solo para cuentas premium');
@@ -280,6 +311,7 @@
           const pts = won ? (on ? R.PTS_ONLINE : R.PTS_IA[g.diff] || 8) : 0;
           mover(t, id, w, { key, chips, coins, earn: true, tipo: won ? 'partida ganada' : 'partida jugada', ref: code });
           w.stats.pts = (w.stats.pts || 0) + pts;
+          sumarXP(w, xpPartida(won, on));
           w.stats.ast = won ? (w.stats.ast || 0) + 1 : 0; w.stats.abest = Math.max(w.stats.abest || 0, w.stats.ast);
           if (on) { w.stats.played++; if (won) { w.stats.won++; w.stats.streak++; w.stats.best = Math.max(w.stats.best, w.stats.streak); } else w.stats.streak = 0; }
           rewards[id] = { chips, coins, pts, avisos: eventos(t, id, w, eventosPartida(g, mt), g.matchId + ':m') };

@@ -73,134 +73,184 @@
   {
    "id": "pampa",
    "price": 0,
-   "boss": null
+   "boss": null,
+   "season": null
   },
   {
    "id": "bordo",
    "price": 0,
-   "boss": null
+   "boss": null,
+   "season": null
   },
   {
    "id": "marino",
    "price": 400,
-   "boss": null
+   "boss": null,
+   "season": null
   },
   {
    "id": "cuero",
    "price": 500,
-   "boss": null
+   "boss": null,
+   "season": null
   },
   {
    "id": "celeste",
    "price": 600,
-   "boss": null
+   "boss": null,
+   "season": null
   },
   {
    "id": "noche",
    "price": 700,
-   "boss": null
+   "boss": null,
+   "season": null
   },
   {
    "id": "oro",
    "price": 800,
-   "boss": null
+   "boss": null,
+   "season": null
   },
   {
    "id": "fileteado",
    "price": 900,
-   "boss": null
+   "boss": null,
+   "season": null
   },
   {
    "id": "ombu",
    "price": 0,
-   "boss": "ba"
+   "boss": "ba",
+   "season": null
   },
   {
    "id": "cuarteto",
    "price": 0,
-   "boss": "centro"
+   "boss": "centro",
+   "season": null
   },
   {
    "id": "sietecolores",
    "price": 0,
-   "boss": "noa"
+   "boss": "noa",
+   "season": null
   },
   {
    "id": "viento",
    "price": 0,
-   "boss": "patagonia"
+   "boss": "patagonia",
+   "season": null
   },
   {
    "id": "cruzsur",
    "price": 0,
-   "boss": "malvinas"
+   "boss": "malvinas",
+   "season": null
+  },
+  {
+   "id": "guitarra",
+   "price": 0,
+   "boss": null,
+   "season": "t1"
+  },
+  {
+   "id": "bombo",
+   "price": 0,
+   "boss": null,
+   "season": "t1"
   }
  ],
  "PANOS": [
   {
    "id": "quincho",
    "price": 0,
-   "boss": null
+   "boss": null,
+   "season": null
   },
   {
    "id": "cuerovaca",
    "price": 900,
-   "boss": null
+   "boss": null,
+   "season": null
   },
   {
    "id": "bordo",
    "price": 0,
-   "boss": null
+   "boss": null,
+   "season": null
   },
   {
    "id": "verde",
    "price": 600,
-   "boss": null
+   "boss": null,
+   "season": null
   },
   {
    "id": "azul",
    "price": 700,
-   "boss": null
+   "boss": null,
+   "season": null
   },
   {
    "id": "petroleo",
    "price": 700,
-   "boss": null
+   "boss": null,
+   "season": null
   },
   {
    "id": "bodegon",
    "price": 1000,
-   "boss": null
+   "boss": null,
+   "season": null
   },
   {
    "id": "cuero",
    "price": 1100,
-   "boss": null
+   "boss": null,
+   "season": null
   },
   {
    "id": "fileteado",
    "price": 1200,
-   "boss": null
+   "boss": null,
+   "season": null
   },
   {
    "id": "ibera",
    "price": 0,
-   "boss": "litoral"
+   "boss": "litoral",
+   "season": null
   },
   {
    "id": "vinedo",
    "price": 0,
-   "boss": "cuyo"
+   "boss": "cuyo",
+   "season": null
   },
   {
    "id": "monte",
    "price": 0,
-   "boss": "nea"
+   "boss": "nea",
+   "season": null
   },
   {
    "id": "faro",
    "price": 0,
-   "boss": "tdf"
+   "boss": "tdf",
+   "season": null
+  },
+  {
+   "id": "pena",
+   "price": 0,
+   "boss": null,
+   "season": "t1"
+  },
+  {
+   "id": "poncho",
+   "price": 0,
+   "boss": null,
+   "season": "t1"
   }
  ],
  "KITS": [
@@ -316,6 +366,127 @@
   "malvinas": [
    "dorso",
    "cruzsur"
+  ]
+ },
+ "SEASON": {
+  "id": "t1",
+  "name": "Temporada de la Peña",
+  "start": "2026-10-27",
+  "end": "2026-12-31",
+  "price": 600,
+  "levels": 20,
+  "xpLevel": 100,
+  "xp": {
+   "partida": 20,
+   "ganada": 15,
+   "online": 2,
+   "mision": 40,
+   "logro": 60,
+   "diario": 10
+  },
+  "free": [
+   {
+    "l": 2,
+    "t": "chips",
+    "v": 300
+   },
+   {
+    "l": 4,
+    "t": "coins",
+    "v": 20
+   },
+   {
+    "l": 6,
+    "t": "chips",
+    "v": 500
+   },
+   {
+    "l": 8,
+    "t": "coins",
+    "v": 30
+   },
+   {
+    "l": 10,
+    "t": "dorso",
+    "v": "bombo"
+   },
+   {
+    "l": 12,
+    "t": "chips",
+    "v": 700
+   },
+   {
+    "l": 14,
+    "t": "coins",
+    "v": 40
+   },
+   {
+    "l": 16,
+    "t": "chips",
+    "v": 1000
+   },
+   {
+    "l": 18,
+    "t": "coins",
+    "v": 50
+   },
+   {
+    "l": 20,
+    "t": "pano",
+    "v": "poncho"
+   }
+  ],
+  "prem": [
+   {
+    "l": 1,
+    "t": "dorso",
+    "v": "guitarra"
+   },
+   {
+    "l": 3,
+    "t": "coins",
+    "v": 60
+   },
+   {
+    "l": 5,
+    "t": "coins",
+    "v": 60
+   },
+   {
+    "l": 7,
+    "t": "coins",
+    "v": 80
+   },
+   {
+    "l": 9,
+    "t": "coins",
+    "v": 80
+   },
+   {
+    "l": 11,
+    "t": "coins",
+    "v": 100
+   },
+   {
+    "l": 13,
+    "t": "coins",
+    "v": 100
+   },
+   {
+    "l": 15,
+    "t": "pano",
+    "v": "pena"
+   },
+   {
+    "l": 17,
+    "t": "coins",
+    "v": 120
+   },
+   {
+    "l": 19,
+    "t": "coins",
+    "v": 150
+   }
   ]
  },
  "MISSIONS": [

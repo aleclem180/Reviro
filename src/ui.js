@@ -148,10 +148,10 @@ const walKey=()=>(typeof FB!=='undefined'&&FB&&uid)?'reviro.wallet.'+uid:'reviro
 function renderWallet(){$('#chips').textContent=fmt(WAL.chips);$('#coins').textContent=fmt(WAL.coins)}
 const itemOf=(type,id)=>(type==='av'?AVM:type==='dorso'?DM:type==='kit'?KITM:PM)[id];
 const myAv=()=>WAL.eq.av==='hincha'?kitAv(WAL.eq.kit):WAL.eq.av;
-const owns=(type,id,price)=>{const it=itemOf(type,id);if(it&&it.boss)return !!(WAL.gira&&WAL.gira.bosses.includes(it.boss));return !price||WAL.owned.includes(type+':'+id)};
+const owns=(type,id,price)=>{const it=itemOf(type,id);if(it&&it.boss)return !!(WAL.gira&&WAL.gira.bosses.includes(it.boss));if(it&&it.season)return WAL.owned.includes(type+':'+id);return !price||WAL.owned.includes(type+':'+id)};
 /* ---------- modo servidor: la billetera y las partidas online las maneja el servidor (ver functions/ y docs/SERVIDOR.md) ---------- */
 const SRV=()=>!!(typeof FB!=='undefined'&&FB&&window.NET&&NET.srv&&NET.srv.on);
-const SRV_FIELDS=['chips','coins','owned','stats','mis','ach','evk','applied','tours','daily','tutPaid'];
+const SRV_FIELDS=['chips','coins','owned','stats','mis','ach','evk','applied','tours','daily','tutPaid','pase'];
 const PREF_FIELDS=['eq','nick','fcode','registered','copas','gira','tut','friends','th2','lang','langAt'];
 let walUnsub=null;
 const misTitle=id=>{const m=MISSIONS.find(x=>x.id===id)||ACHS.find(x=>x.id===id);return m?m.t:id};
@@ -178,14 +178,14 @@ async function loadWallet(){try{const l=JSON.parse(localStorage.getItem(walKey()
   walReady=true;renderWallet();
   const today=new Date().toLocaleDateString('en-CA');
   /* premio del día: 30 monedas y, si te quedaste corto, las fichas se completan hasta 1.000 */
-  if(WAL.daily!==today){WAL.daily=today;const top=Math.max(0,1000-WAL.chips);await applyTx('daily-'+today,{coins:30,chips:top});toast('Premio del día: +30 monedas'+(top?` y tus fichas vuelven a 1.000`:''))}
+  if(WAL.daily!==today){WAL.daily=today;const top=Math.max(0,1000-WAL.chips);await applyTx('daily-'+today,{coins:30,chips:top});paseXP(SEASON.xp.diario);toast('Premio del día: +30 monedas'+(top?` y tus fichas vuelven a 1.000`:''))}
   if(syncLang())saveWallet();
   if(!WAL.fcode){WAL.fcode=genFriendCode();saveWallet()}
   if(!WAL.th2){WAL.th2=1;if(WAL.eq.pano==='bordo')WAL.eq.pano='quincho';if(WAL.eq.dorso==='bordo')WAL.eq.dorso='pampa';saveWallet()}
   ensureMissions();writeLooks();render()}
 function mergeWal(d){for(const k of ['chips','coins','daily','th2','nick','fcode','registered','copas','lang','langAt'])if(d[k]!==undefined)WAL[k]=d[k];
   if(Array.isArray(d.owned))WAL.owned=d.owned;if(d.mis)WAL.mis=d.mis;if(d.ach)WAL.ach={cnt:d.ach.cnt||{},done:d.ach.done||[]};if(Array.isArray(d.evk))WAL.evk=d.evk;if(Array.isArray(d.tut))WAL.tut=d.tut;if(Array.isArray(d.friends))WAL.friends=d.friends;if(d.gira)WAL.gira={beat:d.gira.beat||{},bosses:d.gira.bosses||[]};if(d.tours&&typeof d.tours==='object')WAL.tours=d.tours;if(Array.isArray(d.applied))WAL.applied=d.applied;
-  if(d.eq)WAL.eq=Object.assign({},WAL.eq,d.eq);if(d.stats)WAL.stats=Object.assign({},WAL.stats,d.stats)}
+  if(d.eq)WAL.eq=Object.assign({},WAL.eq,d.eq);if(d.stats)WAL.stats=Object.assign({},WAL.stats,d.stats);if(d.pase&&typeof d.pase==='object')WAL.pase=d.pase}
 async function saveWallet(){const body=JSON.parse(JSON.stringify(WAL));try{localStorage.setItem(walKey(),JSON.stringify(body))}catch(e){}
   if(SRV()){if(db&&uid){const pr={};for(const k of PREF_FIELDS)if(body[k]!==undefined)pr[k]=body[k];try{await db.doc('data/users/'+uid+'/prefs').set(pr)}catch(e){}}return}
   if(walRef){try{await walRef.set(body)}catch(e){walRef=null}}}
@@ -257,7 +257,7 @@ function pageBody(){switch(view){
   case 'anotador':return anotHTML();case 'gira':return giraHTML();case 'extra':return extraHTML();case 'settings':return settingsHTML();
   case 'rules':return rulesPageHTML();case 'tutorial':return tutorialPageHTML();case 'menu':return playHTML();case 'online':return onlinePageHTML();
   case 'torneos':return toursPageHTML();case 'tour':return tourHTML();case 'tournew':return tourNewHTML();case 'shop':return shopHTML();
-  case 'profile':return profileHTML();case 'missions':return missionsHTML();case 'ranking':return rankingHTML();case 'room':return roomHTML()}return''}
+  case 'pase':return paseHTML();case 'profile':return profileHTML();case 'missions':return missionsHTML();case 'ranking':return rankingHTML();case 'room':return roomHTML()}return''}
 function render(){const v=$('#view');routeSync();document.body.dataset.view=view;
   if(view==='game'){if(v.firstElementChild&&v.firstElementChild.classList.contains('game')){const before=cardRects(v);morphGame(v);flipCards(v,before)}else gameFresh(v,gameHTML())}
   else{/* en el ingreso no se pierde lo que ya escribiste cuando la pantalla se vuelve a dibujar (por ejemplo, al fallar Google) */
@@ -454,7 +454,7 @@ const BACKL={menu:'Jugar',extra:'Extra',torneos:'Torneos',profile:'Perfil'};
 function phd(title,right='',back=null){return `<header class="phd">${back?`<button type="button" class="pback" data-a="nav" data-v="${back}" aria-label="Volver a ${BACKL[back]||back}">‹</button>`:''}<h2>${title}</h2>${right?`<div class="phr">${right}</div>`:''}</header>`}
 
 /* ---------- direcciones propias para cada hoja en la web: /Reviro/torneos, /Reviro/online… ---------- */
-const ROUTES={menu:'',online:'online',torneos:'torneos',tour:'torneo',tournew:'nuevo-torneo',gira:'huella',extra:'extra',profile:'perfil',settings:'ajustes',shop:'tienda',missions:'misiones',ranking:'ranking',rules:'reglamento',tutorial:'tutorial',anotador:'anotador'};
+const ROUTES={menu:'',online:'online',torneos:'torneos',tour:'torneo',tournew:'nuevo-torneo',gira:'huella',extra:'extra',profile:'perfil',settings:'ajustes',shop:'tienda',missions:'misiones',ranking:'ranking',rules:'reglamento',tutorial:'tutorial',anotador:'anotador',pase:'pase'};
 const ROUTEV=Object.fromEntries(Object.entries(ROUTES).map(([v,r])=>[r,v]));
 const ROUTING=!!window.REVIRO_WEB&&/^https?:$/.test(location.protocol);
 const BASEP=(()=>{try{const b=document.querySelector('base');return b?new URL(b.href).pathname:location.pathname.replace(/[^/]*$/,'')}catch(e){return '/'}})();
@@ -538,6 +538,7 @@ function tutorialPageHTML(){return phd('Tutorial','','extra')+tutorialBoxHTML()}
 /* ---------- tienda ---------- */
 function buyBtn(type,id,price,name){const own=owns(type,id,price),on=WAL.eq[type]===id;const it=itemOf(type,id);
   if(it&&it.boss&&!own)return `<button class="btn" disabled>Ganale al jefe de ${esc(ZM[it.boss].name)}</button>`;
+  if(it&&it.season&&!own)return `<button class="btn" data-a="nav" data-v="pase">Pase de temporada · nivel ${it.lvl}</button>`;
   if(on)return `<button class="btn" disabled>Usando</button>`;
   if(own)return `<button class="btn ink" data-a="equip" data-t="${type}" data-id="${id}">Usar</button>`;
   const fp=fPrice(price),k=type+':'+id,alt=WAL.coins>=price?`<button type="button" class="paycoins" data-a="prebuy" data-t="${type}" data-id="${id}" data-c="coins">o ${fmt(price)} monedas</button>`:'';
@@ -740,7 +741,7 @@ function settle(g){if(!g||!g.matchOver||mySeat<0)return;
       chips=uid===mo.forfeit?0:mt===ft?g.stake:g.stake+Math.floor(g.stake*0.9/(n/2))}   // abandono: el compañero recupera su entrada; los rivales se llevan la del que se fue
     else chips=won?tablePrize(g.stake,n):0}
   if(mo.cancelled){applyTx(key,{chips}).then(()=>writeLooks());return}
-  lastReward={matchId:g.matchId,coins};applyTx(key,{chips,coins,earn:true,stat:countsOnline(g)?(won?'w':'l'):null,astat:won?'w':'l',pts}).then(()=>{recordEvents(g.matchId+':m',matchEvents(g));writeLooks()})}
+  lastReward={matchId:g.matchId,coins};applyTx(key,{chips,coins,earn:true,stat:countsOnline(g)?(won?'w':'l'):null,astat:won?'w':'l',pts}).then(ok=>{if(ok)paseXP(paseXPPartida(won,countsOnline(g)));recordEvents(g.matchId+':m',matchEvents(g));writeLooks()})}
 async function commit(ng){confirmMazo=false;
   if(mode==='offline'){setG(ng);settle(G);if(CAMP)settleGira(G);render();drive();return}
   if(busy)return;const base=T&&T.game?T.game.seq:-1;if(ng.seq<=base)return;
@@ -906,13 +907,13 @@ function ensureMissions(){const today=new Date().toLocaleDateString('en-CA');if(
   const ids=MISSIONS.map(m=>m.id);let x=dayHash(today);const pick=[];while(pick.length<3){x=(x*1103515245+12345)>>>0;const id=ids[x%ids.length];if(!pick.includes(id))pick.push(id)}
   WAL.mis={date:today,ids:pick,prog:{},done:[]}}
 function achValue(a){if(a.ev==='@streak')return Math.max(WAL.stats.best||0,WAL.stats.abest||0);if(a.ev==='@avatars')return AVS.filter(x=>owns('av',x.id,x.price)).length;return (WAL.ach.cnt[a.ev]||0)}
-function recordEvents(key,evs){if(SRV())return walQ;walQ=walQ.then(async()=>{if(key&&WAL.evk.includes(key))return;ensureMissions();const msgs=[];let chips=0;
+function recordEvents(key,evs){if(SRV())return walQ;walQ=walQ.then(async()=>{if(key&&WAL.evk.includes(key))return;ensureMissions();const msgs=[];let chips=0,xp=0;
     for(const ev of evs){WAL.ach.cnt[ev]=(WAL.ach.cnt[ev]||0)+1;
       for(const id of WAL.mis.ids){const m=MISSIONS.find(x=>x.id===id);if(!m||m.ev!==ev||WAL.mis.done.includes(id))continue;
-        WAL.mis.prog[id]=Math.min(m.goal,(WAL.mis.prog[id]||0)+1);if(WAL.mis.prog[id]>=m.goal){WAL.mis.done.push(id);chips+=fPrice(m.r);msgs.push('Misión cumplida: '+m.t+' (+'+fmt(fPrice(m.r))+' fichas)')}}}
-    for(const a of ACHS){if(WAL.ach.done.includes(a.id))continue;if(achValue(a)>=a.goal){WAL.ach.done.push(a.id);chips+=fPrice(a.r);msgs.push('Logro: '+a.t+' (+'+fmt(fPrice(a.r))+' fichas)')}}
+        WAL.mis.prog[id]=Math.min(m.goal,(WAL.mis.prog[id]||0)+1);if(WAL.mis.prog[id]>=m.goal){WAL.mis.done.push(id);chips+=fPrice(m.r);xp+=SEASON.xp.mision;msgs.push('Misión cumplida: '+m.t+' (+'+fmt(fPrice(m.r))+' fichas)')}}}
+    for(const a of ACHS){if(WAL.ach.done.includes(a.id))continue;if(achValue(a)>=a.goal){WAL.ach.done.push(a.id);chips+=fPrice(a.r);xp+=SEASON.xp.logro;msgs.push('Logro: '+a.t+' (+'+fmt(fPrice(a.r))+' fichas)')}}
     if(key)WAL.evk=WAL.evk.concat(key).slice(-60);
-    if(chips){WAL.chips+=chips;sfx('buy')}renderWallet();await saveWallet();if(msgs.length)toast(msgs.join(' · '));render()});return walQ}
+    if(chips){WAL.chips+=chips;sfx('buy')}renderWallet();await saveWallet();if(msgs.length)toast(msgs.join(' · '));if(xp)paseXP(xp);render()});return walQ}
 function handEvents(g){const h=g.hand,mt=myTeam(),won=h.ended&&h.ended.winner===mt,evs=[];
   if(won)evs.push('hand_won');if(won&&h.truco.level>=3)evs.push('retruco_won');if(won&&h.truco.level===4)evs.push('vale4_won');
   if(won&&h.results.includes('P'))evs.push('parda_won');
@@ -921,6 +922,53 @@ function handEvents(g){const h=g.hand,mt=myTeam(),won=h.ended&&h.ended.winner===
   return evs}
 function matchEvents(g){const won=g.matchOver.winner===myTeam(),evs=['match_played'];if(won)evs.push('match_won');
   if(won&&mode==='offline'&&g.diff==='dificil')evs.push('match_won_dificil');if(mode==='online')evs.push('online_played');return evs}
+
+/* ---------- pase de temporada ----------
+   Se sube de nivel jugando. El camino gratis da fichas, monedas y cosas; el pase (con monedas) suma más premios,
+   nunca fichas: las monedas no se convierten en fichas. En modo servidor, la experiencia y los premios los maneja el servidor. */
+const hoyAR=()=>new Date(Date.now()-3*3600e3).toISOString().slice(0,10);
+const paseActiva=()=>{const d=hoyAR();return d>=SEASON.start&&d<=SEASON.end};
+function paseW(){if(!WAL.pase||WAL.pase.id!==SEASON.id)WAL.pase={id:SEASON.id,xp:0,prem:false,cf:[],cp:[]};return WAL.pase}
+const paseLvl=()=>Math.min(SEASON.levels,Math.floor((paseW().xp||0)/SEASON.xpLevel));
+function paseXP(n){if(SRV()||!paseActiva()||!n)return;const p=paseW(),b=paseLvl();p.xp=(p.xp||0)+n;const a=paseLvl();saveWallet();if(a>b)setTimeout(()=>{sfx('pts');toast('¡Subiste al nivel '+a+' del pase de temporada!')},900)}
+const paseXPPartida=(won,online)=>(SEASON.xp.partida+(won?SEASON.xp.ganada:0))*(online?SEASON.xp.online:1);
+const paseRw=(track,l)=>(track==='prem'?SEASON.prem:SEASON.free).find(x=>x.l===l);
+const paseHas=(track,l)=>{const p=paseW();return (track==='prem'?p.cp:p.cf||[]).includes(l)};
+async function paseCobrar(track,l){const r=paseRw(track,l);if(!r)return;const p=paseW();
+  if(paseHas(track,l)||paseLvl()<l||(track==='prem'&&!p.prem))return;
+  const lbl=r.t==='chips'?fmt(r.v)+' fichas':r.t==='coins'?fmt(r.v)+' monedas':(r.t==='dorso'?'el dorso ':'el paño ')+itemOf(r.t,r.v).name;
+  if(SRV()){try{await NET.srv.call('billetera',{op:'paseCobrar',track,l});sfx('buy');toast('Cobraste '+lbl)}catch(e){toast(e.message||'No se pudo')}return}
+  const d=r.t==='chips'?{chips:r.v}:r.t==='coins'?{coins:r.v}:{own:r.t+':'+r.v};
+  const ok=await applyTx('pase-'+SEASON.id+'-'+track+'-'+l,d);if(ok){(track==='prem'?p.cp:p.cf).push(l);saveWallet();sfx('buy');toast('Cobraste '+lbl);render()}}
+async function paseComprar(){const p=paseW();if(p.prem)return;if(!paseActiva()){toast('La temporada ya terminó');return}
+  if(WAL.coins<SEASON.price){toast('No te alcanzan las monedas');return}
+  if(SRV()){try{await NET.srv.call('billetera',{op:'paseComprar'});sfx('buy');toast('¡Ya tenés el pase de la '+SEASON.name+'!')}catch(e){toast(e.message||'No se pudo')}return}
+  const ok=await applyTx('pase-'+SEASON.id+'-prem',{coins:-SEASON.price});if(ok){p.prem=true;saveWallet();sfx('buy');toast('¡Ya tenés el pase de la '+SEASON.name+'!');render()}else toast('No te alcanzan las monedas')}
+let PASEPG=null;
+const pasePer=()=>innerWidth<460?4:innerWidth<760?5:10;
+function paseCell(track,l){const r=paseRw(track,l),p=paseW(),lv=paseLvl();
+  if(!r)return `<div class="pcell empty"></div>`;
+  const got=paseHas(track,l),reach=lv>=l,lock=track==='prem'&&!p.prem;
+  const vis=r.t==='chips'?`<span class="pv">${chipI}<b>${fmt(r.v)}</b></span>`:r.t==='coins'?`<span class="pv">${coinI}<b>${fmt(r.v)}</b></span>`
+    :r.t==='dorso'?`<span class="pv"><i class="pdorso" style="background:${backBg(r.v)}"></i><b>${esc(DM[r.v].name)}</b></span>`:`<span class="pv"><i class="ppano" style="background:${panoBg(r.v)}"></i><b>${esc(PM[r.v].name)}</b></span>`;
+  const st=got?'<span class="pst ok" aria-label="Cobrado">✓</span>':lock?'<span class="pst" aria-label="Con el pase">🔒︎</span>':reach?`<button class="btn sm prim" data-a="pasecobrar" data-t="${track}" data-l="${l}">Cobrar</button>`:'';
+  return `<div class="pcell ${got?'got':''} ${reach&&!got&&!lock?'ready':''} ${lock?'lock':''}">${vis}${st}</div>`}
+function paseHTML(){const p=paseW(),lv=paseLvl(),per=pasePer(),pages=Math.ceil(SEASON.levels/per);
+  if(PASEPG===null||PASEPG>=pages)PASEPG=Math.min(pages-1,Math.floor(Math.min(lv,SEASON.levels-1)/per));
+  const from=PASEPG*per+1,lvls=Array.from({length:per},(_,i)=>from+i).filter(l=>l<=SEASON.levels);
+  const inLv=lv>=SEASON.levels?SEASON.xpLevel:(p.xp||0)%SEASON.xpLevel;
+  const dias=Math.max(0,Math.ceil((Date.parse(SEASON.end+'T23:59:59-03:00')-Date.now())/864e5)),act=paseActiva();
+  return phd('Pase de temporada','','extra')+`<div class="pbody pase">
+    <section class="box phead"><div class="plv"><small>Nivel</small><b>${lv}</b></div>
+      <div class="pinfo"><b>${esc(SEASON.name)}</b><small>${act?(dias===1?'Termina mañana':'Termina en '+dias+' días'):'La temporada terminó'}</small>
+        <div class="bar"><i style="width:${Math.round(inLv*100/SEASON.xpLevel)}%"></i></div><small>${lv>=SEASON.levels?'¡Llegaste al último nivel!':inLv+' de '+SEASON.xpLevel+' para el nivel '+(lv+1)}</small></div>
+      ${p.prem?'<span class="pprem">Tenés el pase</span>':`<button class="btn brass" data-a="pasecomprar" ${act?'':'disabled'}>Comprar el pase · ${coinI}${fmt(SEASON.price)}</button>`}</section>
+    <section class="box ptrack"><div class="pgrid" style="--n:${lvls.length}">
+      <span></span>${lvls.map(l=>`<span class="pl ${lv>=l?'on':''}">${l}</span>`).join('')}
+      <span class="prow">Gratis</span>${lvls.map(l=>paseCell('free',l)).join('')}
+      <span class="prow pr">Pase</span>${lvls.map(l=>paseCell('prem',l)).join('')}</div>
+      <div class="pager" role="group" aria-label="Páginas"><button type="button" class="pgb" data-a="pasepg" data-d="-1" ${PASEPG?'':'disabled'} aria-label="Página anterior">‹</button><span>Niveles ${from} a ${lvls[lvls.length-1]}</span><button type="button" class="pgb" data-a="pasepg" data-d="1" ${PASEPG<pages-1?'':'disabled'} aria-label="Página siguiente">›</button></div></section>
+    <p class="note snote">Subís jugando: ${SEASON.xp.partida} por partida, ${SEASON.xp.ganada} más si ganás (el doble online), ${SEASON.xp.mision} por misión y ${SEASON.xp.logro} por logro. El pase se paga con monedas y no da fichas.</p></div>`}
 
 /* ---------- tutorial ---------- */
 let TUT=null;
@@ -1317,10 +1365,11 @@ function musicPickerHTML(compact){const cur=TRACKS[SET.track]?SET.track:'zamba';
 
 
 /* ---------- Extra y Ajustes ---------- */
-const EXTRA_SUB=['anotador','shop','missions','ranking','rules','tutorial'];
+const EXTRA_SUB=['anotador','shop','missions','ranking','rules','tutorial','pase'];
 const backX=()=>`<div class="backx"><button type="button" class="btn ghost sm" data-a="nav" data-v="extra">← Extra</button></div>`;
 function extraHTML(){const done=(WAL.tut||[]).length,mis=(()=>{ensureMissions();return WAL.mis.done.length})();
   return phd('Extra')+`<div class="xtiles">
+    ${modeTile('data-a="nav" data-v="pase" data-wide="1"','12C','Pase de temporada',`${esc(SEASON.name)} · nivel ${paseLvl()} de ${SEASON.levels}${paseW().prem?' · con pase':''}`)}
     ${modeTile('data-a="nav" data-v="shop"','10O','Tienda',`Personajes, dorsos y paños, con tus ${fmt(WAL.chips)} fichas`)}
     ${modeTile('data-a="nav" data-v="missions"','11B','Misiones y logros',`${mis} de 3 misiones hoy`)}
     ${modeTile('data-a="nav" data-v="ranking"','12E','Ranking','Vos contra todos y contra tus amigos')}
@@ -1776,6 +1825,9 @@ document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closes
   case 'nav':overlayView=null;view=t.dataset.v;render();return;
   case 'ptab':PT[t.dataset.k]=t.dataset.v;render();return;
   case 'lang':setLang(t.dataset.v);return;
+  case 'pasecobrar':paseCobrar(t.dataset.t,+t.dataset.l);return;
+  case 'pasecomprar':paseComprar();return;
+  case 'pasepg':PASEPG=Math.max(0,(PASEPG||0)+(+t.dataset.d));render();return;
   case 'srvtest':SRVTEST='Probando el servidor…';render();NET.srv.probar().then(()=>{SRVTEST='El servidor responde bien: ya se puede prender.';render()}).catch(e=>{SRVTEST='El servidor no responde: todavía no están subidas las funciones ('+(e.code||e.message)+').';render()});return;
   case 'srvon':srvSwitch(true);return;
   case 'srvoff':srvSwitch(false);return;

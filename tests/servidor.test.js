@@ -241,6 +241,29 @@ prueba('2 contra 2 con un bot: termina, y las manos privadas son solo de las per
   assert.strictEqual(room.status, 'finished');
 });
 
+prueba('pase de temporada: experiencia jugando, compra con monedas y premios por nivel (el pase nunca da fichas)', async () => {
+  const { S, N } = mundo(); await usuario(S, 'a');
+  await sala(S, 'PPPP', [{ id: 'a', bot: false }, { id: null, bot: true }], { diff: 'facil' });
+  await N.salaEmpezar(ctxOf('a'), { code: 'PPPP' });
+  await jugarTodo(S, N, 'PPPP');
+  const g = await estado(S, 'PPPP'), w1 = await S.get('wallets/a');
+  assert(w1.pase && w1.pase.xp >= C.SEASON.xp.partida, 'suma experiencia al terminar la partida');
+  await assert.rejects(N.billetera(ctxOf('a'), { op: 'paseCobrar', track: 'prem', l: 1 }), /pase|nivel/);
+  // lo llevamos al nivel 6
+  await S.set('wallets/a', Object.assign(w1, { pase: { id: C.SEASON.id, xp: 650, prem: false, cf: [], cp: [] }, coins: 1000 }));
+  const antes = (await S.get('wallets/a')).chips;
+  await N.billetera(ctxOf('a'), { op: 'paseCobrar', track: 'free', l: 2 });
+  await N.billetera(ctxOf('a'), { op: 'paseCobrar', track: 'free', l: 2 });
+  assert.strictEqual((await S.get('wallets/a')).chips - antes, 300, 'se cobra una sola vez');
+  await assert.rejects(N.billetera(ctxOf('a'), { op: 'paseCobrar', track: 'free', l: 8 }), /nivel/);
+  await assert.rejects(N.billetera(ctxOf('a'), { op: 'comprar', tipo: 'dorso', id: 'guitarra', moneda: 'monedas' }), /no-se-vende/);
+  await N.billetera(ctxOf('a'), { op: 'paseComprar' });
+  assert.strictEqual((await S.get('wallets/a')).coins, 1000 - C.SEASON.price);
+  await N.billetera(ctxOf('a'), { op: 'paseCobrar', track: 'prem', l: 1 });
+  assert((await S.get('wallets/a')).owned.includes('dorso:guitarra'));
+  assert(C.SEASON.prem.every((r) => r.t !== 'chips'), 'el camino del pase no tiene fichas');
+});
+
 (async () => {
   let ok = 0;
   for (const [n, f] of pruebas) {

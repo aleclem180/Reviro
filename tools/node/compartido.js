@@ -19,8 +19,8 @@ fs.writeFileSync(path.join(OUT, 'motor.js'), motor);
 const ctx = { console, URL: { createObjectURL: () => '' }, Blob: function () {}, atob: () => '', window: {}, document: {} };
 vm.createContext(ctx);
 vm.runInContext(fs.readFileSync(path.join(ROOT, 'src', 'cat.js'), 'utf8') +
-  '\n;this.__out={AVS:AVS.map(a=>({id:a.id,price:a.price||0})),DORSOS:DORSOS.map(d=>({id:d.id,price:d.price||0,boss:d.boss||null})),' +
-  'PANOS:PANOS.map(p=>({id:p.id,price:p.price||0,boss:p.boss||null})),KITS:KITS.map(k=>({id:k.id,price:k.price||0})),' +
-  'PACKS,BOSS_PRIZE,MISSIONS:MISSIONS.map(m=>({id:m.id,ev:m.ev,goal:m.goal,r:m.r})),ACHS:ACHS.map(a=>({id:a.id,ev:a.ev,goal:a.goal,r:a.r}))};', ctx);
+  '\n;this.__out={AVS:AVS.map(a=>({id:a.id,price:a.price||0})),DORSOS:DORSOS.map(d=>({id:d.id,price:d.price||0,boss:d.boss||null,season:d.season||null})),' +
+  'PANOS:PANOS.map(p=>({id:p.id,price:p.price||0,boss:p.boss||null,season:p.season||null})),KITS:KITS.map(k=>({id:k.id,price:k.price||0})),' +
+  'PACKS,BOSS_PRIZE,SEASON,MISSIONS:MISSIONS.map(m=>({id:m.id,ev:m.ev,goal:m.goal,r:m.r})),ACHS:ACHS.map(a=>({id:a.id,ev:a.ev,goal:a.goal,r:a.r}))};', ctx);
 fs.writeFileSync(path.join(OUT, 'catalogo.json'), JSON.stringify(ctx.__out, null, 1) + '\n');
 console.log('functions/compartido listo');

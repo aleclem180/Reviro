@@ -54,6 +54,10 @@ DORSOS.push(
  {id:'sietecolores',name:'Siete Colores',boss:'noa',bio:'Premio del jefe de los Cerros de Siete Colores.',bg:'linear-gradient(#c4532d 0 14%,#d9822b 14% 28%,#e8c35a 28% 42%,#8a5a9e 42% 56%,#3f8f6b 56% 70%,#b5302a 70% 84%,#6b3f1e 84%)'},
  {id:'viento',name:'Viento sur',boss:'patagonia',bio:'Premio del jefe de la Tierra del Viento.',bg:'repeating-radial-gradient(circle at 0 0, #3f6f8f 0 3px, #e9f1f6 3px 5px)'},
  {id:'cruzsur',name:'Cruz del Sur',boss:'malvinas',bio:'Premio del jefe de las Islas del Pingüino: un pingüino bajo la Cruz del Sur.',bg:'#13254a'});
+/* del pase de temporada (no se venden en la tienda) */
+DORSOS.push(
+ {id:'guitarra',name:'Guitarra criolla',season:'t1',lvl:1,bio:'Pase de la Peña: una criolla con el fileteado en la boca, sobre bordó.',bg:'radial-gradient(ellipse 22% 16% at 50% 62%, #d9a05b 96%, transparent), radial-gradient(ellipse 16% 12% at 50% 40%, #d9a05b 96%, transparent), #5e1a2b'},
+ {id:'bombo',name:'Bombo legüero',season:'t1',lvl:10,bio:'Pase de la Peña: el bombo que se escucha a una legua, con sus palillos.',bg:'radial-gradient(circle at 50% 50%, #f1e3c3 0 20%, #7a4b28 21% 30%, transparent 31%), repeating-linear-gradient(90deg, #c4532d 0 6px, #2a170b 6px 8px)'});
 const DM=Object.fromEntries(DORSOS.map(d=>[d.id,d]));
 const PANOS=[
  {id:'quincho',name:'Mesa de quincho',price:0,bio:'Tablones de madera, como en el fondo de la estancia.',bg:'repeating-linear-gradient(90deg, rgba(0,0,0,.28) 0 2px, transparent 2px 25%), repeating-linear-gradient(91deg, rgba(255,255,255,.035) 0 2px, transparent 2px 9px), linear-gradient(180deg, #7a4b28, #573117)',edge:'#2a170b'},
@@ -71,7 +75,18 @@ PANOS.push(
  {id:'vinedo',name:'Viñedo de altura',boss:'cuyo',bio:'Premio del jefe de los Valles de la Vendimia.',bg:'repeating-linear-gradient(100deg, rgba(70,120,45,.6) 0 6px, transparent 6px 20px), linear-gradient(180deg, #6b3f2a, #3f2416)',edge:'#7b2f4a'},
  {id:'monte',name:'Monte chaqueño',boss:'nea',bio:'Premio del jefe del Monte Impenetrable.',bg:'radial-gradient(circle at 15% 25%, #2f5a1f 0 6%, transparent 7%), radial-gradient(circle at 60% 70%, #2f5a1f 0 8%, transparent 9%), radial-gradient(circle at 85% 30%, #3d6b28 0 7%, transparent 8%), radial-gradient(90% 70% at 50% 45%, #4a6b2a, #243a14)',edge:'#c9a227'},
  {id:'faro',name:'Noche del faro',boss:'tdf',bio:'Premio del jefe del Último Faro.',bg:'conic-gradient(from 200deg at 85% 15%, rgba(255,240,180,.35) 0deg 18deg, transparent 18deg), radial-gradient(90% 70% at 50% 45%, #1b2f55, #0a1428)',edge:'#f2d27a'});
+PANOS.push(
+ {id:'pena',name:'Noche de peña',season:'t1',lvl:15,bio:'Pase de la Peña: farolitos colgados sobre el patio, para la última de la noche.',bg:'radial-gradient(circle at 20% 12%, #f6c437 0 2%, transparent 3%), radial-gradient(circle at 50% 8%, #e0453a 0 2%, transparent 3%), radial-gradient(circle at 80% 12%, #74acdf 0 2%, transparent 3%), radial-gradient(90% 70% at 50% 50%, #1d3b3a, #0d2120)',edge:'#f6c437'},
+ {id:'poncho',name:'Poncho salteño',season:'t1',lvl:20,bio:'Pase de la Peña: rojo punzó con las guardas negras del poncho de Güemes.',bg:'linear-gradient(#1a0d08 0 6%, #a8201a 6% 94%, #1a0d08 94%)',edge:'#1a0d08'});
 const PM=Object.fromEntries(PANOS.map(p=>[p.id,p]));
+/* ---------- pase de temporada ----------
+   Se sube de nivel jugando (cada nivel son 100 puntos de experiencia). El camino gratis da fichas, monedas y cosas;
+   el pase de la temporada se compra con monedas y suma más premios. Las monedas nunca se convierten en fichas:
+   por eso el camino del pase no da fichas. */
+const SEASON={id:'t1',name:'Temporada de la Peña',start:'2026-10-27',end:'2026-12-31',price:600,levels:20,xpLevel:100,
+  xp:{partida:20,ganada:15,online:2,mision:40,logro:60,diario:10},
+  free:[{l:2,t:'chips',v:300},{l:4,t:'coins',v:20},{l:6,t:'chips',v:500},{l:8,t:'coins',v:30},{l:10,t:'dorso',v:'bombo'},{l:12,t:'chips',v:700},{l:14,t:'coins',v:40},{l:16,t:'chips',v:1000},{l:18,t:'coins',v:50},{l:20,t:'pano',v:'poncho'}],
+  prem:[{l:1,t:'dorso',v:'guitarra'},{l:3,t:'coins',v:60},{l:5,t:'coins',v:60},{l:7,t:'coins',v:80},{l:9,t:'coins',v:80},{l:11,t:'coins',v:100},{l:13,t:'coins',v:100},{l:15,t:'pano',v:'pena'},{l:17,t:'coins',v:120},{l:19,t:'coins',v:150}]};
 const BOSS_PRIZE={ba:['dorso','ombu'],litoral:['pano','ibera'],centro:['dorso','cuarteto'],cuyo:['pano','vinedo'],noa:['dorso','sietecolores'],nea:['pano','monte'],patagonia:['dorso','viento'],tdf:['pano','faro'],malvinas:['dorso','cruzsur']};
 const prizeLabel=p=>p?(p[0]==='dorso'?'el dorso '+DM[p[1]].name:'el paño '+PM[p[1]].name):'';
 /* paquetes de monedas: el más chico es de $ 1.000 */

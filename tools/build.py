@@ -17,7 +17,7 @@ SRC = ROOT / "src"
 JS = ["engine.js", "cat.js", "art.js", "marca.js", "textos.js", "i18n.js", "ui.js"]
 # las direcciones tienen que coincidir con ROUTES en src/ui.js
 ROUTES = ["online", "torneos", "torneo", "nuevo-torneo", "huella", "extra", "perfil", "ajustes",
-          "tienda", "misiones", "ranking", "reglamento", "tutorial", "anotador"]
+          "tienda", "misiones", "ranking", "reglamento", "tutorial", "anotador", "pase"]
 
 import json
 # traducciones: i18n/<idioma>.json (clave = texto en español) -> src/textos.js, que se carga antes que la interfaz

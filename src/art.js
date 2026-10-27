@@ -82,6 +82,22 @@ const DORSO_ART={
     const lake=`<rect x="${FX0}" y="68" width="${FW}" height="${FY0+FH-68}" fill="#3f8f9f"/><path d="M8 74h8M24 77h10M40 73h9M14 81h12M38 82h9" stroke="#a7d3dc" stroke-width=".5" stroke-linecap="round"/>`;
     const tree=`<path d="M11.4 70V61.6Q12.6 60 18 59.4M11.6 64Q14 62.4 17 62.6" stroke="#2f3a2a" stroke-width="1" fill="none" stroke-linecap="round"/><path d="${blob(16.6,59.6,2.4,srand(77),7,.4)}" fill="#3f5a36"/>`;
     return{base:FIELD('#dfeaf1'),art:`<rect x="${FX0}" y="${FY0}" width="${FW}" height="66" fill="#dde9f1"/>`+w+mt+lake+tree,top:''}},
+  guitarra(){const rn=srand(53);let fl='';for(let i=0;i<46;i++){const x=FX0+rn()*FW,y=FY0+rn()*FH;fl+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(.25+rn()*.35).toFixed(2)}" fill="#e2b252" opacity=".55"/>`}
+    const body=`<path d="M30 30C23.4 30 20.4 34 21 38.6C21.4 41.6 23 43.6 21.6 46C18.6 48.6 16.4 52.6 16.6 58C17 66.4 22.6 71.6 30 71.6S43 66.4 43.4 58C43.6 52.6 41.4 48.6 38.4 46C37 43.6 38.6 41.6 39 38.6C39.6 34 36.6 30 30 30Z" fill="#d9a05b" stroke="#7a4518" stroke-width=".9"/>
+      <path d="M30 32.2C25.4 32.2 23.2 35.2 23.6 38.6C23.9 41 25 42.8 24 45" fill="none" stroke="#f0c98a" stroke-width=".7" stroke-linecap="round" opacity=".8"/>`;
+    const hole=`<circle cx="30" cy="47" r="4.4" fill="#f1e3c3"/><circle cx="30" cy="47" r="3.5" fill="#2a170b"/><circle cx="30" cy="47" r="4.4" fill="none" stroke="#c0392b" stroke-width=".6"/><circle cx="30" cy="47" r="5.2" fill="none" stroke="#74acdf" stroke-width=".45"/>`;
+    const neck=`<rect x="27.8" y="9" width="4.4" height="25" rx=".6" fill="#5a3218"/><path d="M27.8 13.6h4.4M27.8 17.6h4.4M27.8 21.2h4.4M27.8 24.4h4.4M27.8 27.2h4.4" stroke="#e2b252" stroke-width=".35"/>
+      <path d="M27 9L26.4 3.8H33.6L33 9Z" fill="#3b2010"/><g fill="#f1e3c3">${[4.8,6.4,8].map(y=>`<circle cx="25.4" cy="${y}" r=".7"/><circle cx="34.6" cy="${y}" r=".7"/>`).join('')}</g>`;
+    const bridge=`<rect x="25" y="61.4" width="10" height="2" rx=".6" fill="#3b2010"/><path d="M28.6 9V62.4M29.5 9V62.4M30.5 9V62.4M31.4 9V62.4" stroke="#f4ead2" stroke-width=".22"/>`;
+    const vol=[[0,0,1,1],[60,0,-1,1],[0,90,1,-1],[60,90,-1,-1]].map(([x,y,sx,sy])=>`<g transform="translate(${x+sx*5} ${y+sy*5}) scale(${sx*.5} ${sy*.5})">${VOLU}</g>`).join('');
+    return{base:FIELD('#4e1424'),art:FIELD('#5e1a2b')+fl+body+hole+neck+bridge,top:vol}},
+  bombo(){let band='';for(const y of [10.6,79.4]){band+=`<rect x="${FX0}" y="${y-5.2}" width="${FW}" height="10.4" fill="#2a170b"/>`;for(let i=0;i<9;i++){const x=FX0+3+i*6;band+=rhomb(x,y,6,7.6,'#f1e3c3')+rhomb(x,y,3,3.8,'#c4532d')}}
+    let rope='';for(let i=0;i<8;i++){const x0=14+i*4,x1=x0+4;rope+=`<path d="M${x0.toFixed(2)} ${(37.6+Math.sin(i/8*Math.PI)*4.6).toFixed(2)}L${((x0+x1)/2).toFixed(2)} ${(60.6+Math.sin((i+.5)/8*Math.PI)*4.2).toFixed(2)}L${x1.toFixed(2)} ${(37.6+Math.sin((i+1)/8*Math.PI)*4.6).toFixed(2)}" fill="none" stroke="#f1e3c3" stroke-width=".7"/>`}
+    const drum=`<path d="M14 38V60Q14 66.6 30 66.6T46 60V38Z" fill="#7a4b28"/><path d="M14 38V60Q14 66.6 30 66.6T46 60V38" fill="none" stroke="#3b2010" stroke-width=".8"/>
+      <path d="M14 57.6Q14 64.2 30 64.2T46 57.6V61Q46 67.6 30 67.6T14 61Z" fill="#3b2010"/>${rope}
+      <ellipse cx="30" cy="38" rx="16" ry="6.2" fill="#3b2010"/><ellipse cx="30" cy="38" rx="14.2" ry="5" fill="#efdcb2"/><path d="M19 37q11 4.4 22 0" stroke="#d6bf8a" stroke-width=".5" fill="none"/>`;
+    const sticks=`<path d="M17 18L30.6 35M43 18L29.4 35" stroke="#3b2010" stroke-width="1.6" stroke-linecap="round"/><circle cx="16.4" cy="17.2" r="2.3" fill="#efdcb2" stroke="#3b2010" stroke-width=".6"/><circle cx="43.6" cy="17.2" r="2.3" fill="#efdcb2" stroke="#3b2010" stroke-width=".6"/>`;
+    return{base:FIELD('#b2462a'),art:FIELD('#c4532d')+band+drum+sticks,top:''}},
   cruzsur(){const rn=srand(41);let st='';for(let i=0;i<38;i++)st+=`<circle cx="${(FX0+rn()*FW).toFixed(1)}" cy="${(FY0+rn()*50).toFixed(1)}" r="${(.18+rn()*.35).toFixed(2)}" fill="#f4f0e0"/>`;
     const cz=[[30,10,1.9],[30,30,1.6],[22.4,19.6,1.5],[37.2,21.4,1.3],[33.4,24.6,.8]].map(([x,y,r])=>`<path d="M${x} ${y-r*1.8}L${x+r*.45} ${y-r*.45}L${x+r*1.8} ${y}L${x+r*.45} ${y+r*.45}L${x} ${y+r*1.8}L${x-r*.45} ${y+r*.45}L${x-r*1.8} ${y}L${x-r*.45} ${y-r*.45}Z" fill="#f6e3a0"/>`).join('');
     const sea=`<rect x="${FX0}" y="62" width="${FW}" height="${FY0+FH-62}" fill="#1f3f6a"/><path d="M6 70q4-2 8 0t8 0M30 74q4-2 8 0t8 0M10 80q4-2 8 0t8 0" stroke="#6f93b3" stroke-width=".5" fill="none"/>`;
@@ -93,7 +109,7 @@ const DORSO_ART={
 
 };
 /* en los dorsos oscuros, el dibujo va también debajo en color pleno, así el lápiz suma textura sin lavar los tonos */
-const PSOLID={cuero:.7};const DSOLID={cruzsur:.85,bordo:.8,marino:.8,cuero:.7,noche:.85,oro:.6,fileteado:.85,cuarteto:.7};
+const PSOLID={cuero:.7,pena:.85,poncho:.8};const DSOLID={guitarra:.8,bombo:.6,cruzsur:.85,bordo:.8,marino:.8,cuero:.7,noche:.85,oro:.6,fileteado:.85,cuarteto:.7};
 function dorsoSVG(id){const D=(DORSO_ART[id]||DORSO_ART.pampa)();if(DSOLID[id])D.base+=`<g opacity="${DSOLID[id]}">${D.art}</g>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 90" width="240" height="360"><defs>${cardDefs()}<clipPath id="bkc"><rect x="${FX0}" y="${FY0}" width="${FW}" height="${FH}" rx="2.4"/></clipPath>${D.defs||''}</defs>
     <rect x=".5" y=".5" width="59" height="89" rx="4.6" fill="url(#gPapel)" stroke="#b9a27a" stroke-width=".7"/>
@@ -105,6 +121,17 @@ function dorsoSVG(id){const D=(DORSO_ART[id]||DORSO_ART.pampa)();if(DSOLID[id])D
 const P0=`<rect width="200" height="200"`;
 function feltArt(c,hi,emb){return{base:`${P0} fill="${c}"/>`,defs:`<radialGradient id="pgl" cx=".5" cy=".46" r=".62"><stop offset="0" stop-color="${hi}" stop-opacity=".9"/><stop offset="1" stop-color="${hi}" stop-opacity="0"/></radialGradient>`,art:`${P0} fill="${c}"/>${P0} fill="url(#pgl)"/>${emb}`}}
 const PANO_ART={
+  pena(){const f=feltArt('#1d3b3a','#2f5a58','');const cols=['#f6c437','#e0453a','#74acdf','#f1e3c3','#6fbf73'];let g='';
+    for(const [y0,dir] of [[14,1],[186,-1]]){g+=`<path d="M-4 ${y0}Q50 ${y0+dir*16} 100 ${y0+dir*6}T204 ${y0}" fill="none" stroke="#0b1414" stroke-width="1"/>`;
+      for(let i=0;i<9;i++){const x=10+i*22.5,t=(x+4)/208,yy=y0+dir*(Math.sin(t*Math.PI*2)*5+8*(1-Math.abs(2*t-1)));const c=cols[i%cols.length];
+        g+=`<path d="M${x} ${yy.toFixed(1)}v${dir*3}" stroke="#0b1414" stroke-width=".8"/><rect x="${x-3.4}" y="${(yy+dir*3-(dir<0?8.4:0)).toFixed(1)}" width="6.8" height="8.4" rx="2.4" fill="${c}"/><circle cx="${x}" cy="${(yy+dir*7.2).toFixed(1)}" r="5.6" fill="${c}" opacity=".18"/>`}}
+    const rn=srand(61);let st='';for(let i=0;i<26;i++)st+=`<circle cx="${(rn()*200).toFixed(1)}" cy="${(40+rn()*120).toFixed(1)}" r="${(.4+rn()*.6).toFixed(2)}" fill="#f4f0e0" opacity=".35"/>`;
+    f.art+=st+g;return f},
+  poncho(){const f=feltArt('#a8201a','#c23a2a','');let g='';
+    for(const y of [0,186]){g+=`<rect y="${y}" width="200" height="14" fill="#1a0d08"/>`;for(let i=0;i<14;i++){const x=7+i*14.2;g+=rhomb(x,y+7,8,8,'#a8201a')+rhomb(x,y+7,3.6,3.6,'#1a0d08')}}
+    g+=`<path d="M0 20H200M0 180H200" stroke="#1a0d08" stroke-width="1.6"/><path d="M0 23H200M0 177H200" stroke="#1a0d08" stroke-width=".7"/>`;
+    g+=rhomb(100,100,46,46,'#1a0d08')+rhomb(100,100,38,38,'#a8201a')+rhomb(100,100,22,22,'#1a0d08')+rhomb(100,100,10,10,'#a8201a');
+    f.art+=g;return f},
   quincho(){const rn=srand(9),cols=['#7a4b28','#6c4121','#83532d','#744624','#7c4b27'];let o='';
     for(let r=0;r<5;r++){const y=r*40;o+=`<rect y="${y}" width="200" height="40" fill="${cols[r]}"/>`;
       for(let k=0;k<7;k++){const yy=y+4+k*5.2+rn()*2;o+=`<path d="M-2 ${yy.toFixed(1)}C40 ${(yy+rn()*4-2).toFixed(1)} 80 ${(yy+rn()*4-2).toFixed(1)} 120 ${(yy+rn()*3-1.5).toFixed(1)}S180 ${(yy+rn()*4-2).toFixed(1)} 202 ${yy.toFixed(1)}" stroke="#3f2310" stroke-width="${(.4+rn()*.5).toFixed(2)}" fill="none" opacity=".55"/>`}
@@ -174,5 +201,5 @@ function artPump(){if(ARTBUSY||!ARTQ.length)return;ARTBUSY=true;const [k,kind,id
 /* lo que usan las pantallas */
 const backBg=id=>{const d=DM[id]?id:'pampa';return `${artVar('dorso',d)} center/100% 100% no-repeat, ${DBASE[d]||'#6e1f33'}`};
 const panoBg=id=>{const p=PM[id]?id:'quincho';return `${artVar('pano',p)} center/cover no-repeat, ${PBASE[p]||'#3a2416'}`};
-const DBASE={pampa:'#efe0bf',bordo:'#6e1f33',marino:'#1d2f57',cuero:'#8a5530',celeste:'#74acdf',noche:'#0f1638',oro:'#d9a84a',fileteado:'#141113',ombu:'#cfe3f0',cuarteto:'#7a3fa0',sietecolores:'#d9822b',viento:'#dde9f1',cruzsur:'#13254a'};
-const PBASE={cuero:'#6e4024',quincho:'#6b4224',cuerovaca:'#e6dccb',bordo:'#561a2e',verde:'#1a5e3e',azul:'#1c3566',petroleo:'#17545c',bodegon:'#efe6d6',fileteado:'#121012',ibera:'#195a5a',vinedo:'#5e3624',monte:'#1e3010',faro:'#0a1428'};
+const DBASE={pampa:'#efe0bf',bordo:'#6e1f33',marino:'#1d2f57',cuero:'#8a5530',celeste:'#74acdf',noche:'#0f1638',oro:'#d9a84a',fileteado:'#141113',ombu:'#cfe3f0',cuarteto:'#7a3fa0',sietecolores:'#d9822b',viento:'#dde9f1',cruzsur:'#13254a',guitarra:'#5e1a2b',bombo:'#c4532d'};
+const PBASE={cuero:'#6e4024',quincho:'#6b4224',cuerovaca:'#e6dccb',bordo:'#561a2e',verde:'#1a5e3e',azul:'#1c3566',petroleo:'#17545c',bodegon:'#efe6d6',fileteado:'#121012',ibera:'#195a5a',vinedo:'#5e3624',monte:'#1e3010',faro:'#0a1428',pena:'#1d3b3a',poncho:'#a8201a'};

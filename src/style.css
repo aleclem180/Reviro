@@ -1070,3 +1070,32 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
   .felt.n2.duel>.seat .badge{max-width:max(132px,calc((100cqw - var(--pc) * 3.28) / 2 - 10px))}
   .felt.n2.duel .badge>span:not(.m){overflow-wrap:normal;word-break:normal;hyphens:auto}
 }
+/* ---------- pase de temporada ---------- */
+.xtiles .mode[data-wide]{grid-column:1/-1}
+.pase{display:flex;flex-direction:column;gap:10px}
+.pase .phead{display:flex;flex-direction:row;align-items:center;gap:14px;flex-wrap:wrap}
+.pase .plv{display:flex;flex-direction:column;align-items:center;justify-content:center;width:62px;height:62px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#f6d77a,#c08a1a);color:#2a170b;flex:none;box-shadow:0 3px 10px rgba(0,0,0,.35)}
+.pase .plv small{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;line-height:1}.pase .plv b{font-family:var(--f-display);font-size:1.7rem;line-height:1}
+.pase .pinfo{flex:1 1 200px;min-width:0;display:flex;flex-direction:column;gap:3px}.pase .pinfo>b{font-family:var(--f-display);font-size:1.15rem}
+.pase .pinfo .bar{height:9px}
+.pase .pprem{background:var(--brass);color:var(--brass-ink);font-weight:700;padding:6px 12px;border-radius:999px;font-size:.85rem}
+.pase .ptrack{flex:1 1 0;min-height:0;display:flex;flex-direction:column;gap:8px;justify-content:space-between}
+.pgrid{display:grid;grid-template-columns:auto repeat(var(--n),minmax(0,1fr));grid-template-rows:auto minmax(0,1fr) minmax(0,1fr);gap:6px;flex:1 1 0;min-height:0}
+.pgrid .prow{align-self:center;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);writing-mode:vertical-rl;transform:rotate(180deg)}
+.pgrid .prow.pr{color:var(--brass)}
+.pgrid .pl{text-align:center;font-weight:700;font-size:.85rem;color:var(--muted);border-bottom:2px solid var(--line);padding-bottom:2px}.pgrid .pl.on{color:var(--brass);border-color:var(--brass)}
+.pcell{min-height:0;border:1px solid var(--line);border-radius:10px;background:rgba(0,0,0,.18);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px 4px;text-align:center;position:relative;overflow:hidden}
+.pcell.empty{border-style:dashed;opacity:.35;background:transparent}
+.pcell.ready{border-color:var(--brass);box-shadow:0 0 0 2px rgba(240,197,72,.25) inset;animation:glow 1.8s ease-in-out infinite}
+.pcell.got{opacity:.62}.pcell.lock .pv{filter:grayscale(.6);opacity:.65}
+.pcell .pv{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}
+.pcell .pv b{font-size:.78rem;line-height:1.1;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.pcell .pv .chip,.pcell .pv .coin{width:20px;height:20px}
+.pcell .pdorso{display:block;width:26px;height:39px;border-radius:4px;background-size:cover!important;box-shadow:0 2px 5px rgba(0,0,0,.4)}
+.pcell .ppano{display:block;width:40px;height:30px;border-radius:5px;background-size:cover!important;box-shadow:0 2px 5px rgba(0,0,0,.4)}
+.pcell .pst{font-size:.95rem;line-height:1}.pcell .pst.ok{color:var(--good);font-weight:800}
+.pcell .btn.sm{padding:3px 8px;font-size:.74rem}
+.ptrack .pager{display:flex;align-items:center;justify-content:center;gap:12px;font-size:.85rem;color:var(--muted)}
+@media (max-height:700px){.pase .plv{width:50px;height:50px}.pase .plv b{font-size:1.35rem}.pcell .pdorso{width:20px;height:30px}.pcell .ppano{width:32px;height:24px}.pase .snote{display:none}}
+.pase .phead .btn{display:inline-flex;align-items:center;gap:6px}.pase .phead .btn .coin{display:inline-block}
+.pase .plv small{color:#6b4512}

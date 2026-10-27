@@ -5,7 +5,7 @@ from playwright.async_api import async_playwright
 from util import servidor, pagina
 
 HOJAS = ["menu", "online", "torneos", "gira", "extra", "profile", "settings", "shop", "missions", "ranking",
-         "anotador", "rules", "tutorial"]
+         "anotador", "rules", "tutorial", "pase"]
 TAMANIOS = [(360, 640), (390, 844), (414, 896), (1280, 800)]
 
 
