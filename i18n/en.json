@@ -1486,5 +1486,12 @@
 "Premio: {0}": "Prize: {0}",
 "Jefe": "Boss",
 "Veces que le ganaste": "Times you beat them",
-"Jefe · a 30 · {0}": "Boss · to 30 · {0}"
+"Jefe · a 30 · {0}": "Boss · to 30 · {0}",
+"quedan {0} días": "{0} days left",
+"termina mañana": "ends tomorrow",
+"premios para cobrar": "rewards to claim",
+"{0} premios para cobrar": "{0} rewards to claim",
+"1 premio para cobrar": "1 reward to claim",
+"Ver los premios": "See the rewards",
+"la temporada terminó": "the season is over"
 }

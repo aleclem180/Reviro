@@ -38,6 +38,7 @@ JUNTAR = """async () => {
   for (const c of deck()) { cardHTML(c); items.push(['carta-' + c, CARDSVG[c], 360, 540]); }
   for (const d of DORSOS) items.push(['dorso-' + d.id, 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(dorsoSVG(d.id)), 240, 360]);
   for (const p of PANOS) items.push(['pano-' + p.id, 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(panoSVG(p.id)), 600, 600]);
+  for (const id of Object.keys(ICON_ART)) items.push(['icono-' + id, 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(iconSVG(id)), 360, 360]);
   const all = new TextEncoder().encode(items.map(i => i[0] + i[1]).join('|'));
   const h = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-1', all))).map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 10);
   window.__ITEMS = items; return { h, n: items.length };

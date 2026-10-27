@@ -203,3 +203,78 @@ const backBg=id=>{const d=DM[id]?id:'pampa';return `${artVar('dorso',d)} center/
 const panoBg=id=>{const p=PM[id]?id:'quincho';return `${artVar('pano',p)} center/cover no-repeat, ${PBASE[p]||'#3a2416'}`};
 const DBASE={pampa:'#efe0bf',bordo:'#6e1f33',marino:'#1d2f57',cuero:'#8a5530',celeste:'#74acdf',noche:'#0f1638',oro:'#d9a84a',fileteado:'#141113',ombu:'#cfe3f0',cuarteto:'#7a3fa0',sietecolores:'#d9822b',viento:'#dde9f1',cruzsur:'#13254a',guitarra:'#5e1a2b',bombo:'#c4532d'};
 const PBASE={cuero:'#6e4024',quincho:'#6b4224',cuerovaca:'#e6dccb',bordo:'#561a2e',verde:'#1a5e3e',azul:'#1c3566',petroleo:'#17545c',bodegon:'#efe6d6',fileteado:'#121012',ibera:'#195a5a',vinedo:'#5e3624',monte:'#1e3010',faro:'#0a1428',pena:'#1d3b3a',poncho:'#a8201a'};
+
+/* ===== íconos de Extra: dibujos a lápiz de color, como los dorsos y el mapa =====
+   Cuadro de 120 × 120 con fondo transparente. "art" se colorea con el filtro de lápiz; "ink" es el trazo de tinta
+   a mano alzada encima (dos pasadas apenas corridas, como un boceto). */
+const IK='stroke="#3b2c1f" stroke-linecap="round" stroke-linejoin="round" fill="none"';
+const sk=(d,w=1.7)=>`<path d="${d}" ${IK} stroke-width="${w}" opacity=".85"/><path d="${d}" ${IK} stroke-width="${(w*.45).toFixed(2)}" opacity=".45" transform="translate(.9 -.7)"/>`;
+const sombra=(cx,cy,rx)=>`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${(rx*.18).toFixed(1)}" fill="#5a3d1e" opacity=".28"/>`;
+const ICON_ART={
+ /* ranking: la copa del campeón */
+ ranking:()=>({art:sombra(60,104,30)+
+   `<path d="M40 24H80V42C80 60 71 70 60 70S40 60 40 42Z" fill="#e2aa2e"/><path d="M47 28V44C47 56 52 62 58 64" stroke="#f8de8c" stroke-width="5" fill="none"/>
+    <path d="M40 30C26 30 25 52 43 55" stroke="#d29a22" stroke-width="5" fill="none"/><path d="M80 30C94 30 95 52 77 55" stroke="#d29a22" stroke-width="5" fill="none"/>
+    <rect x="55" y="69" width="10" height="13" fill="#c48a1c"/><path d="M42 82H78L82 98H38Z" fill="#7a4b28"/><rect x="48" y="86" width="24" height="6" fill="#e9cf8f"/>
+    <path d="M60 33L62.8 40.2 70.4 40.6 64.5 45.4 66.5 52.8 60 48.6 53.5 52.8 55.5 45.4 49.6 40.6 57.2 40.2Z" fill="#b3352b"/>`,
+  ink:sk('M40 24H80V42C80 60 71 70 60 70S40 60 40 42Z')+sk('M40 30C26 30 25 52 43 55')+sk('M80 30C94 30 95 52 77 55')+sk('M55 70V82M65 70V82')+sk('M42 82H78L82 98H38Z')+sk('M40 24C46 21 74 21 80 24',1.2)}),
+ /* tienda: la bolsa de cuero con fichas */
+ shop:()=>({art:sombra(60,104,38)+
+   `<path d="M42 50C30 62 27 90 43 100H77C93 90 90 62 78 50Z" fill="#a8683a"/><path d="M50 58C44 70 44 86 50 94" stroke="#c98a55" stroke-width="5" fill="none"/>
+    <path d="M45 47L38 33L51 39L60 28L69 39L82 33L75 47Z" fill="#8f5530"/><path d="M44 50C50 44 70 44 76 50" stroke="#e2c37a" stroke-width="4" fill="none"/>
+    <circle cx="30" cy="96" r="10" fill="#c0392b"/><circle cx="30" cy="96" r="5.5" fill="#f3e6c8"/>
+    <circle cx="88" cy="98" r="9" fill="#f0c548"/><circle cx="88" cy="98" r="5" fill="#d9a441"/><circle cx="76" cy="105" r="7" fill="#2f5f8f"/><circle cx="76" cy="105" r="3.6" fill="#f3e6c8"/>`,
+  ink:sk('M42 50C30 62 27 90 43 100H77C93 90 90 62 78 50Z')+sk('M45 47L38 33L51 39L60 28L69 39L82 33L75 47')+sk('M44 50C50 44 70 44 76 50',1.3)+
+   `<circle cx="30" cy="96" r="10" ${IK} stroke-width="1.4"/><circle cx="88" cy="98" r="9" ${IK} stroke-width="1.4"/><circle cx="76" cy="105" r="7" ${IK} stroke-width="1.3"/>`+sk('M30 86V89M30 103V106M20 96H23M37 96H40',1.1)}),
+ /* misiones: el pergamino con tildes y la pluma */
+ missions:()=>({art:sombra(58,106,32)+
+   `<path d="M32 26H82V94H32Z" fill="#f1e3c3"/><rect x="28" y="20" width="58" height="10" rx="5" fill="#d9bf8c"/><rect x="28" y="90" width="58" height="10" rx="5" fill="#d9bf8c"/>
+    <rect x="39" y="40" width="9" height="9" fill="#fbf4e2"/><rect x="39" y="56" width="9" height="9" fill="#fbf4e2"/><rect x="39" y="72" width="9" height="9" fill="#fbf4e2"/>
+    <path d="M98 14C86 18 72 34 66 52L72 50C80 40 92 28 98 14Z" fill="#c8bba3"/><path d="M98 14C92 24 82 36 72 50" stroke="#b3352b" stroke-width="3" fill="none"/>`,
+  ink:sk('M32 30V90M82 30V90')+`<rect x="28" y="20" width="58" height="10" rx="5" ${IK} stroke-width="1.6"/><rect x="28" y="90" width="58" height="10" rx="5" ${IK} stroke-width="1.6"/>`+
+   sk('M39 40H48V49H39ZM39 56H48V65H39ZM39 72H48V81H39Z',1.2)+sk('M53 45H75M53 61H72M53 77H70',1.2)+
+   `<path d="M37 43L43 49L52 36M37 59L43 65L52 52" stroke="#3f7a3a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`+
+   sk('M98 14C86 18 72 34 66 52L72 50C80 40 92 28 98 14Z',1.3)+sk('M66 52L62 60',1.4)}),
+ /* tutorial: el pizarrón de campo con una carta dibujada en tiza */
+ tutorial:()=>({art:sombra(60,106,38)+
+   `<rect x="20" y="24" width="80" height="58" rx="3" fill="#8a5a33"/><rect x="26" y="30" width="68" height="46" fill="#2f4a3a"/>
+    <path d="M40 82L30 106M80 82L90 106" stroke="#7a4b28" stroke-width="5" fill="none"/><rect x="60" y="80" width="14" height="4" fill="#f4efe2"/>`,
+  ink:`<rect x="20" y="24" width="80" height="58" rx="3" ${IK} stroke-width="1.7"/><rect x="26" y="30" width="68" height="46" ${IK} stroke-width="1.1"/>`+sk('M40 82L30 106M80 82L90 106')+
+   `<g stroke="#f4efe2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".92"><rect x="34" y="36" width="20" height="30" rx="2" stroke-width="1.6"/><path d="M44 44V58M40 47L44 43 48 47" stroke-width="1.4"/>
+    <path d="M60 44H86M60 52H82M60 60H78" stroke-width="1.5" stroke-dasharray="4 2.5"/></g>`}),
+ /* reglamento: el libro de tapa bordó con fileteado y su cinta */
+ rules:()=>({art:sombra(62,106,34)+
+   `<path d="M82 22L92 28L96 96L86 92Z" fill="#f3e6c8"/><path d="M30 28L82 22L86 92L34 98Z" fill="#7a2233"/>
+    <path d="M42 46L72 42L73 58L43 62Z" fill="#f1e3c3"/><path d="M62 94L64 112L68 106L72 111L70 93Z" fill="#2f5f8f"/>`,
+  ink:sk('M30 28L82 22L86 92L34 98Z')+sk('M82 22L92 28L96 96L86 92')+sk('M42 46L72 42L73 58L43 62Z',1.2)+sk('M48 51L67 48.5M49 56L64 54',1)+
+   `<g stroke="#f0c548" stroke-width="1.5" stroke-linecap="round" fill="none"><path d="M36 34C40 33 41 36 38 38M80 29C76 29 75 32 78 34M38 90C42 91 43 88 40 86M82 85C78 86 77 83 80 81"/><path d="M45 74C52 70 62 70 70 72" stroke-dasharray="1 3"/></g>`+
+   sk('M62 94L64 112L68 106L72 111L70 93',1.2)}),
+ /* anotador: los fósforos del cuadrado de cinco y la caja */
+ anotador:()=>{const fo=(x1,y1,x2,y2)=>{const a=Math.atan2(y2-y1,x2-x1);return `<path d="M${x1} ${y1}L${x2} ${y2}" stroke="#d29a5a" stroke-width="4.6" stroke-linecap="round"/><ellipse cx="${x2}" cy="${y2}" rx="5" ry="3.8" transform="rotate(${(a*180/Math.PI).toFixed(1)} ${x2} ${y2})" fill="#9b2a1f"/>`};
+  const fi=(x1,y1,x2,y2)=>sk(`M${x1} ${y1}L${x2} ${y2}`,1);
+  const M=[[50,22,92,22],[92,24,92,64],[90,66,48,66],[48,64,48,24],[52,62,90,26]];
+  return {art:sombra(58,106,40)+M.map(m=>fo(...m)).join('')+
+   `<rect x="20" y="78" width="60" height="22" rx="2" fill="#c0392b"/><rect x="26" y="83" width="48" height="12" fill="#f3e6c8"/><rect x="74" y="78" width="10" height="22" fill="#6b4a2a"/>`,
+  ink:M.map(m=>fi(...m)).join('')+`<rect x="20" y="78" width="64" height="22" rx="2" ${IK} stroke-width="1.6"/>`+sk('M74 78V100',1.2)+sk('M26 83H74V95H26Z',1)+
+   `<path d="M38 89h4M46 89h4M54 89h4M62 89h4" stroke="#3b2c1f" stroke-width="1.6" stroke-linecap="round"/>`}},
+ /* pase de temporada: la guitarra criolla de la peña con su escarapela de premio */
+ pase:()=>({art:sombra(56,108,30)+
+   `<g transform="rotate(-24 56 70)"><rect x="51" y="4" width="10" height="44" fill="#6b3f1f"/><rect x="49" y="0" width="14" height="12" rx="2" fill="#4a2a14"/>
+    <path d="M56 40C44 40 40 50 44 58C36 62 32 72 36 84C40 98 72 98 76 84C80 72 76 62 68 58C72 50 68 40 56 40Z" fill="#d9a05b"/>
+    <circle cx="56" cy="64" r="7" fill="#3b2412"/><rect x="48" y="84" width="16" height="4" fill="#4a2a14"/></g>
+    <path d="M86 46L80 70L88 64L93 72L94 48Z" fill="#74acdf"/><path d="M94 46L100 70L92 64L88 70L86 48Z" fill="#b3352b"/>
+    <circle cx="90" cy="38" r="15" fill="#f3e6c8"/><circle cx="90" cy="38" r="11" fill="#74acdf"/><circle cx="90" cy="38" r="7" fill="#f6c437"/>`,
+  ink:`<g transform="rotate(-24 56 70)">${sk('M51 12V48M61 12V48',1.4)}<rect x="49" y="0" width="14" height="12" rx="2" ${IK} stroke-width="1.5"/>
+    ${sk('M56 40C44 40 40 50 44 58C36 62 32 72 36 84C40 98 72 98 76 84C80 72 76 62 68 58C72 50 68 40 56 40Z')}<circle cx="56" cy="64" r="7" ${IK} stroke-width="1.4"/>
+    <path d="M53 6V86M56 6V86M59 6V86" stroke="#f3e6c8" stroke-width=".6" opacity=".8"/>${sk('M48 84H64V88H48Z',1.1)}</g>
+    ${sk('M86 46L80 70L88 64L93 72L94 48',1.2)}${sk('M94 46L100 70L92 64L88 70L86 48',1.2)}
+    <circle cx="90" cy="38" r="15" ${IK} stroke-width="1.6" stroke-dasharray="3.5 1.6"/><circle cx="90" cy="38" r="7" ${IK} stroke-width="1.2"/>
+    <path d="M90 33L91.5 36.5 95 36.8 92.3 39 93.1 42.5 90 40.6 86.9 42.5 87.7 39 85 36.8 88.5 36.5Z" fill="#b3352b"/>`}),
+};
+function iconSVG(id){const D=(ICON_ART[id]||ICON_ART.ranking)();
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="360" height="360"><defs>${cardDefs()}</defs>
+    ${PEN(60,60,D.art)}<g filter="url(#fGrano)" opacity=".35">${D.art}</g>${D.ink}</svg>`}
+/* la imagen del ícono: pintada de antemano (img/arte) o, si no hay, el dibujo directo */
+const ICONSRC={};
+function iconSrc(id){if(ICONSRC[id])return ICONSRC[id];
+  return ICONSRC[id]=(window.REVIRO_ART_V&&!window.__ARTGEN)?`img/arte/${window.REVIRO_ART_V}/icono-${id}.webp`:'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(iconSVG(id))}

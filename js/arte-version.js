@@ -1,1 +1,1 @@
-window.REVIRO_ART_V = '59f1d107b9';
+window.REVIRO_ART_V = 'd745e3b5c7';

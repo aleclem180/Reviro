@@ -498,10 +498,25 @@ function playHTML(){const remembered=(()=>{try{return localStorage.getItem('revi
     ${modeTile('data-a="nav" data-v="torneos"','12O','Torneos',FB?(openT?(openT===1?'Hay uno abierto':`Hay ${openT} abiertos`):'Mirá los que vienen'):'Con tu cuenta en la web')}
     ${modeTile('data-a="nav" data-v="gira"','11E','La Huella',`${esc(cz.short||cz.name)} · ${fmt(WAL.copas||0)} porotos`)}
     ${modeTile('data-a="nav" data-v="online"','10C','Jugar online',onlineOk?(nOpen?`${nOpen} mesa${nOpen>1?'s':''} esperando gente`:'Rápido, con código o armá tu mesa'):'Con tu cuenta en la web')}
-    ${modeTile('data-a="nav" data-v="anotador"','12B','Anotador','Para jugar en persona, con fósforos')}
+    ${iconTile('data-a="nav" data-v="anotador"','anotador','C','Anotador','Para jugar en persona, con fósforos')}
   </div>
   <a class="waline" href="${waHref(waInviteText())}" target="_blank" rel="noopener">${WAICO} Invitar amigos por WhatsApp</a>`}
-const modeTile=(attrs,art,t,d)=>`<button type="button" class="mode" ${attrs}><img src="${CARDART[art].src}" alt="" aria-hidden="true"><span><b>${t}</b><small>${d}</small></span></button>`;
+/* tarjetas de menú con aire de naipe: marco fino, número y palo de la figura en la esquina, tinte del palo */
+const modeTile=(attrs,art,t,d)=>`<button type="button" class="mode s${art.slice(-1)}" ${attrs}><img src="${CARDART[art].src}" alt="" aria-hidden="true"><span><b>${t}</b><small>${d}</small></span></button>`;
+/* tarjetas de Extra: un dibujo a lápiz de color propio de cada sección (src/art.js, ICON_ART) */
+const iconTile=(attrs,ic,su,t,d)=>`<button type="button" class="mode ic s${su}" ${attrs}><img src="${iconSrc(ic)}" alt="" aria-hidden="true" decoding="async"><span><b>${t}</b><small>${d}</small></span></button>`;
+/* el pase de temporada en Extra: tarjeta destacada con el nivel, la barra y lo que hay para cobrar */
+function paseTile(){const p=paseW(),lv=paseLvl(),act=paseActiva(),inLv=lv>=SEASON.levels?SEASON.xpLevel:(p.xp||0)%SEASON.xpLevel;
+  let ready=0;for(const tr of ['free','prem'])for(let l=1;l<=lv;l++)if(paseRw(tr,l)&&!paseHas(tr,l)&&(tr==='free'||p.prem))ready++;
+  const dias=Math.max(0,Math.ceil((Date.parse(SEASON.end+'T23:59:59-03:00')-Date.now())/864e5));
+  const pv=[...SEASON.prem,...SEASON.free].filter(r=>r.t==='dorso').slice(0,2);
+  return `<button type="button" class="mode pasetile" data-a="nav" data-v="pase" data-wide="1">
+    <span class="ptl"><small class="ptag">Pase de temporada${act?`<span class="pdays"> · ${dias===1?'termina mañana':'quedan '+dias+' días'}</span>`:''}</small><b>${esc(SEASON.name)}</b>
+      <span class="pmeta"><span class="plvc">${lv}</span><span class="pbarw"><span class="pbar"><i style="width:${Math.round(inLv*100/SEASON.xpLevel)}%"></i></span><small>${act?`Nivel ${lv} de ${SEASON.levels}`:'La temporada terminó'}</small></span></span>
+      ${ready?`<span class="pready">${ready===1?'1 premio para cobrar':ready+' premios para cobrar'}</span>`:`<span class="pready soft">${p.prem?'Tenés el pase':'Ver los premios'}</span>`}</span>
+    <span class="pfan" aria-hidden="true">${pv.map((r,i)=>`<i style="background:${backBg(r.v)};--r:${i?8:-8}deg"></i>`).join('')}</span>
+    <img src="${iconSrc('pase')}" alt="" aria-hidden="true" decoding="async"></button>`}
+
 function soloOptsHTML(){return `<div class="over" data-a="close"><div class="panel opanel" data-stop><h2>Contra la máquina</h2>
     <div class="field"><span>Dificultad</span>${seg('diff',[['facil','Fácil'],['medio','Medio'],['dificil','Difícil']],SET.diff)}</div>
     <div class="field"><span>Jugadores</span>${seg('n',[[2,'1 contra 1'],[4,'2 contra 2']],SET.n)}</div>
@@ -1399,13 +1414,13 @@ const EXTRA_SUB=['anotador','shop','missions','ranking','rules','tutorial','pase
 const backX=()=>`<div class="backx"><button type="button" class="btn ghost sm" data-a="nav" data-v="extra">← Extra</button></div>`;
 function extraHTML(){const done=(WAL.tut||[]).length,mis=(()=>{ensureMissions();return WAL.mis.done.length})();
   return phd('Extra')+`<div class="xtiles">
-    ${modeTile('data-a="nav" data-v="pase" data-wide="1"','12C','Pase de temporada',`${esc(SEASON.name)} · nivel ${paseLvl()} de ${SEASON.levels}${paseW().prem?' · con pase':''}`)}
-    ${modeTile('data-a="nav" data-v="shop"','10O','Tienda',`Personajes, dorsos y paños, con tus ${fmt(WAL.chips)} fichas`)}
-    ${modeTile('data-a="nav" data-v="missions"','11B','Misiones y logros',`${mis} de 3 misiones hoy`)}
-    ${modeTile('data-a="nav" data-v="ranking"','12E','Ranking','Vos contra todos y contra tus amigos')}
-    ${modeTile('data-a="nav" data-v="tutorial"','10E','Tutorial',`${done} de ${LESSONS.length} lecciones hechas`)}
-    ${modeTile('data-a="nav" data-v="rules"','11O','Reglamento','Cartas, envido, flor, truco y mazo')}
-    ${modeTile('data-a="nav" data-v="anotador"','12B','Anotador',`${ANOT.s[0]} a ${ANOT.s[1]} · a ${ANOT.target}`)}
+    ${paseTile()}
+    ${iconTile('data-a="nav" data-v="shop"','shop','O','Tienda',`Personajes, dorsos y paños, con tus ${fmt(WAL.chips)} fichas`)}
+    ${iconTile('data-a="nav" data-v="missions"','missions','B','Misiones y logros',`${mis} de 3 misiones hoy`)}
+    ${iconTile('data-a="nav" data-v="ranking"','ranking','O','Ranking','Vos contra todos y contra tus amigos')}
+    ${iconTile('data-a="nav" data-v="tutorial"','tutorial','B','Tutorial',`${done} de ${LESSONS.length} lecciones hechas`)}
+    ${iconTile('data-a="nav" data-v="rules"','rules','C','Reglamento','Cartas, envido, flor, truco y mazo')}
+    ${iconTile('data-a="nav" data-v="anotador"','anotador','C','Anotador',`${ANOT.s[0]} a ${ANOT.s[1]} · a ${ANOT.target}`)}
   </div><button type="button" class="linkrow" data-a="terms">Términos y condiciones</button>`}
 function settingsHTML(){const tg=(k,l,sub,inv)=>`<div class="toggle"><span>${l}<small>${sub}</small></span><button type="button" class="sw" data-a="toggle" data-k="${k}" aria-pressed="${inv?!SET[k]:!!SET[k]}" aria-label="${l}"></button></div>`;
   const opts=[['sonido','Sonido'],['juego','Juego'],['idioma','Idioma'],['avisos','Avisos'],['cuenta','Cuenta']];if(isOwnerV)opts.push(['admin','Admin']);const [tab,tabs]=ptabs('set',opts,'sonido');let body='';

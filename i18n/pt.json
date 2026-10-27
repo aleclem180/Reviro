@@ -1380,5 +1380,12 @@
 "Premio: {0}": "Prêmio: {0}",
 "Jefe": "Chefe",
 "Veces que le ganaste": "Vezes que você ganhou",
-"Jefe · a 30 · {0}": "Chefe · até 30 · {0}"
+"Jefe · a 30 · {0}": "Chefe · até 30 · {0}",
+"quedan {0} días": "faltam {0} dias",
+"termina mañana": "termina amanhã",
+"premios para cobrar": "prêmios para resgatar",
+"{0} premios para cobrar": "{0} prêmios para resgatar",
+"1 premio para cobrar": "1 prêmio para resgatar",
+"Ver los premios": "Ver os prêmios",
+"la temporada terminó": "a temporada terminou"
 }
