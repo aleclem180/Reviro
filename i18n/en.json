@@ -1615,5 +1615,9 @@
 "{0} misiones o logros cumplidos": "{0} missions or achievements completed",
 "{0} para ver": "{0} to see",
 "Misión cumplida: {0} (+{1} monedas)": "Mission completed: {0} (+{1} coins)",
-"Logro: {0} (+{1} monedas)": "Achievement: {0} (+{1} coins)"
+"Logro: {0} (+{1} monedas)": "Achievement: {0} (+{1} coins)",
+"🎁︎ Son <b>fichas de regalo</b>: se juegan como las demás, pero quedan marcadas y nunca se pueden canjear por dinero.": "🎁︎ These are <b>gift chips</b>: you play with them like any other, but they stay marked and can never be exchanged for money.",
+"Ahora tenés <b>{0}</b> de regalo.": "You have <b>{0}</b> gift chips now.",
+"De regalo": "Gift",
+"Tu amigo arranca con {0} fichas.": "Your friend starts with {0} chips."
 }

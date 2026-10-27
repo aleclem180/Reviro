@@ -27,6 +27,8 @@ no la página de cada jugador. Mientras está **apagado**, Reviro funciona exact
 
 **No hay retiros.** Las fichas no tienen valor en dinero y este servidor no convierte fichas en plata.
 
+**Fichas de regalo.** Las fichas que se ganan por invitar amigos (las del invitado y las de quien invitó) quedan marcadas en `wallets/{uid}.regalo` y en el movimiento (`regalo: true`). Se juegan como cualquier ficha y se gastan primero. Nunca son canjeables: si alguna vez existiera un canje, solo podría tocar `chips - regalo`.
+
 ## Cómo prenderlo
 
 1. **Plan Blaze.** En la consola de Firebase, en el proyecto `reviro-e2336`: ícono de engranaje → Uso y facturación →

@@ -65,15 +65,18 @@
       if (d && d.pase && typeof d.pase === 'object') w.pase = { ...d.pase, cf: (d.pase.cf || []).slice(), cp: (d.pase.cp || []).slice() };
       return w; };
     /** Anota un movimiento (con clave única: si ya se aplicó, no se repite). Devuelve false si no alcanza el saldo. */
-    function mover(t, uid, w, { key, chips = 0, coins = 0, own = null, tipo, ref = null, earn = false }) {
+    /* Fichas de regalo (invitaciones): se juegan como cualquier ficha, pero quedan marcadas en w.regalo y nunca son
+       canjeables. Si alguna vez existiera un canje, solo podría tocar chips - regalo. Las de regalo se gastan primero. */
+    function mover(t, uid, w, { key, chips = 0, coins = 0, own = null, tipo, ref = null, earn = false, regalo = false }) {
       if (key && w.applied.includes(key)) return false;
       if (chips < 0 && w.chips + chips < 0) return false;
       if (coins < 0 && w.coins + coins < 0) return false;
       w.chips += chips; w.coins += coins;
+      w.regalo = Math.max(0, Math.min((+w.regalo || 0) + (regalo && chips > 0 ? chips : 0), w.chips));
       if (coins > 0 && earn) w.stats.earned += coins;
       if (own && !w.owned.includes(own)) w.owned.push(own);
       if (key) w.applied = w.applied.concat(key).slice(-300);
-      if (chips || coins || own) t.add('wallets/' + uid + '/movimientos', { tipo: tipo || key || 'ajuste', fichas: chips, monedas: coins, own, ref, saldo: { fichas: w.chips, monedas: w.coins }, at: ahora() });
+      if (chips || coins || own) t.add('wallets/' + uid + '/movimientos', { tipo: tipo || key || 'ajuste', fichas: chips, monedas: coins, own, ref, regalo: !!(regalo && chips > 0), saldo: { fichas: w.chips, monedas: w.coins }, at: ahora() });
       return true;
     }
 
@@ -162,7 +165,7 @@
         } else if (op === 'referidoNuevo') {
           const r = await t.get('referrals/' + uid);
           if (!r || w.applied.includes('ref-new')) return { ok: true, ya: true };
-          mover(t, uid, w, { key: 'ref-new', chips: R.REF_NEW, tipo: 'invitación de un amigo', ref: r.referrer });
+          mover(t, uid, w, { key: 'ref-new', chips: R.REF_NEW, tipo: 'invitación de un amigo', ref: r.referrer, regalo: true });
           res = { ok: true, fichas: R.REF_NEW };
         } else if (op === 'paseComprar') {
           if (!SE || !paseActiva()) throw err('estado', 'La temporada ya terminó');
@@ -326,7 +329,7 @@
           if (on && r && !r.played) {
             const rw = L.refW[r.referrer];
             const pay = rw ? ((L.refU[r.referrer] && L.refU[r.referrer].refBonus) || R.REF_DEFAULT) : 0;
-            if (rw && mover(t, r.referrer, rw, { key: 'ref:' + id, chips: pay, tipo: 'amigo invitado', ref: id })) t.set('wallets/' + r.referrer, rw);
+            if (rw && mover(t, r.referrer, rw, { key: 'ref:' + id, chips: pay, tipo: 'amigo invitado', ref: id, regalo: true })) t.set('wallets/' + r.referrer, rw);
             t.update('referrals/' + id, { played: true, paidReferrer: !!rw });
           }
         });

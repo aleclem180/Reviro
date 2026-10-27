@@ -151,7 +151,7 @@ const myAv=()=>WAL.eq.av==='hincha'?kitAv(WAL.eq.kit):WAL.eq.av;
 const owns=(type,id,price)=>{const it=itemOf(type,id);if(it&&it.boss)return !!(WAL.gira&&WAL.gira.bosses.includes(it.boss));if(it&&it.season)return WAL.owned.includes(type+':'+id);return !price||WAL.owned.includes(type+':'+id)};
 /* ---------- modo servidor: la billetera y las partidas online las maneja el servidor (ver functions/ y docs/SERVIDOR.md) ---------- */
 const SRV=()=>!!(typeof FB!=='undefined'&&FB&&window.NET&&NET.srv&&NET.srv.on);
-const SRV_FIELDS=['chips','coins','owned','stats','mis','ach','evk','applied','tours','daily','tutPaid','pase'];
+const SRV_FIELDS=['chips','coins','regalo','owned','stats','mis','ach','evk','applied','tours','daily','tutPaid','pase'];
 const PREF_FIELDS=['eq','nick','fcode','registered','copas','gira','tut','friends','th2','lang','langAt'];
 let walUnsub=null;
 const misTitle=id=>{const m=MISSIONS.find(x=>x.id===id)||ACHS.find(x=>x.id===id);return m?m.t:id};
@@ -183,15 +183,18 @@ async function loadWallet(){try{const l=JSON.parse(localStorage.getItem(walKey()
   if(!WAL.fcode){WAL.fcode=genFriendCode();saveWallet()}
   if(!WAL.th2){WAL.th2=1;if(WAL.eq.pano==='bordo')WAL.eq.pano='quincho';if(WAL.eq.dorso==='bordo')WAL.eq.dorso='pampa';saveWallet()}
   ensureMissions();writeLooks();render()}
-function mergeWal(d){for(const k of ['chips','coins','daily','th2','nick','fcode','registered','copas','lang','langAt'])if(d[k]!==undefined)WAL[k]=d[k];
+function mergeWal(d){for(const k of ['chips','coins','regalo','daily','th2','nick','fcode','registered','copas','lang','langAt'])if(d[k]!==undefined)WAL[k]=d[k];
   if(Array.isArray(d.owned))WAL.owned=d.owned;if(d.mis)WAL.mis=d.mis;if(d.ach)WAL.ach={cnt:d.ach.cnt||{},done:d.ach.done||[]};if(Array.isArray(d.evk))WAL.evk=d.evk;if(Array.isArray(d.tut))WAL.tut=d.tut;if(Array.isArray(d.friends))WAL.friends=d.friends;if(d.gira)WAL.gira={beat:d.gira.beat||{},bosses:d.gira.bosses||[]};if(d.tours&&typeof d.tours==='object')WAL.tours=d.tours;if(Array.isArray(d.applied))WAL.applied=d.applied;
   if(d.eq)WAL.eq=Object.assign({},WAL.eq,d.eq);if(d.stats)WAL.stats=Object.assign({},WAL.stats,d.stats);if(d.pase&&typeof d.pase==='object')WAL.pase=d.pase}
-async function saveWallet(){const body=JSON.parse(JSON.stringify(WAL));try{localStorage.setItem(walKey(),JSON.stringify(body))}catch(e){}
+/* fichas de regalo (invitaciones): marcadas y nunca canjeables; se gastan primero, así que nunca son más que el saldo */
+const regaloNow=()=>Math.max(0,Math.min(+WAL.regalo||0,WAL.chips||0));
+async function saveWallet(){if(!SRV())WAL.regalo=regaloNow();const body=JSON.parse(JSON.stringify(WAL));try{localStorage.setItem(walKey(),JSON.stringify(body))}catch(e){}
   if(SRV()){if(db&&uid){const pr={};for(const k of PREF_FIELDS)if(body[k]!==undefined)pr[k]=body[k];try{await db.doc('data/users/'+uid+'/prefs').set(pr)}catch(e){}}return}
   if(walRef){try{await walRef.set(body)}catch(e){walRef=null}}}
 function applyTx(key,d){if(SRV()){walQ=walQ.then(()=>srvTx(key,d));return walQ}walQ=walQ.then(async()=>{if(WAL.applied.includes(key))return false;
     if((d.coins||0)<0&&WAL.coins+d.coins<0)return false;if(d.own&&(d.chips||0)<0&&WAL.chips+d.chips<0)return false;
     WAL.chips=Math.max(0,WAL.chips+(d.chips||0));WAL.coins=Math.max(0,WAL.coins+(d.coins||0));
+    if(d.regalo&&d.chips>0)WAL.regalo=(+WAL.regalo||0)+d.chips;WAL.regalo=regaloNow();
     if(d.coins>0&&d.earn)WAL.stats.earned+=d.coins;
     if(d.own&&!WAL.owned.includes(d.own))WAL.owned=WAL.owned.concat(d.own);
     if(d.tour){const x=Object.assign({},WAL.tours||{});if(d.tour.v)x[d.tour.id]=d.tour.v;else delete x[d.tour.id];WAL.tours=x}
@@ -1806,7 +1809,7 @@ let REFS=[],AUDIT=null,ADMU=null;const REFPAY=new Set(),GRANTAPPLY=new Set();
 /* referidos y ajustes de saldo: se cobran solos, una sola vez */
 function subRewards(){if(!FB)return;try{
   payUnsubs.push(NET.ref.watchMine(l=>{REFS=l;for(const x of l)if(!SRV()&&x.played&&!x.paidReferrer&&!REFPAY.has(x.id)){REFPAY.add(x.id);const n=(MYUSER&&MYUSER.refBonus)||NET.REF_DEFAULT;
-      applyTx('ref:'+x.id,{chips:n}).then(()=>NET.ref.markPaid(x.id)).then(()=>{sfx('buy');toast(`${x.username||'Tu amigo'} jugó su primera partida: +${fmt(n)} fichas`)}).catch(()=>REFPAY.delete(x.id))}
+      applyTx('ref:'+x.id,{chips:n,regalo:true}).then(()=>NET.ref.markPaid(x.id)).then(()=>{sfx('buy');toast(`${x.username||'Tu amigo'} jugó su primera partida: +${fmt(n)} fichas`)}).catch(()=>REFPAY.delete(x.id))}
     if(view==='profile')render()}));
   if(!SRV())payUnsubs.push(NET.grants.watchMine(l=>{for(const x of l)if(!GRANTAPPLY.has(x.id)){GRANTAPPLY.add(x.id);
       applyTx('grant:'+x.id,{chips:x.chips||0,coins:x.coins||0}).then(()=>NET.grants.markApplied(x.id)).then(()=>{const p=[];if(x.chips)p.push((x.chips>0?'+':'')+fmt(x.chips)+' fichas');if(x.coins)p.push((x.coins>0?'+':'')+fmt(x.coins)+' monedas');toast('Ajuste del admin: '+p.join(' y ')+(x.reason?' ('+x.reason+')':''))}).catch(()=>GRANTAPPLY.delete(x.id))}}));
@@ -1814,9 +1817,10 @@ function subRewards(){if(!FB)return;try{
 /* el que llega con el link de un amigo: al registrarse, queda como su referido y recibe monedas de bienvenida */
 function claimReferral(){let code=null;try{code=localStorage.getItem('reviro.ref')}catch(e){}if(!code||code===WAL.fcode)return;
   try{localStorage.removeItem('reviro.ref')}catch(e){}
-  NET.ref.byCode(code).then(r=>r&&r!==uid?NET.ref.claim(r):false).then(ok=>{if(ok)applyTx('ref-new',{chips:NET.REF_NEW}).then(ok2=>SRV()&&!ok2?null:toast(`Te sumaste con la invitación de un amigo: +${fmt(NET.REF_NEW)} fichas`))}).catch(()=>{})}
+  NET.ref.byCode(code).then(r=>r&&r!==uid?NET.ref.claim(r):false).then(ok=>{if(ok)applyTx('ref-new',{chips:NET.REF_NEW,regalo:true}).then(ok2=>SRV()&&!ok2?null:toast(`Te sumaste con la invitación de un amigo: +${fmt(NET.REF_NEW)} fichas`))}).catch(()=>{})}
 function refBoxHTML(){if(!FB)return'';const n=(MYUSER&&MYUSER.refBonus)||NET.REF_DEFAULT,played=REFS.filter(x=>x.played).length;
-  return `<section class="box grow"><p class="note" style="margin:0">Por cada amigo que se registre con tu link y juegue su primera partida online, ganás <b>${fmt(n)}</b> fichas. Tu amigo arranca con ${fmt(NET.REF_NEW)} fichas de regalo.</p>
+  return `<section class="box grow"><p class="note" style="margin:0">Por cada amigo que se registre con tu link y juegue su primera partida online, ganás <b>${fmt(n)}</b> fichas. Tu amigo arranca con ${fmt(NET.REF_NEW)} fichas.</p>
+    <p class="note regnote" style="margin:0">🎁︎ Son <b>fichas de regalo</b>: se juegan como las demás, pero quedan marcadas y nunca se pueden canjear por dinero.${regaloNow()?` Ahora tenés <b>${fmt(regaloNow())}</b> de regalo.`:''}</p>
     <div class="row" style="flex-wrap:nowrap"><a class="btn wa" href="${waHref(waInviteText())}" target="_blank" rel="noopener">${WAICO} Invitar por WhatsApp</a><button class="btn" data-a="copylink">Copiar link</button></div>
     ${REFS.length?`<p class="note" style="margin:0">Invitaste a ${REFS.length} ${REFS.length===1?'persona':'personas'}: ${played} ya ${played===1?'jugó':'jugaron'}.</p>`:''}
     ${fitList('refs',REFS,x=>`<li><span style="flex:1">${esc(x.username||'Jugador')}<small>${x.played?(x.paidReferrer?'Cobraste el premio':'Jugó: cobrando…'):'Todavía no jugó online'}</small></span></li>`,'flist')}</section>`}
@@ -1832,7 +1836,7 @@ function admUserHTML(){const d=ADMU||{};const u=d.user;
   return `<div class="over" data-a="close"><div class="panel apanel" data-stop>
     <div class="row" style="align-items:center;gap:12px;flex-wrap:nowrap">${avatarSVG(AVM[u.avatar]?u.avatar:'gaucho',56)}<div style="text-align:left;min-width:0"><h2 style="font-size:1.6rem">${esc(u.username||'—')}${admTag(d.uid)}</h2><p class="note" style="margin:0">${u.role==='admin'?'Admin':'Jugador'}${u.banned?' · <b style="color:var(--bad)">Suspendido</b>':''}${u.terms?' · aceptó los términos':' · sin aceptar términos'}</p></div></div>
     <div class="stats"><div class="stat-b"><small>Partidas</small><b>${fmt(s.played||0)}</b></div><div class="stat-b"><small>Ganadas</small><b>${fmt(s.wins||0)}</b></div><div class="stat-b"><small>Racha</small><b>${s.currentStreak||0}</b></div>
-      <div class="stat-b"><small>Fichas</small><b>${fmt(w.chips||0)}</b></div><div class="stat-b"><small>Monedas</small><b>${fmt(w.coins||0)}</b></div><div class="stat-b"><small>Referidos</small><b>${(d.referred||[]).length}</b></div></div>
+      <div class="stat-b"><small>Fichas</small><b>${fmt(w.chips||0)}</b></div><div class="stat-b"><small>Monedas</small><b>${fmt(w.coins||0)}</b></div>${w.regalo?`<div class="stat-b"><small>De regalo</small><b>${fmt(Math.min(w.regalo,w.chips||0))}</b></div>`:''}<div class="stat-b"><small>Referidos</small><b>${(d.referred||[]).length}</b></div></div>
     ${d.movs&&d.movs.length?`<div class="aform"><h3>Últimos movimientos</h3><ul class="flist movs">${d.movs.slice(0,8).map(m=>`<li><span style="flex:1">${esc(m.tipo||'')}<small>${esc(tFmtDate(m.at))}</small></span><b>${m.fichas?(m.fichas>0?'+':'')+fmt(m.fichas)+' fichas':''}${m.fichas&&m.monedas?' · ':''}${m.monedas?(m.monedas>0?'+':'')+fmt(m.monedas)+' monedas':''}</b></li>`).join('')}</ul></div>`:''}
     <p class="note" style="text-align:left">${d.referredBy?'Llegó invitado por otro jugador. ':''}${(d.purchases||[]).length?'Compras: '+d.purchases.map(x=>fmt(x.coins)+' monedas ('+x.status+')').join(', ')+'.':'Sin compras.'}</p>
     <form class="aform" data-form="admnick"><h3>Apodo interno</h3><div class="row" style="flex-wrap:nowrap"><input class="tin" id="anick" maxlength="30" value="${esc(admNick(d.uid))}" placeholder="Ej.: el primo de Juan" autocomplete="off"><button class="btn" type="submit">Guardar</button></div><p class="note" style="margin:0">Solo lo ven los admins, para reconocerlo. El jugador no se entera. Vacío lo borra.</p></form>

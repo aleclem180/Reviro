@@ -86,6 +86,7 @@ prueba('mesa con entrada entre dos personas: se cobra, se juega entera y la casa
   assert((await S.get('users/a/matches/' + g.matchId)) && (await S.get('users/b/matches/' + g.matchId)));
   assert.strictEqual((await S.get('wallets/c')).chips - await mis(S, 'c'), 5000 + 2500, 'el que invitó cobra cuando el invitado juega su primera partida');
   assert.strictEqual((await S.get('referrals/b')).played, true);
+  assert.strictEqual((await S.get('wallets/c')).regalo, 2500, 'las fichas por invitar quedan marcadas como regalo (no canjeables)');
   assert.strictEqual(room.rewards[win].chips, 1800);
   // pedirlo de nuevo no paga dos veces
   await assert.rejects(N.salaJugar(ctxOf(win), { code: 'BBBB', accion: { t: 'mazo' } }));

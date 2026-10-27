@@ -1509,5 +1509,9 @@
 "{0} misiones o logros cumplidos": "{0} missões ou conquistas cumpridas",
 "{0} para ver": "{0} para ver",
 "Misión cumplida: {0} (+{1} monedas)": "Missão cumprida: {0} (+{1} moedas)",
-"Logro: {0} (+{1} monedas)": "Conquista: {0} (+{1} moedas)"
+"Logro: {0} (+{1} monedas)": "Conquista: {0} (+{1} moedas)",
+"🎁︎ Son <b>fichas de regalo</b>: se juegan como las demás, pero quedan marcadas y nunca se pueden canjear por dinero.": "🎁︎ São <b>fichas de presente</b>: você joga com elas como as outras, mas ficam marcadas e nunca podem ser trocadas por dinheiro.",
+"Ahora tenés <b>{0}</b> de regalo.": "Agora você tem <b>{0}</b> de presente.",
+"De regalo": "De presente",
+"Tu amigo arranca con {0} fichas.": "Seu amigo começa com {0} fichas."
 }
