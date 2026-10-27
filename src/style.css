@@ -1099,3 +1099,11 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
 @media (max-height:700px){.pase .plv{width:50px;height:50px}.pase .plv b{font-size:1.35rem}.pcell .pdorso{width:20px;height:30px}.pcell .ppano{width:32px;height:24px}.pase .snote{display:none}}
 .pase .phead .btn{display:inline-flex;align-items:center;gap:6px}.pase .phead .btn .coin{display:inline-block}
 .pase .plv small{color:#6b4512}
+
+/* la próxima mano se reparte sola: una barrita que se llena */
+.result .autodeal{display:flex;flex-direction:column;align-items:center;gap:4px;width:min(160px,70%);margin-top:2px}
+.result .autodeal i{display:block;width:100%;height:4px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden;position:relative}
+.result .autodeal i::after{content:'';position:absolute;inset:0;background:var(--brass);transform-origin:left;transform:scaleX(0);animation:autodeal var(--t) linear var(--d,0ms) forwards}
+.result .autodeal small{font-size:.75rem;color:var(--muted)}
+@keyframes autodeal{to{transform:scaleX(1)}}
+@media (prefers-reduced-motion:reduce){.result .autodeal i::after{animation:none;transform:scaleX(1);opacity:.5}}

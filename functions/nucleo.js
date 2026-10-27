@@ -29,7 +29,7 @@
     AUSENTE_MS: 45000,                       // sin señal de vida: se lo da por ausente
     ABANDONO_APUESTA_MS: 72000,              // en mesas con entrada, ausente tanto tiempo: pierde la partida
     CORTE_TEMPRANO_MS: 30000,                // irse en los primeros 30 s de una mesa con entrada la cancela
-    ESPERA_MANO_MS: 2500,                    // pausa entre una mano y la siguiente
+    ESPERA_MANO_MS: 2200,                    // pausa entre una mano y la siguiente
     TOUR_ESPERA_MS: 5 * 60e3,                // torneos: pasado este tiempo se puede empezar con la IA por los que faltan
     T_CUT: 10, T_SPLIT: [60, 30, 10],
     CARGAS: [500, 1000, 5000], LECCIONES: 5, LECCION_MONEDAS: 20,

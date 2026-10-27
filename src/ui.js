@@ -637,7 +637,7 @@ function gameHTML(){if(!G)return'';const h=G.hand,me=mySeat,mt=myTeam(),a=actor(
   const co=coachNow();
   if(TUT&&h.ended){const nx=TUT.i+1<LESSONS.length;center=`<div class="result"><b>¡Lección cumplida!</b><span>${esc(co&&co.done||'')}</span><span>+20 monedas la primera vez</span><div class="btns">${nx?`<button class="btn prim" data-a="lesson" data-i="${TUT.i+1}">Siguiente lección</button>`:''}<button class="btn" data-a="tomenu">${nx?'Menú':'Volver al menú'}</button></div></div>`}
   else if(h.ended&&!G.matchOver){const gains=h.gains.map(x=>`${teamName(x.tm)} +${x.p} por ${x.why}`).join(' · ');
-    center=`<div class="result"><b>${h.ended.winner===mt?'La mano es nuestra':'La mano es de ellos'}</b><span>${esc(gains)}</span>${mode==='offline'||(me>=0&&controllerSeat()===mySeat)?'<button class="btn prim" data-a="next">Repartir</button>':'<span>Reparte la próxima en un ratito…</span>'}</div>`}
+    center=`<div class="result"><b>${h.ended.winner===mt?'La mano es nuestra':'La mano es de ellos'}</b><span>${esc(gains)}</span><span class="autodeal" style="--t:${AUTODEAL}ms;--d:-${autoDealElapsed()}ms"><i></i><small>Repartiendo la próxima…</small></span></div>`}
   const myCards=me>=0?h.cards[me].filter(c=>c!=='?'):[];const L=me>=0?legal(G,me):{};
   if(SELCARD&&(!L.play||!myCards.includes(SELCARD)))SELCARD=null;
   const hand=`<div class="hand ${L.play?'':'wait'} ${SELCARD?'picking':''}">${myCards.map((c,i)=>`<button type="button" class="${FX.deal?'dealt':''} ${SELCARD===c?'sel':''} ${TUT&&L.play&&coachNow()&&coachNow().x&&tutAllowed({t:'play',card:c})?'tutpick':''}" aria-pressed="${SELCARD===c}" style="animation-delay:${i*90}ms" data-card="${c}" ${L.play&&!busy&&tutAllowed({t:'play',card:c})?'':'disabled'} aria-label="${SELCARD===c?'Tocá de nuevo para tirar':'Elegir esta carta'}">${cardHTML(c)}</button>`).join('')}</div>`;
@@ -759,18 +759,21 @@ const gsig=g=>g?g.matchId+'|'+g.seq+'|'+g.handNo+'|'+JSON.stringify(g.hand.cards
 /* la mesa en la base manda: si lo que veo no coincide, me quedo con lo de la base.
    Pero nunca para atrás: una foto vieja de la base (llega después de que ya mandé mi jugada) no puede deshacer
    lo que ya se ve en la mesa. Eso hacía que la carta o el canto aparecieran, se fueran y volvieran a aparecer. */
+/* la mano siguiente se reparte sola: tiempo para ver el resultado */
+const AUTODEAL=2600;
+let ADSEEN={k:'',at:0};const autoDealElapsed=()=>{const k=G.matchId+'-'+G.handNo;if(ADSEEN.k!==k)ADSEEN={k,at:Date.now()};return Math.min(AUTODEAL,Date.now()-ADSEEN.at)};
 const mtime=id=>{const t=parseInt(String(id||'').split('-').pop(),36);return isFinite(t)?t:0};
 function fresher(ng,g){if(!g||!ng)return true;if(ng.matchId!==g.matchId)return mtime(ng.matchId)>=mtime(g.matchId);return ng.seq>=g.seq}
 function reconcile(){if(busy||mode!=='online'||!T||!T.game)return;if(!G||(gsig(G)!==gsig(T.game)&&fresher(T.game,G)))setG(T.game)}
 /* modo servidor: quien maneja la mesa le avisa al servidor que es momento de que juegue el bot, de repartir
    o de revisar a alguien que no responde. El servidor decide si corresponde. */
 function srvDrive(){if(!G||view!=='game'||G.matchOver||mySeat<0||!T||controllerSeat()!==mySeat)return;const seq=G.seq,code=T.code;let wait=null;
-  if(G.hand.ended)wait=2800;else{const a=actor(G);if(a<0)return;const st=G.seats[a];
+  if(G.hand.ended)wait=AUTODEAL;else{const a=actor(G);if(a<0)return;const st=G.seats[a];
     if(st.bot||(T.abandonos&&T.abandonos[st.id]))wait=850+Math.random()*700;else if(a!==mySeat&&isAbsent(a))wait=5000;else return}
   driveT=setTimeout(async()=>{if(!G||G.seq!==seq)return;let r=null;try{r=await NET.srv.call('salaAvanzar',{code,seq})}catch(e){}
     if(G&&G.seq===seq&&!(r&&r.ok)){clearTimeout(driveT);driveT=setTimeout(drive,2500)}},wait)}
 function drive(){clearTimeout(driveT);if(!G||view!=='game')return;if(SRV()&&mode==='online'){srvDrive();return}const ctrl=mode==='offline'||(mode==='online'&&mySeat>=0&&controllerSeat()===mySeat);if(!ctrl||G.matchOver)return;
-  if(G.hand.ended){if(TUT)return;const seq=G.seq;driveT=setTimeout(()=>{if(G&&G.seq===seq&&G.hand.ended&&!G.matchOver)commit(nextHand(G))},3400);return}
+  if(G.hand.ended){if(TUT)return;const seq=G.seq;driveT=setTimeout(()=>{if(G&&G.seq===seq&&G.hand.ended&&!G.matchOver)commit(nextHand(G))},AUTODEAL);return}
   const a=actor(G);if(a<0)return;const absent=isAbsent(a);if(!G.seats[a].bot&&!absent)return;const seq=G.seq;
   if(absent&&stakeTable(G)){const id=G.seats[a].id,left=(goneSince[id]||Date.now())+GRACE+60000-Date.now();
     if(left<=0){commit(endWith({winner:1-team(a),forfeit:id}));return}
