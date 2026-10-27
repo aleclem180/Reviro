@@ -20,7 +20,7 @@ class Rutas(unittest.TestCase):
                     b = await p.chromium.launch()
                     pg = await pagina(b, base, ruta="huella/")
                     r = [await pg.evaluate("view"), await pg.evaluate("location.pathname")]
-                    await pg.click('[data-a="nav"][data-v="extra"]')
+                    await pg.click('nav.tabs [data-a="nav"][data-v="shop"]')
                     r.append(await pg.evaluate("location.pathname"))
                     await pg.go_back(); await pg.wait_for_timeout(300)
                     r.append(await pg.evaluate("view"))
@@ -29,7 +29,7 @@ class Rutas(unittest.TestCase):
         vista, entrada, extra, atras = asyncio.run(correr())
         self.assertEqual(vista, "gira")
         self.assertTrue(entrada.endswith("/huella"), entrada)
-        self.assertTrue(extra.endswith("/extra"), extra)
+        self.assertTrue(extra.endswith("/" + ROUTES["shop"]), extra)
         self.assertEqual(atras, "gira")
 
 

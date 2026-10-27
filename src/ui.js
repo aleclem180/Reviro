@@ -452,7 +452,7 @@ const PT={};
 function ptabs(k,opts,def){const cur=opts.some(o=>o[0]===PT[k])?PT[k]:def;PT[k]=cur;
   return [cur,`<div class="subtabs ptabs" role="tablist">${opts.map(([v,l])=>`<button type="button" role="tab" data-a="ptab" data-k="${k}" data-v="${v}" aria-selected="${cur===v}" aria-pressed="${cur===v}">${l}</button>`).join('')}</div>`]}
 /* encabezado de hoja: volver, título y lo que va a la derecha */
-const BACKL={menu:'Jugar',extra:'Extra',torneos:'Torneos',profile:'Perfil'};
+const BACKL={menu:'Jugar',extra:'Más',torneos:'Torneos',profile:'Perfil'};
 function phd(title,right='',back=null){return `<header class="phd">${back?`<button type="button" class="pback" data-a="nav" data-v="${back}" aria-label="Volver a ${BACKL[back]||back}">‹</button>`:''}<h2>${title}</h2>${right?`<div class="phr">${right}</div>`:''}</header>`}
 
 /* ---------- direcciones propias para cada hoja en la web: /Reviro/torneos, /Reviro/online… ---------- */
@@ -468,9 +468,11 @@ function routeSync(){if(view==='menu'&&PENDROUTE&&!GATES.includes(view)){const r
   try{if(FROMPOP||ROUTED===null)history.replaceState({v:view},'',url+location.hash);else history.pushState({v:view},'',url)}catch(e){}ROUTED=url;FROMPOP=false}
 window.addEventListener('popstate',e=>{if(!ROUTING)return;const v=(e.state&&e.state.v)||ROUTEV[location.pathname.slice(BASEP.length).replace(/\/+$/,'')]||'menu';
   if(view==='game'||view==='room'||GATES.includes(view))return;FROMPOP=true;ROUTED=null;if(v==='tour'){const id=new URLSearchParams(location.search).get('id');if(id&&FB){openTour(id);return}}view=ROUTES[v]!==undefined?v:'menu';render()});
-const TABICO={"menu": "<path d=\"M5 6.5l6.5-2.2 3.2 12.4-6.5 2.2z\"/><path d=\"M12.6 4.6l6.6 1.6-2.9 12.6\"/>", "torneos": "<path d=\"M7 4h10v4a5 5 0 0 1-10 0z\"/><path d=\"M7 6H4.5a2.5 2.5 0 0 0 2.6 3.4M17 6h2.5a2.5 2.5 0 0 1-2.6 3.4\"/><path d=\"M12 13v4M8.5 20h7M10 17h4\"/>", "gira": "<path d=\"M9 4.5 4 6.5v13l5-2 6 2 5-2v-13l-5 2z\"/><path d=\"M9 4.5v13M15 6.5v13\"/>", "extra": "<path d=\"M7.5 10.5h9c0 5-1.8 9-4.5 9s-4.5-4-4.5-9z\"/><path d=\"M9 10.5c.4-2 1.5-3 3-3s2.6 1 3 3\"/><path d=\"M13.5 7.6 16.8 2.8\"/>", "profile": "<circle cx=\"12\" cy=\"8.5\" r=\"3.6\"/><path d=\"M5 20c.8-3.8 3.6-5.6 7-5.6s6.2 1.8 7 5.6\"/>"};
-function tabsHTML(){const t=[['menu','Jugar'],['gira','La Huella'],['extra','Extra'],['profile','Perfil']];const cur=EXTRA_SUB.includes(view)?'extra':['tour','tournew','torneos','online'].includes(view)?'menu':view;
-  return `<nav class="tabs" aria-label="Secciones">${t.map(([v,l])=>`<button type="button" data-a="nav" data-v="${v}" ${(cur===v||(v==='profile'&&cur==='settings'))?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${TABICO[v]}</svg><span>${l}</span></button>`).join('')}</nav>`}
+const TABICO={"anotador":"<path d=\"M6 4h12v16H6z\"/><path d=\"M9 8h6M9 11.5h6M9 15h3\"/><path d=\"M9 4V2.8M15 4V2.8\"/>","shop":"<path d=\"M4 9h16l-1.2 10.5H5.2z\"/><path d=\"M8.5 9V7a3.5 3.5 0 0 1 7 0v2\"/><path d=\"M3.5 9l2-4h13l2 4\"/>","menu": "<path d=\"M5 6.5l6.5-2.2 3.2 12.4-6.5 2.2z\"/><path d=\"M12.6 4.6l6.6 1.6-2.9 12.6\"/>", "torneos": "<path d=\"M7 4h10v4a5 5 0 0 1-10 0z\"/><path d=\"M7 6H4.5a2.5 2.5 0 0 0 2.6 3.4M17 6h2.5a2.5 2.5 0 0 1-2.6 3.4\"/><path d=\"M12 13v4M8.5 20h7M10 17h4\"/>", "gira": "<path d=\"M9 4.5 4 6.5v13l5-2 6 2 5-2v-13l-5 2z\"/><path d=\"M9 4.5v13M15 6.5v13\"/>", "extra": "<path d=\"M7.5 10.5h9c0 5-1.8 9-4.5 9s-4.5-4-4.5-9z\"/><path d=\"M9 10.5c.4-2 1.5-3 3-3s2.6 1 3 3\"/><path d=\"M13.5 7.6 16.8 2.8\"/>", "profile": "<circle cx=\"12\" cy=\"8.5\" r=\"3.6\"/><path d=\"M5 20c.8-3.8 3.6-5.6 7-5.6s6.2 1.8 7 5.6\"/>"};
+/* cinco pestañas: Jugar va al centro y se destaca */
+function tabsHTML(){const t=[['anotador','Anotador'],['gira','La Huella'],['menu','Jugar'],['shop','Tienda'],['profile','Perfil']];
+  const cur=['tour','tournew','torneos','online','pase'].includes(view)?'menu':['settings','extra','missions','ranking','rules','tutorial'].includes(view)?'profile':view;
+  return `<nav class="tabs t5" aria-label="Secciones">${t.map(([v,l])=>`<button type="button" class="${v==='menu'?'tmain':''}" data-a="nav" data-v="${v}" ${cur===v?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${TABICO[v]}</svg><span>${l}</span></button>`).join('')}</nav>`}
 function seg(key,opts,cur,dis){return `<div class="seg" role="group">${opts.map(([v,l])=>`<button type="button" data-set="${key}" data-v="${v}" aria-pressed="${String(cur)===String(v)}" ${dis&&dis(v)?'disabled':''}>${l}</button>`).join('')}</div>`}
 const STAKES=[0,50,100,250,500,1000];
 /* mesas entre personas: amistosa o con entrada desde 1.000 fichas; el premio es lo que se ve (el 90% del pozo) */
@@ -488,29 +490,28 @@ function playHTML(){const remembered=(()=>{try{return localStorage.getItem('revi
   const st=(FB&&MYUSER&&MYUSER.stats)||null,cz=[...ZONES].reverse().find(zoneOpen)||ZONES[0];
   return `<section class="phead"><button type="button" class="pav" data-a="nav" data-v="shop" aria-label="Cambiar personaje">${avatarSVG(myAv(),54)}</button><div><b>${esc(myDisp())}</b><small>${esc(titleOf(WAL.copas||0))}${st&&st.played?` · ${st.played} partidas online · ${Math.round(st.winRate*100)}% ganadas`:''}</small></div><button type="button" class="btn sm ghost" data-a="nav" data-v="profile">Perfil</button></section>
   ${remembered&&onlineOk?`<button type="button" class="rowb hot slim" data-a="rejoin" data-code="${esc(remembered)}"><b>Volver a la mesa ${esc(remembered)}</b><small>Tu partida sigue ahí</small></button>`:''}
-  <section class="deal">${fileteHTML()}
-    <p class="lema">Truco de campo, como en la pulpería.</p>
-    <div class="fan" aria-hidden="true">${['7O','1E','1B'].map(c=>cardHTML(c)).join('')}</div>
-    <button class="btn prim xl" data-a="solo" ${SET.stake>WAL.chips?'disabled':''}>Repartir</button>
+  <section class="deal home">${fileteHTML()}
+    ${paseTile('pban')}
+    <div class="naipes">
+      ${naipeTile('data-a="nav" data-v="torneos"','torneos','O','Torneos',FB?(openT?(openT===1?'Hay uno abierto':`Hay ${openT} abiertos`):'Mirá los que vienen'):'Con tu cuenta en la web')}
+      ${naipeTile('data-a="nav" data-v="online"','online','E','Jugar online',onlineOk?(nOpen?`${nOpen} mesa${nOpen>1?'s':''} esperando gente`:'Con código o armá tu mesa'):'Con tu cuenta en la web','ncen')}
+      ${naipeTile(`data-a="solo" ${SET.stake>WAL.chips?'disabled':''}`,'offline','B','Jugar offline','Contra la máquina')}
+    </div>
     <button type="button" class="optline" data-a="soloopts">${esc(sum)} · <u>Cambiar</u></button>
   </section>
-  <div class="modes">
-    ${iconTile('data-a="nav" data-v="torneos"','torneos','O','Torneos',FB?(openT?(openT===1?'Hay uno abierto':`Hay ${openT} abiertos`):'Mirá los que vienen'):'Con tu cuenta en la web')}
-    ${iconTile('data-a="nav" data-v="gira"','huella','B','La Huella',`${esc(cz.short||cz.name)} · ${fmt(WAL.copas||0)} porotos`)}
-    ${iconTile('data-a="nav" data-v="online"','online','E','Jugar online',onlineOk?(nOpen?`${nOpen} mesa${nOpen>1?'s':''} esperando gente`:'Rápido, con código o armá tu mesa'):'Con tu cuenta en la web')}
-    ${iconTile('data-a="nav" data-v="anotador"','anotador','C','Anotador','Para jugar en persona, con fósforos')}
-  </div>
   <a class="waline" href="${waHref(waInviteText())}" target="_blank" rel="noopener">${WAICO} Invitar amigos por WhatsApp</a>`}
 /* tarjetas de menú con aire de naipe: marco fino, número y palo de la figura en la esquina, tinte del palo */
 const modeTile=(attrs,art,t,d)=>`<button type="button" class="mode s${art.slice(-1)}" ${attrs}><img src="${CARDART[art].src}" alt="" aria-hidden="true"><span><b>${t}</b><small>${d}</small></span></button>`;
 /* tarjetas de Extra: un dibujo a lápiz de color propio de cada sección (src/art.js, ICON_ART) */
 const iconTile=(attrs,ic,su,t,d)=>`<button type="button" class="mode ic s${su}" ${attrs}><img src="${iconSrc(ic)}" alt="" aria-hidden="true" decoding="async"><span><b>${t}</b><small>${d}</small></span></button>`;
 /* el pase de temporada en Extra: tarjeta destacada con el nivel, la barra y lo que hay para cobrar */
-function paseTile(){const p=paseW(),lv=paseLvl(),act=paseActiva(),inLv=lv>=SEASON.levels?SEASON.xpLevel:(p.xp||0)%SEASON.xpLevel;
+/* inicio: las opciones de juego como tres naipes grandes, con el dibujo a lápiz de cada una */
+const naipeTile=(attrs,ic,su,t,d,cls='')=>`<button type="button" class="naipe s${su} ${cls}" ${attrs}><span class="nfr"><img src="${INICIO_IMG[ic]||iconSrc(ic)}" alt="" aria-hidden="true" decoding="async"><b>${t}</b><small>${d}</small></span></button>`;
+function paseTile(cls=''){const p=paseW(),lv=paseLvl(),act=paseActiva(),inLv=lv>=SEASON.levels?SEASON.xpLevel:(p.xp||0)%SEASON.xpLevel;
   let ready=0;for(const tr of ['free','prem'])for(let l=1;l<=lv;l++)if(paseRw(tr,l)&&!paseHas(tr,l)&&(tr==='free'||p.prem))ready++;
   const dias=Math.max(0,Math.ceil((Date.parse(SEASON.end+'T23:59:59-03:00')-Date.now())/864e5));
   const pv=[...SEASON.prem,...SEASON.free].filter(r=>r.t==='dorso').slice(0,2);
-  return `<button type="button" class="mode pasetile" data-a="nav" data-v="pase" data-wide="1">
+  return `<button type="button" class="mode pasetile ${cls}" data-a="nav" data-v="pase" data-wide="1">
     <span class="ptl"><small class="ptag">Pase de temporada${act?`<span class="pdays"> · ${dias===1?'termina mañana':'quedan '+dias+' días'}</span>`:''}</small><b>${esc(SEASON.name)}</b>
       <span class="pmeta"><span class="plvc">${lv}</span><span class="pbarw"><span class="pbar"><i style="width:${Math.round(inLv*100/SEASON.xpLevel)}%"></i></span><small>${act?`Nivel ${lv} de ${SEASON.levels}`:'La temporada terminó'}</small></span></span>
       ${ready?`<span class="pready">${ready===1?'1 premio para cobrar':ready+' premios para cobrar'}</span>`:`<span class="pready soft">${p.prem?'Tenés el pase':'Ver los premios'}</span>`}</span>
@@ -593,7 +594,7 @@ function shopHTML(){const sub=[['av','Personajes'],['dorso','Dorsos'],['pano','P
   else if(shopTab==='coins')body=`<div class="demo"><b>Modo prueba.</b> Acá no se cobra nada: los paquetes se acreditan gratis para que veas cómo funciona la tienda.</div>
     ${fitList('shop-pk',PACKS.map((p,i)=>Object.assign({i},p)),p=>`<div class="item pack"><div class="prev">${coinI.replace('class="coin"','class="coin" style="width:26px;height:26px"')}${fmt(p.coins)}</div><b>${fmt(p.coins)} monedas</b><p>${p.tag?`<span class="tag">${p.tag}</span> `:''}<span class="ars">$ ${fmt(p.ars)}</span></p>
       ${pendingBuy==='pack:'+p.i?`<button class="btn prim" data-a="pack" data-i="${p.i}">Confirmar prueba</button>`:`<button class="btn brass" data-a="prepack" data-i="${p.i}">Simular compra</button>`}</div>`,'items')}<p class="note">${earn}</p>`;
-  return phd('Tienda',`<span class="pill">${chipI}${fmt(WAL.chips)}</span>`,'extra')+`<div class="subtabs" role="group">${sub.map(([k,l])=>`<button type="button" data-a="shoptab" data-v="${k}" aria-pressed="${shopTab===k}">${l}</button>`).join('')}</div><div class="pbody">${body}</div>`}
+  return phd('Tienda',`<span class="pill">${chipI}${fmt(WAL.chips)}</span>`)+`<div class="subtabs" role="group">${sub.map(([k,l])=>`<button type="button" data-a="shoptab" data-v="${k}" aria-pressed="${shopTab===k}">${l}</button>`).join('')}</div><div class="pbody">${body}</div>`}
 function kitsHTML(){const a=AVM.hincha;return `<div class="over" data-a="close"><div class="panel kpanel" data-stop>${hinchaItemHTML(a)}<button class="btn ghost" data-a="close">Cerrar</button></div></div>`}
 /* ---------- perfil ---------- */
 function profileHTML(){const a=AVM[WAL.eq.av]||AVM.gaucho,st=WAL.stats,pct=st.played?Math.round(st.won*100/st.played):0;
@@ -607,7 +608,7 @@ function profileHTML(){const a=AVM[WAL.eq.av]||AVM.gaucho,st=WAL.stats,pct=st.pl
       <button type="button" class="mz" data-a="shopgo" data-v="dorso"><span class="bigback" style="background:${backBg(D.id)}"></span><b>${esc(D.name)}</b><small>Dorso</small></button>
       <button type="button" class="mz" data-a="shopgo" data-v="pano"><span class="swatch pano-${Pn.id}" style="background:${panoBg(Pn.id)};border-color:${Pn.edge}">${cardHTML('3O')}</span><b>${esc(Pn.name)}</b><small>Paño</small></button></div>
     <button class="btn" data-a="nav" data-v="shop">Ir a la tienda</button></section>`;
-  return phd('Perfil','<button type="button" class="btn sm ghost" data-a="nav" data-v="settings">Ajustes</button>')+`
+  return phd('Perfil','<button type="button" class="btn sm ghost" data-a="nav" data-v="extra">Misiones, ranking y más</button><button type="button" class="btn sm ghost" data-a="nav" data-v="settings">Ajustes</button>')+`
   <section class="prof">${avatarSVG(myAv(),84,true)}<div><h2>${esc(myDisp())}${PREMIUM?' <span class="prem">Premium</span>':''}</h2><p>${esc(a.name)}${myEmail?' · '+esc(myEmail):''}</p>
     <form class="row" data-form="nick"><input type="text" id="nickin" class="plain" maxlength="20" placeholder="Tu apodo" value="${esc(WAL.nick||'')}" aria-label="Apodo" autocomplete="off"><button class="btn sm" type="submit">Guardar</button></form></div></section>
   <div class="stats">${stats}</div><p class="note snote">Cuentan solo las partidas online contra otras personas. Contra la máquina es práctica.</p>
@@ -986,7 +987,7 @@ function paseHTML(){const p=paseW(),lv=paseLvl(),per=pasePer(),pages=Math.ceil(S
   const from=PASEPG*per+1,lvls=Array.from({length:per},(_,i)=>from+i).filter(l=>l<=SEASON.levels);
   const inLv=lv>=SEASON.levels?SEASON.xpLevel:(p.xp||0)%SEASON.xpLevel;
   const dias=Math.max(0,Math.ceil((Date.parse(SEASON.end+'T23:59:59-03:00')-Date.now())/864e5)),act=paseActiva();
-  return phd('Pase de temporada','','extra')+`<div class="pbody pase">
+  return phd('Pase de temporada','','menu')+`<div class="pbody pase">
     <section class="box phead"><div class="plv"><small>Nivel</small><b>${lv}</b></div>
       <div class="pinfo"><b>${esc(SEASON.name)}</b><small>${act?(dias===1?'Termina mañana':'Termina en '+dias+' días'):'La temporada terminó'}</small>
         <div class="bar"><i style="width:${Math.round(inLv*100/SEASON.xpLevel)}%"></i></div><small>${lv>=SEASON.levels?'¡Llegaste al último nivel!':inLv+' de '+SEASON.xpLevel+' para el nivel '+(lv+1)}</small></div>
@@ -1156,7 +1157,7 @@ function anotHTML(){const T2=ANOT.target,win=ANOT.s.findIndex(v=>v>=T2);
       <div class="afos">${fosforos(sc,T2)}</div>
       <button class="btn prim abig" data-a="an" data-t="${t}" data-d="1" ${win>=0?'disabled':''}>+1</button>
       <div class="arow">${[2,3,4].map(d=>`<button class="btn sm" data-a="an" data-t="${t}" data-d="${d}" ${win>=0?'disabled':''}>+${d}</button>`).join('')}<button class="btn sm ghost" data-a="an" data-t="${t}" data-d="-1">−1</button></div></section>`};
-  return phd('Anotador',seg('anot.target',[[15,'A 15'],[30,'A 30']],T2),'extra')+`
+  return phd('Anotador',seg('anot.target',[[15,'A 15'],[30,'A 30']],T2))+`
     ${win>=0?`<div class="demo" style="text-align:center"><b>¡Ganó ${esc(ANOT.names[win])}!</b> ${ANOT.s[0]} a ${ANOT.s[1]}</div>`:''}
     <div class="anot">${col(0)}${col(1)}</div>
     <div class="row arow2"><button class="btn" data-a="anundo" ${ANOT.hist.length?'':'disabled'}>Deshacer</button><button class="btn ${anotConfirm?'warn':'ghost'}" data-a="anreset">${anotConfirm?'Confirmar: de cero':'Nueva partida'}</button></div>
@@ -1421,7 +1422,7 @@ function musicPickerHTML(compact){const cur=TRACKS[SET.track]?SET.track:'zamba';
 const EXTRA_SUB=['anotador','shop','missions','ranking','rules','tutorial','pase'];
 const backX=()=>`<div class="backx"><button type="button" class="btn ghost sm" data-a="nav" data-v="extra">← Extra</button></div>`;
 function extraHTML(){const done=(WAL.tut||[]).length,mis=(()=>{ensureMissions();return WAL.mis.done.length})();
-  return phd('Extra')+`<div class="xtiles">
+  return phd('Más','','profile')+`<div class="xtiles">
     ${paseTile()}
     ${iconTile('data-a="nav" data-v="shop"','shop','O','Tienda',`Personajes, dorsos y paños, con tus ${fmt(WAL.chips)} fichas`)}
     ${iconTile('data-a="nav" data-v="missions"','missions','B','Misiones y logros',`${mis} de 3 misiones hoy`)}

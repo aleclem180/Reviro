@@ -1243,3 +1243,56 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
 .modes .mode.ic:hover img{transform:rotate(-3deg) scale(1.04)}
 /* menú en pantallas bajas: tarjetas de una línea para que el logo y el reparto no se pisen */
 @media (max-height:700px){.modes .mode small{display:none}.modes .mode{min-height:54px;align-items:center}.modes .mode.ic img{height:86%}}
+/* ---------- Inicio: logo, banner del pase, tres naipes y la línea de la partida ---------- */
+.pg-menu .deal.home{gap:clamp(6px,2cqh,14px);justify-content:flex-start;padding-top:4px}
+.pg-menu .deal.home .filete{flex:none;margin:0}
+.pg-menu .deal.home .filete img{height:clamp(54px,15cqh,120px);width:auto}
+.pg-menu .deal.home .optline{flex:none}
+/* el pase, en una franja */
+.mode.pasetile.pban{flex:none;width:100%;max-width:620px;min-height:0;height:auto;padding:8px 12px;grid-column:auto}
+.mode.pasetile.pban .ptl{max-width:70%;gap:4px;padding:2px 2px 6px}
+.mode.pasetile.pban .ptl>b{font-size:clamp(1rem,4.2vw,1.3rem)}
+.mode.pasetile.pban .plvc{width:32px;height:32px;font-size:1rem}
+.mode.pasetile.pban .pfan{display:none}
+.mode.pasetile.pban img{height:118%;max-width:28%;bottom:-4px}
+.mode.pasetile.pban .pmeta{gap:8px}
+.mode.pasetile.pban .pready{animation:none;padding:3px 10px}
+/* los tres naipes */
+.naipes{flex:1 1 0;min-height:0;width:100%;display:flex;justify-content:center;align-items:center;gap:clamp(8px,3cqw,18px);padding:6px 0 10px}
+.naipe{all:unset;box-sizing:border-box;cursor:pointer;flex:none;height:min(100%,44cqw,320px);aspect-ratio:2/3;border-radius:12px;position:relative;
+  --su:#8a6a3a;background:radial-gradient(110% 70% at 50% 100%,color-mix(in srgb,var(--su) 20%,transparent),transparent 65%),linear-gradient(165deg,#f8f0dc,#e6d6b2);
+  box-shadow:0 8px 18px rgba(0,0,0,.45),inset 0 0 0 1px rgba(90,61,30,.3);transition:transform .2s cubic-bezier(.3,.7,.4,1),box-shadow .2s;color:var(--tinta)}
+.naipe.sO{--su:#c08a1a}.naipe.sE{--su:#2f5f8f}.naipe.sB{--su:#3f7a3a}
+.naipe:first-child{transform:rotate(-4deg) translateY(6px)}.naipe:last-child{transform:rotate(4deg) translateY(6px)}
+.naipe.ncen{height:min(100%,48cqw,350px);z-index:1;box-shadow:0 12px 26px rgba(0,0,0,.55),0 0 0 2px rgba(240,197,72,.75)}
+.naipe:hover{transform:translateY(-6px)}.naipe:first-child:hover{transform:rotate(-4deg) translateY(-2px)}.naipe:last-child:hover{transform:rotate(4deg) translateY(-2px)}
+.naipe:active{filter:brightness(1.08)}
+.naipe:focus-visible{outline:2px solid var(--coin);outline-offset:4px}
+.naipe[disabled]{opacity:.55;cursor:not-allowed}
+.naipe .nfr{position:absolute;inset:6px;border-radius:8px;border:1.5px solid color-mix(in srgb,var(--su) 55%,transparent);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;padding:6px 5px 9px;text-align:center;overflow:hidden}
+.naipe img{flex:1 1 0;min-height:0;width:92%;object-fit:contain;margin-bottom:auto}
+.naipe b{font-family:var(--f-display);font-weight:700;font-size:clamp(.92rem,4.4cqw,1.3rem);line-height:1.05;letter-spacing:-.01em}
+.naipe small{font-size:clamp(.66rem,2.9cqw,.8rem);color:#6b543a;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+@container (max-height:430px){.naipe small{display:none}}
+/* ---------- cinco pestañas con Jugar en el centro ---------- */
+.tabs.t5 button.tmain{color:var(--ink)}
+.tabs.t5 button.tmain svg{stroke:var(--brass-ink)}
+@media (max-width:720px){
+  .tabs.t5{overflow:visible}
+  .tabs.t5 button.tmain{position:relative}
+  .tabs.t5 button.tmain svg{width:50px;height:50px;padding:12px;margin-top:-26px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#f9de8a,#c08a1a);box-shadow:0 4px 12px rgba(0,0,0,.5),0 0 0 4px rgba(28,17,9,.97);box-sizing:border-box;stroke-width:2}
+  .tabs.t5 button.tmain[aria-current="page"] svg{box-shadow:0 4px 14px rgba(240,197,72,.45),0 0 0 4px rgba(28,17,9,.97)}
+}
+@media (min-width:721px){
+  .tabs.t5 button.tmain{background:linear-gradient(180deg,#e9bf55,#c08a1a);color:var(--brass-ink);border-radius:10px}
+  .tabs.t5 button.tmain[aria-current="page"]{background:linear-gradient(180deg,#f6d77a,#d9a441)!important;color:var(--brass-ink)!important}
+}
+.mode.pasetile.pban{text-align:left}
+.naipe{height:min(90%,40cqw,300px)}
+.naipe.ncen{height:min(100%,46cqw,340px)}
+.naipe{height:min(90%,44cqw,300px)}
+.naipe.ncen{height:min(100%,50cqw,340px)}
+@media (max-height:700px){.pg-menu>.phead{display:none}}
+/* los dibujos del inicio vienen sobre papel: se funden con el naipe */
+.naipe img{mix-blend-mode:multiply;border-radius:4px}
+.naipe img{-webkit-mask-image:radial-gradient(ellipse 58% 56% at 50% 50%,#000 62%,transparent 100%);mask-image:radial-gradient(ellipse 58% 56% at 50% 50%,#000 62%,transparent 100%);border-radius:0}

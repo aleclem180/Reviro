@@ -282,6 +282,16 @@ const ICON_ART={
   ink:`<rect x="34" y="22" width="44" height="80" rx="7" ${IK} stroke-width="1.7"/><rect x="38" y="30" width="36" height="62" rx="2" ${IK} stroke-width="1"/>`+sk('M52 26H60',1.3)+
    `<g ${IK} stroke-width="1"><g transform="rotate(-14 48 66)"><rect x="40" y="52" width="16" height="24" rx="2"/></g><rect x="49" y="50" width="16" height="24" rx="2"/><g transform="rotate(14 64 66)"><rect x="58" y="52" width="16" height="24" rx="2"/></g></g>`+
    `<g stroke="#3f7a3a" stroke-width="3" stroke-linecap="round" fill="none"><path d="M86 34a10 10 0 0 1 10 10"/><path d="M86 24a20 20 0 0 1 20 20"/><path d="M86 14a30 30 0 0 1 30 30"/></g><circle cx="87" cy="44" r="2.6" fill="#3f7a3a"/>`}),
+ /* jugar offline: el mate de la pulpería con dos naipes al lado */
+ offline:()=>({art:sombra(58,106,40)+
+   `<g transform="rotate(-12 34 62)"><rect x="18" y="40" width="28" height="42" rx="3" fill="#f4efe2"/><circle cx="32" cy="61" r="7" fill="#e2aa2e"/></g>
+    <g transform="rotate(10 50 58)"><rect x="36" y="34" width="28" height="42" rx="3" fill="#f4efe2"/><path d="M50 42V68" stroke="#2f5f8f" stroke-width="3"/><path d="M45 64H55" stroke="#2f5f8f" stroke-width="2.4"/></g>
+    <path d="M70 58C66 66 66 86 72 96H96C102 86 102 66 98 58Z" fill="#7a4b28"/><path d="M68 54H100V60H68Z" fill="#c9a24a"/><ellipse cx="84" cy="56" rx="15" ry="3.6" fill="#5e8a3a"/>
+    <path d="M88 56L100 18" stroke="#c0c0c0" stroke-width="3.4" stroke-linecap="round"/><path d="M100 18L104 14" stroke="#9a9a9a" stroke-width="4" stroke-linecap="round"/>
+    <path d="M74 66C72 76 73 86 76 92" stroke="#a8683a" stroke-width="4" fill="none"/>`,
+  ink:`<g transform="rotate(-12 34 62)"><rect x="18" y="40" width="28" height="42" rx="3" ${IK} stroke-width="1.4"/><circle cx="32" cy="61" r="7" ${IK} stroke-width="1"/></g>
+    <g transform="rotate(10 50 58)"><rect x="36" y="34" width="28" height="42" rx="3" ${IK} stroke-width="1.4"/></g>`+
+   sk('M70 58C66 66 66 86 72 96H96C102 86 102 66 98 58Z')+sk('M68 54H100V60H68Z',1.3)+sk('M88 56L100 18',1.2)+sk('M78 76C82 72 88 72 92 76',1)}),
  /* pase de temporada: la guitarra criolla de la peña con su escarapela de premio */
  pase:()=>({art:sombra(56,108,30)+
    `<g transform="rotate(-24 56 70)"><rect x="51" y="4" width="10" height="44" fill="#6b3f1f"/><rect x="49" y="0" width="14" height="12" rx="2" fill="#4a2a14"/>
