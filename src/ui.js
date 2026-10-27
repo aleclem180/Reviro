@@ -471,7 +471,7 @@ window.addEventListener('popstate',e=>{if(!ROUTING)return;const v=(e.state&&e.st
 const TABICO={"anotador":"<path d=\"M6 4h12v16H6z\"/><path d=\"M9 8h6M9 11.5h6M9 15h3\"/><path d=\"M9 4V2.8M15 4V2.8\"/>","shop":"<path d=\"M4 9h16l-1.2 10.5H5.2z\"/><path d=\"M8.5 9V7a3.5 3.5 0 0 1 7 0v2\"/><path d=\"M3.5 9l2-4h13l2 4\"/>","menu": "<path d=\"M5 6.5l6.5-2.2 3.2 12.4-6.5 2.2z\"/><path d=\"M12.6 4.6l6.6 1.6-2.9 12.6\"/>", "torneos": "<path d=\"M7 4h10v4a5 5 0 0 1-10 0z\"/><path d=\"M7 6H4.5a2.5 2.5 0 0 0 2.6 3.4M17 6h2.5a2.5 2.5 0 0 1-2.6 3.4\"/><path d=\"M12 13v4M8.5 20h7M10 17h4\"/>", "gira": "<path d=\"M9 4.5 4 6.5v13l5-2 6 2 5-2v-13l-5 2z\"/><path d=\"M9 4.5v13M15 6.5v13\"/>", "extra": "<path d=\"M7.5 10.5h9c0 5-1.8 9-4.5 9s-4.5-4-4.5-9z\"/><path d=\"M9 10.5c.4-2 1.5-3 3-3s2.6 1 3 3\"/><path d=\"M13.5 7.6 16.8 2.8\"/>", "profile": "<circle cx=\"12\" cy=\"8.5\" r=\"3.6\"/><path d=\"M5 20c.8-3.8 3.6-5.6 7-5.6s6.2 1.8 7 5.6\"/>"};
 /* cinco pestañas: Jugar va al centro y se destaca */
 function tabsHTML(){const t=[['anotador','Anotador'],['gira','La Huella'],['menu','Jugar'],['shop','Tienda'],['profile','Perfil']];
-  const cur=view==='pase'?'shop':['tour','tournew','torneos','online'].includes(view)?'menu':['settings','extra','missions','ranking','rules','tutorial'].includes(view)?'profile':view;
+  const cur=view==='pase'?'shop':['tour','tournew','torneos','online','extra','missions','ranking','rules','tutorial'].includes(view)?'menu':view==='settings'?'profile':view;
   return `<nav class="tabs t5" aria-label="Secciones">${t.map(([v,l])=>`<button type="button" class="${v==='menu'?'tmain':''}" data-a="nav" data-v="${v}" ${cur===v?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${TABICO[v]}</svg><span>${l}</span></button>`).join('')}</nav>`}
 function seg(key,opts,cur,dis){return `<div class="seg" role="group">${opts.map(([v,l])=>`<button type="button" data-set="${key}" data-v="${v}" aria-pressed="${String(cur)===String(v)}" ${dis&&dis(v)?'disabled':''}>${l}</button>`).join('')}</div>`}
 const STAKES=[0,50,100,250,500,1000];
@@ -498,6 +498,7 @@ function playHTML(){const remembered=(()=>{try{return localStorage.getItem('revi
     </div>
     <button type="button" class="optline" data-a="soloopts">${esc(sum)} · <u>Cambiar</u></button>
 <a class="waline" href="${waHref(waInviteText())}" target="_blank" rel="noopener">${WAICO} Invitar amigos por WhatsApp</a>
+    ${extrasBar()}
   </section>
 `}
 /* tarjetas de menú con aire de naipe: marco fino, número y palo de la figura en la esquina, tinte del palo */
@@ -508,6 +509,13 @@ const iconTile=(attrs,ic,su,t,d)=>`<button type="button" class="mode ic s${su}" 
 /* inicio: las opciones de juego como tres naipes grandes, con el dibujo a lápiz de cada una */
 /* naipe del inicio: marco de carta española, el dibujo en su ventana y el título en una cinta */
 const naipeTile=(attrs,ic,su,t,d,cls='')=>`<button type="button" class="naipe s${su} n-${ic} ${cls}" ${attrs} aria-label="${t}"><span class="nfr"><span class="nart"><img src="${INICIO_IMG[ic]||iconSrc(ic)}" alt="" aria-hidden="true" decoding="async"></span><b>${t}</b></span><i class="nesq tl" aria-hidden="true"></i><i class="nesq br" aria-hidden="true"></i></button>`;
+/* barra de extras del inicio; el aviso avisa de misiones y logros recién cumplidos (el premio ya se acreditó) */
+function doneKeys(){ensureMissions();return WAL.mis.done.map(id=>'m:'+WAL.mis.date+':'+id).concat(WAL.ach.done.map(id=>'a:'+id))}
+function newDone(){const k=doneKeys();if(!Array.isArray(SET.seenDone)){SET.seenDone=WAL.ach.done.map(id=>'a:'+id);saveSet()}return k.filter(x=>!SET.seenDone.includes(x)).length}
+function markDoneSeen(){const k=doneKeys();if(!Array.isArray(SET.seenDone)||k.some(x=>!SET.seenDone.includes(x))){SET.seenDone=k.filter(x=>x.startsWith('a:')||x.includes(':'+WAL.mis.date+':'));saveSet()}}
+function extrasBar(){const n=newDone(),it=(v,ic,l,b)=>`<button type="button" class="xb" data-a="nav" data-v="${v}"><img src="${iconSrc(ic)}" alt="" aria-hidden="true" decoding="async"><span>${l}</span>${b?`<i class="xbdot" aria-label="${b} para ver">${b}</i>`:''}</button>`;
+  return `<nav class="extras" aria-label="Extras"><b class="xtit">Extras</b>${n?`<i class="xnotif" aria-label="${n===1?'1 misión o logro cumplido':n+' misiones o logros cumplidos'}">${n}</i>`:''}<div class="xrow">
+    ${it('tutorial','tutorial','Tutorial')}${it('ranking','ranking','Ranking')}${it('rules','rules','Reglamento')}${it('missions','missions','Misiones y logros')}</div></nav>`}
 function paseTile(cls=''){const p=paseW(),lv=paseLvl(),act=paseActiva(),inLv=lv>=SEASON.levels?SEASON.xpLevel:(p.xp||0)%SEASON.xpLevel;
   let ready=0;for(const tr of ['free','prem'])for(let l=1;l<=lv;l++)if(paseRw(tr,l)&&!paseHas(tr,l)&&(tr==='free'||p.prem))ready++;
   const dias=Math.max(0,Math.ceil((Date.parse(SEASON.end+'T23:59:59-03:00')-Date.now())/864e5));
@@ -610,7 +618,7 @@ function profileHTML(){const a=AVM[WAL.eq.av]||AVM.gaucho,st=WAL.stats,pct=st.pl
       <button type="button" class="mz" data-a="shopgo" data-v="dorso"><span class="bigback" style="background:${backBg(D.id)}"></span><b>${esc(D.name)}</b><small>Dorso</small></button>
       <button type="button" class="mz" data-a="shopgo" data-v="pano"><span class="swatch pano-${Pn.id}" style="background:${panoBg(Pn.id)};border-color:${Pn.edge}">${cardHTML('3O')}</span><b>${esc(Pn.name)}</b><small>Paño</small></button></div>
     <button class="btn" data-a="nav" data-v="shop">Ir a la tienda</button></section>`;
-  return phd('Perfil','<button type="button" class="btn sm ghost" data-a="nav" data-v="extra">Misiones, ranking y más</button><button type="button" class="btn sm ghost" data-a="nav" data-v="settings">Ajustes</button>')+`
+  return phd('Perfil','<button type="button" class="btn sm ghost" data-a="nav" data-v="settings">Ajustes</button>')+`
   <section class="prof">${avatarSVG(myAv(),84,true)}<div><h2>${esc(myDisp())}${PREMIUM?' <span class="prem">Premium</span>':''}</h2><p>${esc(a.name)}${myEmail?' · '+esc(myEmail):''}</p>
     <form class="row" data-form="nick"><input type="text" id="nickin" class="plain" maxlength="20" placeholder="Tu apodo" value="${esc(WAL.nick||'')}" aria-label="Apodo" autocomplete="off"><button class="btn sm" type="submit">Guardar</button></form></div></section>
   <div class="stats">${stats}</div><p class="note snote">Cuentan solo las partidas online contra otras personas. Contra la máquina es práctica.</p>
@@ -1050,17 +1058,17 @@ let RANK=null,unsubRank=null;
 function subRank(){if(!db||unsubRank)return;try{unsubRank=db.collection('looks').orderBy('pts','desc').limit(100).onSnapshot(s=>{RANK=s.docs.map(d=>({id:d.id,...d.data()}));if(view==='ranking')render()},()=>{unsubRank=null})}catch(e){}}
 
 /* ---------- vistas nuevas ---------- */
-function missionsHTML(){ensureMissions();const now=new Date(),mid=new Date(now);mid.setHours(24,0,0,0);const hrs=Math.max(1,Math.round((mid-now)/3600e3));
+function missionsHTML(){ensureMissions();markDoneSeen();const now=new Date(),mid=new Date(now);mid.setHours(24,0,0,0);const hrs=Math.max(1,Math.round((mid-now)/3600e3));
   const mis=WAL.mis.ids.map(id=>MISSIONS.find(m=>m.id===id)).filter(Boolean);const got=ACHS.filter(a=>WAL.ach.done.includes(a.id)).length;
   const [tab,tabs]=ptabs('mis',[['hoy','Misiones de hoy'],['logros',`Logros (${got} de ${ACHS.length})`]],'hoy');
   const body=tab==='hoy'?`<p class="note snote">Se renuevan en ${hrs} h.</p><div class="mislist">${mis.map(m=>{const p=WAL.mis.prog[m.id]||0,done=WAL.mis.done.includes(m.id);
       return `<div class="mis ${done?'ok':''}"><div class="mtop"><b>${esc(m.t)}</b><span class="rw">${chipI}+${fmt(fPrice(m.r))}</span></div><div class="bar"><i style="width:${Math.round(p*100/m.goal)}%"></i></div><small>${done?'Cumplida':p+' de '+m.goal}</small></div>`}).join('')}</div>`
     :fitList('achs',ACHS,a=>{const v=Math.min(a.goal,achValue(a)),done=WAL.ach.done.includes(a.id);
       return `<div class="ach ${done?'ok':''}"><span class="medal" aria-hidden="true">${done?'★':'☆'}</span><div><b>${esc(a.t)}</b><small>${esc(a.d)}</small><div class="bar"><i style="width:${Math.round(v*100/a.goal)}%"></i></div><small>${done?'Conseguido':v+' de '+a.goal} · ${chipI.replace('class="chip"','class="chip" style="display:inline-block;width:11px;height:11px;vertical-align:-1px"')} ${fmt(fPrice(a.r))} fichas</small></div></div>`},'achs');
-  return phd('Misiones','','extra')+tabs+`<div class="pbody">${body}</div>`}
-function rankingHTML(){const head=phd('Ranking','','extra');if(!db||!uid)return head+`<section class="box"><p class="note" style="margin:0">${LOCAL?'El ranking funciona con tu cuenta en la web.':'El ranking necesita que abras Reviro con tu cuenta de claude.ai.'}</p></section>`;
+  return phd('Misiones y logros','','menu')+tabs+`<div class="pbody">${body}</div>`}
+function rankingHTML(){const head=phd('Ranking','','menu');if(!db||!uid)return head+`<section class="box"><p class="note" style="margin:0">${LOCAL?'El ranking funciona con tu cuenta en la web.':'El ranking necesita que abras Reviro con tu cuenta de claude.ai.'}</p></section>`;
   subRank();subFriends();const fs=friendSet();const rows=(RANK||[]).filter(r=>r.played>0&&(rankScope==='all'||r.id===uid||fs.has(r.id)));const ids=rows.map(r=>r.id);if(ids.length)ensureNames(ids);
-  const myPos=rows.findIndex(r=>r.id===uid);const head2=phd(rankScope==='all'?'Los 100 mejores':'Ranking',`<span class="pill">${myPos>=0?'Vas '+(myPos+1)+'.º':'Fuera del top'}</span>`,'extra');
+  const myPos=rows.findIndex(r=>r.id===uid);const head2=phd(rankScope==='all'?'Los 100 mejores':'Ranking',`<span class="pill">${myPos>=0?'Vas '+(myPos+1)+'.º':'Fuera del top'}</span>`,'menu');
   return head2+`<div class="subtabs" role="group"><button type="button" data-a="rscope" data-v="all" aria-pressed="${rankScope==='all'}">Top 100</button><button type="button" data-a="rscope" data-v="friends" aria-pressed="${rankScope==='friends'}">Mis amigos (${fs.size})</button></div>
   <div class="pbody">${RANK===null?'<p class="note">Cargando…</p>':fitList('rank-'+rankScope,rows.map((r,i)=>Object.assign({pos:i+1},r)),r=>`<li class="${r.id===uid?'me':''}"><span class="pos">${r.pos}</span>${avatarSVG(AVM[r.av]?r.av:'gaucho',36)}<span class="nm">${esc(r.id===uid?myDisp():((r.nick)||NAMES[r.id]||'Jugador'))}<small>${fmt(r.won||0)} ganadas de ${fmt(r.played||0)} · racha máx. ${r.best||0}</small></span><b>${fmt(r.pts||0)}</b></li>`,'lb',rankScope==='friends'?'<p class="note">Todavía no tenés amigos con partidas. Pasales tu link de amigo desde Perfil.</p>':'<p class="note">Todavía nadie terminó una partida. Jugá una y aparecés acá.</p>')}</div>
   <p class="note snote">Puntos: 30 por partida online ganada y 3, 8 o 15 por ganarle a la máquina en Fácil, Medio o Difícil.</p>`}

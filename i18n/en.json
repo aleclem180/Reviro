@@ -1609,5 +1609,9 @@
 "Canta": "Calls",
 "Quiere": "Accepts",
 "Si gana": "If they win",
-"Si pierde": "If they lose"
+"Si pierde": "If they lose",
+"Extras": "Extras",
+"1 misión o logro cumplido": "1 mission or achievement completed",
+"{0} misiones o logros cumplidos": "{0} missions or achievements completed",
+"{0} para ver": "{0} to see"
 }
