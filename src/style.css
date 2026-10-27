@@ -1344,3 +1344,32 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
   .tabs.t5 button.tmain:not([aria-current="page"]){background:transparent;color:#e9bf55;box-shadow:inset 0 0 0 1.5px rgba(233,191,85,.55)}
   .tabs.t5 button.tmain:not([aria-current="page"]) svg{stroke:#e9bf55}
 }
+/* ---------- naipes del inicio, versión 3: del mismo material que los paneles de la página ---------- */
+.naipes{height:auto;flex:0 1 auto;gap:clamp(8px,2.6cqw,16px);padding:4px 0 6px;align-items:flex-end}
+.naipe,.naipe.ncen{height:auto;aspect-ratio:2/3;margin:0;transform:none;
+  width:min(calc((100cqw - 2*clamp(8px,2.6cqw,16px))/3),34cqh,210px);
+  background:linear-gradient(170deg,rgba(60,38,20,.92),rgba(28,16,8,.92));color:var(--ink);border-radius:14px;
+  box-shadow:0 10px 24px rgba(0,0,0,.45),inset 0 0 0 1px var(--line),inset 0 1px 0 rgba(255,255,255,.06)}
+.naipe::before{opacity:.12;mix-blend-mode:screen}
+.naipe.ncen{width:min(calc((100cqw - 2*clamp(8px,2.6cqw,16px))/3),34cqh,210px);box-shadow:0 12px 28px rgba(0,0,0,.55),inset 0 0 0 1px rgba(217,164,65,.7),0 0 0 1px rgba(217,164,65,.35),0 0 24px rgba(217,164,65,.18)}
+.naipe:first-child,.naipe:last-child{transform:none}
+.naipe:hover,.naipe:first-child:hover,.naipe:last-child:hover{transform:translateY(-4px)}
+.naipe .nfr{inset:6px;border:1px solid rgba(217,164,65,.45);box-shadow:none;border-radius:9px;padding:6px 6px 0}
+.naipe.ncen .nfr{border-color:rgba(217,164,65,.8)}
+.naipe .nart,.naipe.n-torneos .nart{background:#efe3c6;border-radius:6px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.35),0 2px 6px rgba(0,0,0,.35)}
+.naipe .nart img{mix-blend-mode:normal;image-rendering:auto}
+.naipe b,.naipe.ncen b{background:none;box-shadow:none;margin:0;padding:7px 2px 9px;border-radius:0;color:var(--ink);text-shadow:none;
+  font-size:clamp(.85rem,3.9cqw,1.2rem);letter-spacing:.01em}
+.naipe.ncen b{color:#f0c548}
+.naipe .nesq,.naipe.ncen .nesq{display:none}
+@container (max-height:430px){.naipe b{padding:5px 2px 6px}}
+.naipe b,.naipe.ncen b{white-space:nowrap;font-size:clamp(.78rem,3.6cqw,1.2rem)}
+/* naipes: grilla de tres columnas iguales que nunca se sale del ancho */
+.naipes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));justify-items:center;width:100%;max-width:680px;margin-inline:auto;box-sizing:border-box}
+.naipe,.naipe.ncen{width:min(100%,22.6cqh,210px);container-type:inline-size}
+.naipe b,.naipe.ncen b{font-size:min(10.5cqi,1.2rem);padding-inline:0}
+.naipe,.naipe.ncen{width:min(100%,32cqh,210px)}
+.naipe b,.naipe.ncen b{font-size:min(9cqi,1.2rem)}
+/* títulos de los naipes: mismo tamaño en los tres, en dos líneas si hace falta (nunca se cortan) */
+.naipes .naipe b,.naipes .naipe.ncen b{font-size:clamp(.84rem,3.5vw,1.15rem);white-space:normal;line-height:1.05;min-height:2.3em;display:flex;align-items:center;justify-content:center;text-align:center;padding:4px 2px 6px}
+.naipes{max-width:calc(3*min(210px,32cqh) + 2*clamp(8px,2.6cqw,16px))}
