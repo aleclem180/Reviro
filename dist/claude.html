@@ -998,6 +998,62 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
 .felt.n4>.seat,.felt.n4>.center{--pc:clamp(32px,min(calc((100cqh - 150px) / 4),calc(100cqw / 5.2)),76px)}
 .game .hand{--hw:clamp(74px,min(33vw,13.5dvh),160px)!important}
 @media (max-height:700px){.game .hand{--hw:clamp(68px,min(31vw,12dvh),160px)!important}}
+/* ---------- mano a mano: cartas enfrentadas por baza ----------
+   Rival arriba, vos abajo, cada baza en su columna. Los lugares de las cartas están reservados desde el reparto,
+   así nada se corre al tirar. En el celular los nombres van en una franja arriba y otra abajo; en pantallas
+   anchas van en las esquinas y las cartas usan todo el alto del paño. */
+.felt.n2.duel{grid-template-areas:"top" "board" "bottom";grid-template-rows:auto minmax(0,1fr) auto;padding:8px 10px}
+.felt.n2.duel>*{--pc:clamp(40px,min(calc((100cqh - 96px) / 2.55),calc((100cqw - 36px) / 3.4)),150px)}
+.felt.n2.duel>.seat{height:auto!important;min-height:34px;flex-direction:row;align-items:center;justify-content:flex-start!important;gap:8px;padding-right:96px}
+.felt.n2.duel>.pos-top{grid-area:top}.felt.n2.duel>.pos-bottom{grid-area:bottom;padding-right:42%}
+.duelboard{grid-area:board;display:flex;justify-content:center;align-items:center;gap:calc(var(--pc) * .14);min-height:0;position:relative;z-index:1}
+.bcol{display:flex;flex-direction:column;align-items:center;width:var(--pc);flex:none}
+.bcol .slot{width:var(--pc);height:calc(var(--pc) * 1.5);position:relative}
+.bcol .slot+.slot{margin-top:calc(var(--pc) * -.42)}
+.bcol .slot:first-child{z-index:1}.bcol .slot:last-child{z-index:2}
+.bcol .slot .card{width:100%;margin:0}
+.bcol .slot:empty{border:1.5px dashed rgba(255,255,255,.13);border-radius:calc(var(--pc) * .08)}
+.bcol .slot:first-child .land{--fy:-30px}
+.duelside{position:absolute;top:10px;right:12px;display:flex;align-items:center;gap:8px;z-index:3}
+.duelside .deck{display:none}
+.duelstat{position:absolute;right:12px;bottom:12px;max-width:40%;text-align:right;font-size:.74rem;line-height:1.2;color:var(--muted);z-index:3;pointer-events:none}
+.felt.n2.duel>.center{position:absolute!important;inset:0;pointer-events:none;z-index:5;display:block;overflow:visible}
+.felt.n2.duel>.center .result{pointer-events:auto}
+.felt.n2.duel>.seat{z-index:4}
+@container (min-width:480px){
+  .felt.n2.duel>*{--pc:clamp(40px,min(calc((100cqh - 22px) / 2.55),calc((100cqw - 340px) / 3.4)),170px)}
+  .felt.n2.duel>.seat{position:absolute;left:12px;flex-direction:column;align-items:flex-start;padding-right:0;min-height:0;gap:6px}
+  .felt.n2.duel>.pos-top{top:10px}.felt.n2.duel>.pos-bottom{bottom:10px;padding-right:0}
+  .felt.n2.duel>.pos-bottom{flex-direction:column-reverse}
+  .duelboard{grid-row:1/-1}
+  .duelside{top:50%;transform:translateY(-50%);right:18px;flex-direction:column;gap:10px}
+  .duelside .deck{display:block}
+  .duelside .bazas{flex-direction:column}
+  .duelstat{max-width:150px;bottom:14px;right:16px;font-size:.8rem}
+}
+@container (min-width:480px){
+  .felt.n2.duel>*{--pc:clamp(40px,min(calc((100cqh - 22px) / 2.55),calc((100cqw - 250px) / 3.3)),170px)}
+  .felt.n2.duel .duelboard{justify-content:flex-end;padding-right:64px}
+  .felt.n2.duel>.seat .badge{max-width:200px}
+}
+.felt.n2.duel .badge span:not(.m){overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.felt.n2.duel>.center,.felt.n2.duel>.duelside,.felt.n2.duel>.duelstat{grid-area:auto;position:absolute!important}
+.felt.n2.duel>.center{inset:0}
+.felt.n2.duel>.duelside{left:auto;bottom:auto}
+.felt.n2.duel>.duelstat{left:auto;top:auto}
+@container (min-width:480px){.felt.n2.duel>.seat{position:absolute!important;grid-area:auto}}
+/* celular chico (paño bajo): los nombres se achican a la foto y van a las esquinas, y las cartas usan todo el alto */
+@container (max-width:479px) and (max-height:300px){
+  .felt.n2.duel>*{--pc:clamp(40px,min(calc((100cqh - 18px) / 2.55),calc((100cqw - 120px) / 3.3)),120px)}
+  .felt.n2.duel>.seat{position:absolute!important;grid-area:auto;left:8px;padding-right:0;min-height:0;flex-direction:column;align-items:flex-start;gap:4px}
+  .felt.n2.duel>.pos-top{top:8px}.felt.n2.duel>.pos-bottom{bottom:8px;flex-direction:column-reverse}
+  .felt.n2.duel .badge>span:not(.m){display:none}
+  .felt.n2.duel .seathead{flex-direction:column;align-items:flex-start;gap:4px}
+  .duelboard{grid-row:1/-1}
+  .duelside{top:50%!important;transform:translateY(-50%);right:10px;flex-direction:column}
+  .duelside .bazas{flex-direction:column}
+  .duelstat{max-width:84px;font-size:.66rem;bottom:8px;right:8px}
+}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -2308,11 +2364,11 @@ function morphKids(a,b){const bc=[...b.childNodes];
 /* cartas que cambian de lugar (las que quedan en la mano cuando tirás una, la que va de la mano a la mesa):
    en vez de saltar, se deslizan desde donde estaban. Solo se anima transform, que lo hace la placa de video. */
 const RMOTION=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
-function cardRects(root){const m=new Map();if(RMOTION)return m;root.querySelectorAll('.hand [data-card], .played .card').forEach(el=>{const k=el.getAttribute('data-card')||(el.querySelector('img.cart')||{}).dataset?.c;if(k&&!m.has(k))m.set(k,el.getBoundingClientRect())});return m}
+function cardRects(root){const m=new Map();if(RMOTION)return m;root.querySelectorAll('.hand [data-card], .played .card, .duelboard .card').forEach(el=>{const k=el.getAttribute('data-card')||(el.querySelector('img.cart')||{}).dataset?.c;if(k&&!m.has(k))m.set(k,el.getBoundingClientRect())});return m}
 function flipCards(root,before){if(!before.size||typeof Element.prototype.animate!=='function')return;
-  root.querySelectorAll('.hand [data-card], .played .card').forEach(el=>{const k=el.getAttribute('data-card')||(el.querySelector('img.cart')||{}).dataset?.c;const r0=k&&before.get(k);if(!r0)return;
+  root.querySelectorAll('.hand [data-card], .played .card, .duelboard .card').forEach(el=>{const k=el.getAttribute('data-card')||(el.querySelector('img.cart')||{}).dataset?.c;const r0=k&&before.get(k);if(!r0)return;
     const r1=el.getBoundingClientRect();const dx=r0.left-r1.left,dy=r0.top-r1.top;if(Math.abs(dx)<2&&Math.abs(dy)<2)return;
-    const sc=r1.width?r0.width/r1.width:1;const fromHand=el.classList.contains('card')&&el.closest('.played');
+    const sc=r1.width?r0.width/r1.width:1;const fromHand=el.classList.contains('card')&&el.closest('.played,.duelboard');
     if(fromHand)el.classList.remove('land');
     try{el.animate([{transform:`translate(${dx}px,${dy}px) scale(${sc})`},{transform:'none'}],{duration:fromHand?300:220,easing:'cubic-bezier(.2,.8,.3,1)',composite:'add'})}
     catch(e){el.animate([{transform:`translate(${dx}px,${dy}px)`},{transform:'none'}],{duration:220,easing:'cubic-bezier(.2,.8,.3,1)'})}})}
@@ -2541,10 +2597,18 @@ function gameHTML(){if(!G)return'';const h=G.hand,me=mySeat,mt=myTeam(),a=actor(
     const us=team(s)===mt;
     let rest='';if(s!==me){rest=h.ended?`<div class="reveal">${h.cards[s].map(c=>cardHTML(c)).join('')}</div>`:`<div class="backs" aria-label="${h.cards[s].length} cartas">${h.cards[s].map(()=>`<i style="background:${backBg(look.dorso)}"></i>`).join('')}</div>`}
     const badge=`<div class="badge ${us?'us':''} ${a===s?'active':''}">${avatarSVG(look.av,32)}<span>${esc(nameOf(s))}${isAbsent(s)?' · bot':''}</span>${G.mano===s?'<span class="m" title="Es mano">mano</span>':''}</div>`;
-    seatsHTML.push(`<div class="seat pos-${pos}">${pos==='bottom'?`<div class="played">${cards}</div>${badge}`:`<div class="seathead">${badge}${rest}</div><div class="played">${cards}</div>`}${bub}</div>`)}
+    if(G.n===2)seatsHTML.push(`<div class="seat pos-${pos}">${pos==='bottom'?badge:`<div class="seathead">${badge}${rest}</div>`}${bub}</div>`);
+    else seatsHTML.push(`<div class="seat pos-${pos}">${pos==='bottom'?`<div class="played">${cards}</div>${badge}`:`<div class="seathead">${badge}${rest}</div><div class="played">${cards}</div>`}${bub}</div>`)}
+  /* mano a mano: las cartas de cada baza van enfrentadas en una columna (la del rival arriba, la tuya abajo),
+     como en una mesa de verdad. Los nombres quedan en las puntas, así las cartas usan casi todo el paño. */
+  let duel='';if(G.n===2){const me0=me<0?0:me,op=1-me0;
+    duel=`<div class="duelboard">${[0,1,2].map(i=>{const b=h.bazas[i],r=h.results[i];
+      const cell=s=>{const p=b&&b.plays.find(p=>p.seat===s);if(!p)return'<div class="slot"></div>';const done=b.res!==undefined;const cls=[done&&b.win!==s?'lost':'',done&&b.win===s?'win':'',lk===s+'-'+p.card?'land':''].join(' ');return `<div class="slot">${cardHTML(p.card,cls)}</div>`};
+      return `<div class="bcol ${r===undefined?'':r==='P'?'p':r===mt?'w':'l'}">${cell(op)}${cell(me0)}</div>`}).join('')}</div>`}
   const baz=[0,1,2].map(i=>{const r=h.results[i];if(r===undefined)return'<i></i>';if(r==='P')return'<i class="p" title="parda"></i>';return r===mt?'<i class="w" title="ganada"></i>':'<i class="l" title="perdida"></i>'}).join('');
   const deck=`<div class="deck" aria-hidden="true">${'<i style="background:'+backBg(WAL.eq.dorso)+'"></i>'.repeat(3)}</div>`;
   let center=`<div class="crow">${deck}<div class="bazas" aria-label="Bazas">${baz}</div></div><div class="stat">${statusLine()}</div>@@INFO@@`;
+  if(G.n===2){duel+=`<div class="duelside">${deck}<div class="bazas" aria-label="Bazas">${baz}</div></div><div class="duelstat">${statusLine()}</div>`;center=''}
   const co=coachNow();
   if(TUT&&h.ended){const nx=TUT.i+1<LESSONS.length;center=`<div class="result"><b>¡Lección cumplida!</b><span>${esc(co&&co.done||'')}</span><span>+20 monedas la primera vez</span><div class="btns">${nx?`<button class="btn prim" data-a="lesson" data-i="${TUT.i+1}">Siguiente lección</button>`:''}<button class="btn" data-a="tomenu">${nx?'Menú':'Volver al menú'}</button></div></div>`}
   else if(h.ended&&!G.matchOver){const gains=h.gains.map(x=>`${teamName(x.tm)} +${x.p} por ${x.why}`).join(' · ');
@@ -2567,7 +2631,7 @@ function gameHTML(){if(!G)return'';const h=G.hand,me=mySeat,mt=myTeam(),a=actor(
     `<div class="score"><div class="sc us"><span class="lbl">Nosotros</span><b class="${b0}">${sc[mt]}</b>${fosforos(sc[mt],G.target)}</div>
       <div class="mid"><b>a ${G.target}</b>${G.flor?'con flor':'sin flor'}<br>${G.stake?fmt(G.stake)+' fichas':'amistosa'}</div>
       <div class="sc them"><span class="lbl">Ellos</span><b class="${b1}">${sc[1-mt]}</b>${fosforos(sc[1-mt],G.target)}</div></div>`,
-    `<div class="tablerow"><div class="felt n${G.n} pano-${pano.id}" style="background:${panoBg(pano.id)};border-color:${pano.edge}">${seatsHTML.join('')}<div class="center">${center}</div></div>${glog}</div>`,
+    `<div class="tablerow"><div class="felt n${G.n}${G.n===2?' duel':''} pano-${pano.id}" style="background:${panoBg(pano.id)};border-color:${pano.edge}">${seatsHTML.join('')}${duel}<div class="center">${center}</div></div>${glog}</div>`,
     `${turnSlotHTML()}${coachBox}`,
     hand,
     `<div class="actions">${actionsHTML(L)}${TUT?'':socialHTML()}${absentNote}</div>`];

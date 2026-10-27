@@ -360,11 +360,11 @@ function morphKids(a,b){const bc=[...b.childNodes];
 /* cartas que cambian de lugar (las que quedan en la mano cuando tirás una, la que va de la mano a la mesa):
    en vez de saltar, se deslizan desde donde estaban. Solo se anima transform, que lo hace la placa de video. */
 const RMOTION=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
-function cardRects(root){const m=new Map();if(RMOTION)return m;root.querySelectorAll('.hand [data-card], .played .card').forEach(el=>{const k=el.getAttribute('data-card')||(el.querySelector('img.cart')||{}).dataset?.c;if(k&&!m.has(k))m.set(k,el.getBoundingClientRect())});return m}
+function cardRects(root){const m=new Map();if(RMOTION)return m;root.querySelectorAll('.hand [data-card], .played .card, .duelboard .card').forEach(el=>{const k=el.getAttribute('data-card')||(el.querySelector('img.cart')||{}).dataset?.c;if(k&&!m.has(k))m.set(k,el.getBoundingClientRect())});return m}
 function flipCards(root,before){if(!before.size||typeof Element.prototype.animate!=='function')return;
-  root.querySelectorAll('.hand [data-card], .played .card').forEach(el=>{const k=el.getAttribute('data-card')||(el.querySelector('img.cart')||{}).dataset?.c;const r0=k&&before.get(k);if(!r0)return;
+  root.querySelectorAll('.hand [data-card], .played .card, .duelboard .card').forEach(el=>{const k=el.getAttribute('data-card')||(el.querySelector('img.cart')||{}).dataset?.c;const r0=k&&before.get(k);if(!r0)return;
     const r1=el.getBoundingClientRect();const dx=r0.left-r1.left,dy=r0.top-r1.top;if(Math.abs(dx)<2&&Math.abs(dy)<2)return;
-    const sc=r1.width?r0.width/r1.width:1;const fromHand=el.classList.contains('card')&&el.closest('.played');
+    const sc=r1.width?r0.width/r1.width:1;const fromHand=el.classList.contains('card')&&el.closest('.played,.duelboard');
     if(fromHand)el.classList.remove('land');
     try{el.animate([{transform:`translate(${dx}px,${dy}px) scale(${sc})`},{transform:'none'}],{duration:fromHand?300:220,easing:'cubic-bezier(.2,.8,.3,1)',composite:'add'})}
     catch(e){el.animate([{transform:`translate(${dx}px,${dy}px)`},{transform:'none'}],{duration:220,easing:'cubic-bezier(.2,.8,.3,1)'})}})}
@@ -593,10 +593,18 @@ function gameHTML(){if(!G)return'';const h=G.hand,me=mySeat,mt=myTeam(),a=actor(
     const us=team(s)===mt;
     let rest='';if(s!==me){rest=h.ended?`<div class="reveal">${h.cards[s].map(c=>cardHTML(c)).join('')}</div>`:`<div class="backs" aria-label="${h.cards[s].length} cartas">${h.cards[s].map(()=>`<i style="background:${backBg(look.dorso)}"></i>`).join('')}</div>`}
     const badge=`<div class="badge ${us?'us':''} ${a===s?'active':''}">${avatarSVG(look.av,32)}<span>${esc(nameOf(s))}${isAbsent(s)?' · bot':''}</span>${G.mano===s?'<span class="m" title="Es mano">mano</span>':''}</div>`;
-    seatsHTML.push(`<div class="seat pos-${pos}">${pos==='bottom'?`<div class="played">${cards}</div>${badge}`:`<div class="seathead">${badge}${rest}</div><div class="played">${cards}</div>`}${bub}</div>`)}
+    if(G.n===2)seatsHTML.push(`<div class="seat pos-${pos}">${pos==='bottom'?badge:`<div class="seathead">${badge}${rest}</div>`}${bub}</div>`);
+    else seatsHTML.push(`<div class="seat pos-${pos}">${pos==='bottom'?`<div class="played">${cards}</div>${badge}`:`<div class="seathead">${badge}${rest}</div><div class="played">${cards}</div>`}${bub}</div>`)}
+  /* mano a mano: las cartas de cada baza van enfrentadas en una columna (la del rival arriba, la tuya abajo),
+     como en una mesa de verdad. Los nombres quedan en las puntas, así las cartas usan casi todo el paño. */
+  let duel='';if(G.n===2){const me0=me<0?0:me,op=1-me0;
+    duel=`<div class="duelboard">${[0,1,2].map(i=>{const b=h.bazas[i],r=h.results[i];
+      const cell=s=>{const p=b&&b.plays.find(p=>p.seat===s);if(!p)return'<div class="slot"></div>';const done=b.res!==undefined;const cls=[done&&b.win!==s?'lost':'',done&&b.win===s?'win':'',lk===s+'-'+p.card?'land':''].join(' ');return `<div class="slot">${cardHTML(p.card,cls)}</div>`};
+      return `<div class="bcol ${r===undefined?'':r==='P'?'p':r===mt?'w':'l'}">${cell(op)}${cell(me0)}</div>`}).join('')}</div>`}
   const baz=[0,1,2].map(i=>{const r=h.results[i];if(r===undefined)return'<i></i>';if(r==='P')return'<i class="p" title="parda"></i>';return r===mt?'<i class="w" title="ganada"></i>':'<i class="l" title="perdida"></i>'}).join('');
   const deck=`<div class="deck" aria-hidden="true">${'<i style="background:'+backBg(WAL.eq.dorso)+'"></i>'.repeat(3)}</div>`;
   let center=`<div class="crow">${deck}<div class="bazas" aria-label="Bazas">${baz}</div></div><div class="stat">${statusLine()}</div>@@INFO@@`;
+  if(G.n===2){duel+=`<div class="duelside">${deck}<div class="bazas" aria-label="Bazas">${baz}</div></div><div class="duelstat">${statusLine()}</div>`;center=''}
   const co=coachNow();
   if(TUT&&h.ended){const nx=TUT.i+1<LESSONS.length;center=`<div class="result"><b>¡Lección cumplida!</b><span>${esc(co&&co.done||'')}</span><span>+20 monedas la primera vez</span><div class="btns">${nx?`<button class="btn prim" data-a="lesson" data-i="${TUT.i+1}">Siguiente lección</button>`:''}<button class="btn" data-a="tomenu">${nx?'Menú':'Volver al menú'}</button></div></div>`}
   else if(h.ended&&!G.matchOver){const gains=h.gains.map(x=>`${teamName(x.tm)} +${x.p} por ${x.why}`).join(' · ');
@@ -619,7 +627,7 @@ function gameHTML(){if(!G)return'';const h=G.hand,me=mySeat,mt=myTeam(),a=actor(
     `<div class="score"><div class="sc us"><span class="lbl">Nosotros</span><b class="${b0}">${sc[mt]}</b>${fosforos(sc[mt],G.target)}</div>
       <div class="mid"><b>a ${G.target}</b>${G.flor?'con flor':'sin flor'}<br>${G.stake?fmt(G.stake)+' fichas':'amistosa'}</div>
       <div class="sc them"><span class="lbl">Ellos</span><b class="${b1}">${sc[1-mt]}</b>${fosforos(sc[1-mt],G.target)}</div></div>`,
-    `<div class="tablerow"><div class="felt n${G.n} pano-${pano.id}" style="background:${panoBg(pano.id)};border-color:${pano.edge}">${seatsHTML.join('')}<div class="center">${center}</div></div>${glog}</div>`,
+    `<div class="tablerow"><div class="felt n${G.n}${G.n===2?' duel':''} pano-${pano.id}" style="background:${panoBg(pano.id)};border-color:${pano.edge}">${seatsHTML.join('')}${duel}<div class="center">${center}</div></div>${glog}</div>`,
     `${turnSlotHTML()}${coachBox}`,
     hand,
     `<div class="actions">${actionsHTML(L)}${TUT?'':socialHTML()}${absentNote}</div>`];

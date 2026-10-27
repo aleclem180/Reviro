@@ -991,3 +991,59 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
 .felt.n4>.seat,.felt.n4>.center{--pc:clamp(32px,min(calc((100cqh - 150px) / 4),calc(100cqw / 5.2)),76px)}
 .game .hand{--hw:clamp(74px,min(33vw,13.5dvh),160px)!important}
 @media (max-height:700px){.game .hand{--hw:clamp(68px,min(31vw,12dvh),160px)!important}}
+/* ---------- mano a mano: cartas enfrentadas por baza ----------
+   Rival arriba, vos abajo, cada baza en su columna. Los lugares de las cartas están reservados desde el reparto,
+   así nada se corre al tirar. En el celular los nombres van en una franja arriba y otra abajo; en pantallas
+   anchas van en las esquinas y las cartas usan todo el alto del paño. */
+.felt.n2.duel{grid-template-areas:"top" "board" "bottom";grid-template-rows:auto minmax(0,1fr) auto;padding:8px 10px}
+.felt.n2.duel>*{--pc:clamp(40px,min(calc((100cqh - 96px) / 2.55),calc((100cqw - 36px) / 3.4)),150px)}
+.felt.n2.duel>.seat{height:auto!important;min-height:34px;flex-direction:row;align-items:center;justify-content:flex-start!important;gap:8px;padding-right:96px}
+.felt.n2.duel>.pos-top{grid-area:top}.felt.n2.duel>.pos-bottom{grid-area:bottom;padding-right:42%}
+.duelboard{grid-area:board;display:flex;justify-content:center;align-items:center;gap:calc(var(--pc) * .14);min-height:0;position:relative;z-index:1}
+.bcol{display:flex;flex-direction:column;align-items:center;width:var(--pc);flex:none}
+.bcol .slot{width:var(--pc);height:calc(var(--pc) * 1.5);position:relative}
+.bcol .slot+.slot{margin-top:calc(var(--pc) * -.42)}
+.bcol .slot:first-child{z-index:1}.bcol .slot:last-child{z-index:2}
+.bcol .slot .card{width:100%;margin:0}
+.bcol .slot:empty{border:1.5px dashed rgba(255,255,255,.13);border-radius:calc(var(--pc) * .08)}
+.bcol .slot:first-child .land{--fy:-30px}
+.duelside{position:absolute;top:10px;right:12px;display:flex;align-items:center;gap:8px;z-index:3}
+.duelside .deck{display:none}
+.duelstat{position:absolute;right:12px;bottom:12px;max-width:40%;text-align:right;font-size:.74rem;line-height:1.2;color:var(--muted);z-index:3;pointer-events:none}
+.felt.n2.duel>.center{position:absolute!important;inset:0;pointer-events:none;z-index:5;display:block;overflow:visible}
+.felt.n2.duel>.center .result{pointer-events:auto}
+.felt.n2.duel>.seat{z-index:4}
+@container (min-width:480px){
+  .felt.n2.duel>*{--pc:clamp(40px,min(calc((100cqh - 22px) / 2.55),calc((100cqw - 340px) / 3.4)),170px)}
+  .felt.n2.duel>.seat{position:absolute;left:12px;flex-direction:column;align-items:flex-start;padding-right:0;min-height:0;gap:6px}
+  .felt.n2.duel>.pos-top{top:10px}.felt.n2.duel>.pos-bottom{bottom:10px;padding-right:0}
+  .felt.n2.duel>.pos-bottom{flex-direction:column-reverse}
+  .duelboard{grid-row:1/-1}
+  .duelside{top:50%;transform:translateY(-50%);right:18px;flex-direction:column;gap:10px}
+  .duelside .deck{display:block}
+  .duelside .bazas{flex-direction:column}
+  .duelstat{max-width:150px;bottom:14px;right:16px;font-size:.8rem}
+}
+@container (min-width:480px){
+  .felt.n2.duel>*{--pc:clamp(40px,min(calc((100cqh - 22px) / 2.55),calc((100cqw - 250px) / 3.3)),170px)}
+  .felt.n2.duel .duelboard{justify-content:flex-end;padding-right:64px}
+  .felt.n2.duel>.seat .badge{max-width:200px}
+}
+.felt.n2.duel .badge span:not(.m){overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.felt.n2.duel>.center,.felt.n2.duel>.duelside,.felt.n2.duel>.duelstat{grid-area:auto;position:absolute!important}
+.felt.n2.duel>.center{inset:0}
+.felt.n2.duel>.duelside{left:auto;bottom:auto}
+.felt.n2.duel>.duelstat{left:auto;top:auto}
+@container (min-width:480px){.felt.n2.duel>.seat{position:absolute!important;grid-area:auto}}
+/* celular chico (paño bajo): los nombres se achican a la foto y van a las esquinas, y las cartas usan todo el alto */
+@container (max-width:479px) and (max-height:300px){
+  .felt.n2.duel>*{--pc:clamp(40px,min(calc((100cqh - 18px) / 2.55),calc((100cqw - 120px) / 3.3)),120px)}
+  .felt.n2.duel>.seat{position:absolute!important;grid-area:auto;left:8px;padding-right:0;min-height:0;flex-direction:column;align-items:flex-start;gap:4px}
+  .felt.n2.duel>.pos-top{top:8px}.felt.n2.duel>.pos-bottom{bottom:8px;flex-direction:column-reverse}
+  .felt.n2.duel .badge>span:not(.m){display:none}
+  .felt.n2.duel .seathead{flex-direction:column;align-items:flex-start;gap:4px}
+  .duelboard{grid-row:1/-1}
+  .duelside{top:50%!important;transform:translateY(-50%);right:10px;flex-direction:column}
+  .duelside .bazas{flex-direction:column}
+  .duelstat{max-width:84px;font-size:.66rem;bottom:8px;right:8px}
+}
