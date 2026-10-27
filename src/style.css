@@ -1211,3 +1211,29 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
 /* La Huella: tarjetas de rival un poco más compactas (entran 4 por hoja en la compu) */
 .rvl .rv{padding-top:5px;padding-bottom:5px}
 .rv .rvav{margin-bottom:9px}
+/* Tienda: tocar el artículo abre su ficha */
+.item .iopen{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:6px;flex:none;min-width:0;border-radius:10px}
+.item>.iopen+*{margin-top:auto}
+.item .iopen:focus-visible{outline:2px solid var(--coin);outline-offset:3px}
+.item .iopen:hover .imore{background:#f6d77a}
+.item .prev{position:relative}
+.item .imore{position:absolute;right:4px;bottom:4px;font-size:.68rem;font-weight:700;color:#3a210c;background:rgba(246,215,122,.95);padding:2px 7px;border-radius:99px;box-shadow:0 1px 4px rgba(0,0,0,.35);pointer-events:none}
+.item .imore::after{content:' ›'}
+/* la ficha */
+.fpanel{display:flex;flex-direction:column;align-items:center;gap:12px;max-width:560px;width:min(560px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:hidden}
+.fpanel .fpic{flex:none;display:flex;justify-content:center}
+.fpanel .fpic svg{width:min(220px,38dvh);height:auto;border-radius:16px;box-shadow:0 8px 22px rgba(0,0,0,.4)}
+.fpanel .fpic .bigback{width:min(140px,24dvh);aspect-ratio:2/3;height:auto;border-radius:10px;background-size:cover!important;box-shadow:0 8px 22px rgba(0,0,0,.4)}
+.fpanel .fpic .swatch{width:min(240px,60vw);height:min(150px,24dvh)}
+.fpanel .ftxt{display:flex;flex-direction:column;gap:10px;width:100%;min-width:0}
+.fpanel h2{margin:0;text-align:center}
+.fpanel .fbio{margin:0;color:var(--muted);text-align:center;line-height:1.45}
+.fpanel .frases{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.fpanel .frases li{background:rgba(0,0,0,.2);border:1px solid var(--line);border-radius:10px;padding:6px 9px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.fpanel .frases small{font-size:.66rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--brass)}
+.fpanel .frases q{font-size:.86rem;line-height:1.25;quotes:'«' '»'}
+.fpanel .fbuy{display:flex;flex-direction:column;gap:6px}.fpanel .fbuy .btn{width:100%;display:flex;align-items:center;justify-content:center;gap:6px}
+.fpanel>.ftxt>.btn{width:100%}
+@media (min-width:640px){.fpanel{flex-direction:row;align-items:center;gap:20px}.fpanel h2,.fpanel .fbio{text-align:left}}
+@media (max-height:640px){.fpanel .frases{display:none}}
+.item .imore{white-space:nowrap;max-width:calc(100% - 8px);overflow:hidden;text-overflow:clip}

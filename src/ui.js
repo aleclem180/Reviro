@@ -573,7 +573,14 @@ function hinchaItemHTML(a){const hasH=owns('av','hincha',a.price);const sel=KITM
     <p class="kitname"><b>${esc(k.name)}</b>. ${esc(k.bio)}</p>
     ${!hasH?buyBtn('av','hincha',a.price,a.name):using?'<button class="btn" disabled>Usando</button>':owns('kit',sel,k.price)?`<button class="btn ink" data-a="equip" data-t="kit" data-id="${sel}">Usar esta camiseta</button>`:buyBtn('kit',sel,k.price,k.name)}</div>`}
 const kitSwatch=k=>({v:`background:repeating-linear-gradient(90deg,${k.c1} 0 25%,${k.c2} 25% 50%)`,h:`background:linear-gradient(${k.c1} 0 38%,${k.c2} 38% 62%,${k.c1} 62%)`,d:`background:linear-gradient(135deg,${k.c1} 0 38%,${k.c2} 38% 62%,${k.c1} 62%)`,s:`background:${k.c1};box-shadow:inset 0 3px 0 ${k.c2}`,p:`background:linear-gradient(90deg,${k.c1} 50%,${k.c2} 50%)`,w:`background:linear-gradient(135deg,${k.c1} 40%,transparent 40%),linear-gradient(225deg,${k.c1} 40%,${k.c2} 40%)`,r:`background:repeating-linear-gradient(0deg,${k.c1} 0 20%,${k.c2} 20% 40%)`})[k.pat]||`background:${k.c1}`;
-function shopItem(type,x,prev){return `<div class="item ${WAL.eq[type]===x.id?'on':''}"><div class="prev">${prev}</div><b>${esc(x.name)}</b><p>${esc(x.bio)}</p>${buyBtn(type,x.id,x.price,x.name)}</div>`}
+/* cada artículo se puede abrir en una ficha con la descripción completa (y las frases, si es un personaje) */
+function shopItem(type,x,prev){return `<div class="item ${WAL.eq[type]===x.id?'on':''}"><button type="button" class="iopen" data-a="ficha" data-t="${type}" data-id="${x.id}" aria-label="Ver la ficha de ${esc(x.name)}"><div class="prev">${prev}<span class="imore" aria-hidden="true">Leer más</span></div><b>${esc(x.name)}</b><p>${esc(x.bio)}</p></button>${buyBtn(type,x.id,x.price,x.name)}</div>`}
+let FICHA=null;
+function fichaHTML(){if(!FICHA)return'';const {t,id}=FICHA,x=itemOf(t,id);if(!x)return'';
+  const pic=t==='av'?avatarSVG(id,220,true):t==='dorso'?`<div class="bigback" style="background:${backBg(id)}"></div>`:`<div class="swatch pano-${id}" style="background:${panoBg(id)};border-color:${x.edge}">${cardHTML('1E')}${cardHTML('7O')}</div>`;
+  const L=t==='av'&&LINES[id];const fr=L?[['Canta','truco'],['Quiere','quiero'],['Si gana','win'],['Si pierde','lose']].filter(([,k])=>L[k]&&L[k][0]).map(([l,k])=>`<li><small>${l}</small><q>${esc(L[k][0])}</q></li>`).join(''):'';
+  return `<div class="over" data-a="close"><div class="panel fpanel fp-${t}" data-stop><div class="fpic">${pic}</div><div class="ftxt"><h2>${esc(x.name)}</h2><p class="fbio">${esc(x.bio)}</p>${fr?`<ul class="frases">${fr}</ul>`:''}
+    <div class="fbuy">${buyBtn(t,id,x.price,x.name)}</div><button class="btn ghost" data-a="close">Cerrar</button></div></div></div>`}
 function shopHTML(){const sub=[['av','Personajes'],['dorso','Dorsos'],['pano','Paños'],['coins','Monedas']];if(shopTab==='kit')shopTab='av';
   let body='';
   if(shopTab==='av')body=fitList('shop-av',AVS,a=>{if(a.id!=='hincha')return shopItem('av',a,avatarSVG(a.id,96,true));const has=owns('av','hincha',a.price);
@@ -724,6 +731,7 @@ function overlayHTML(){
   if(overlayView==='load')return `<div class="over" data-a="close"><div class="panel" data-stop><h2>Cargar fichas</h2><p>Las fichas sirven para apostar en las partidas. Son de práctica: se cargan gratis, no se compran ni se cobran. Las monedas de la tienda son otra cosa.</p>
     <div class="btns">${[500,1000,5000].map(v=>`<button class="btn prim" data-a="add" data-v="${v}">+ ${fmt(v)}</button>`).join('')}</div><button class="btn ghost" data-a="close">Cerrar</button></div></div>`;
   if(overlayView==='compartir')return shareHTML();
+  if(overlayView==='ficha')return fichaHTML();
   if(view==='game'&&G&&G.matchOver){const won=G.matchOver.winner===myTeam();const st=G.stake;const TT=mode==='online'&&T&&T.tour;const can=!TT&&(mode==='offline'||isHost);
     const rw=lastReward&&lastReward.matchId===G.matchId?lastReward.coins:null;
     let conf='';if(won&&FX.over){const suits=['O','C','E','B'];for(let i=0;i<26;i++){const s=suits[i%4];conf+=`<svg viewBox="0 0 24 24" style="left:${(Math.random()*100).toFixed(1)}%;animation-delay:${(Math.random()*.9).toFixed(2)}s;color:${SUITCOL[s]}"><use href="#s${s}"/></svg>`}}
@@ -1879,6 +1887,7 @@ document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closes
   case 'admsort':ADMSORT=t.dataset.v;FITP['adm-users']=0;render();return;
   case 'pg':{const k=t.dataset.k;FITP[k]=Math.max(0,(FITP[k]||0)+(+t.dataset.d));render();return}
   case 'ov':overlayView=t.dataset.v;render();return;
+  case 'ficha':FICHA={t:t.dataset.t,id:t.dataset.id};overlayView='ficha';render();return;
   case 'shopgo':shopTab=t.dataset.v;view='shop';render();return;
   case 'load':overlayView='load';render();return;
   case 'close':if(overlayView==='termsAccept')return;overlayView=null;render();return;
