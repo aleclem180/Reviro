@@ -1169,17 +1169,25 @@ const ZONES=[
   cut:[[-62,-50.6],[-50,-50.6],[-50,-52.45],[-62,-52.45]]},
 ];
 const ZM=Object.fromEntries(ZONES.map(z=>[z.id,z]));
-const RIVALS=[
- ['ba','Tito, de Mataderos','tachero','facil',20],['ba','Marta, de Chascomús','dona','facil',70],['ba','Vicky, de Mar del Plata','hincha','medio',120],['ba','Don Aurelio, de Areco','veterano','medio',200,1],
- ['litoral','Nacho, de Rosario','estudiante','facil',170],['litoral','Doña Chela, de Corrientes','abuela','medio',230],['litoral','Pocho, de Paraná','asador','medio',290],['litoral','Ramón Silva, de Goya','gaucho','medio',400,1],
- ['centro','Fer, de Carlos Paz','fisura','medio',370],['centro','Quique, de Córdoba','rolinga','medio',430],['centro','Mirta, de Alta Gracia','dona','medio',500],['centro','Doña Rosa, de Cruz del Eje','abuela','dificil',650,1],
- ['cuyo','Lucas, de Mendoza','cheto','medio',620],['cuyo','Don Cirilo, de San Juan','veterano','medio',700],['cuyo','Agus, de San Luis','estudiante','dificil',790],['cuyo','Bautista Funes, de Maipú','asador','dificil',950,1],
- ['noa','Ernesto, de Tilcara','mochilero','medio',920],['noa','Rosario, de Santiago del Estero','hippie','dificil',1010],['noa','Don Segundo, de Cafayate','gaucho','dificil',1110],['noa','Facundo, el payador de Salta','tanguero','dificil',1300,1],
- ['nea','Coco, de Resistencia','godin','medio',1270],['nea','Mabel, de Formosa','dona','dificil',1370],['nea','El Pescador de Clorinda','mochilero','dificil',1470],['nea','Don Gauna, del Impenetrable','veterano','dificil',1700,1],
- ['patagonia','Julieta, de Bariloche','influencer','dificil',1670],['patagonia','Tomás, de Neuquén','cheto','dificil',1780],['patagonia','Doña Elba, de Trelew','abuela','dificil',1900],['patagonia','El Esquilador de Río Gallegos','gaucho','dificil',2150,1],
- ['malvinas','Juana, de Puerto Argentino','hincha','dificil',2580],['malvinas','El Ovejero de Gran Malvina','gaucho','dificil',2700],['malvinas','Don Ramiro, de Bahía Fox','veterano','dificil',2820],['malvinas','El Guardián de las Islas','tanguero','dificil',3100,1],
- ['tdf','Lalo, de Río Grande','fisura','dificil',2120],['tdf','Marina, de Ushuaia','hippie','dificil',2250],['tdf','El Farero de Ushuaia','tanguero','dificil',2380],['tdf','La Leyenda del Último Faro','veterano','dificil',2600,1],
-].map(([zone,name,av,diff,copas,boss],i)=>{const skill=Math.min(1,Math.max(.05,copas/2400+(boss?.08:0)));return{id:'r'+i,zone,name,av,copas,boss:!!boss,skill,diff:skill<.3?'facil':skill<.65?'medio':'dificil'}});
+/* 8 rivales por zona, en orden: cada uno se desbloquea al llegar a sus porotos y el jefe es el último.
+   Los ids viejos (r0…r35) se mantienen para no perder las victorias guardadas. */
+const RIVALS_Z={
+ ba:[['r0','Tito, de Mataderos','tachero'],['r36','Lili, de Lanús','hincha'],['r1','Marta, de Chascomús','dona'],['r37','Cacho, de Tandil','asador'],['r38','Pato, de Santa Rosa','godin'],['r2','Vicky, de Mar del Plata','hincha'],['r39','Don Pancho, de Luján','gaucho'],['r3','Don Aurelio, de Areco','veterano']],
+ litoral:[['r4','Nacho, de Rosario','estudiante'],['r40','Sole, de Santa Fe','murguera'],['r5','Doña Chela, de Corrientes','abuela'],['r41','Gringo, de Rafaela','godin'],['r6','Pocho, de Paraná','asador'],['r42','Tere, de Posadas','hippie'],['r43','El Lancha, de Gualeguaychú','fisura'],['r7','Ramón Silva, de Goya','gaucho']],
+ centro:[['r8','Fer, de Carlos Paz','fisura'],['r44','Mili, de Río Cuarto','influencer'],['r9','Quique, de Córdoba','rolinga'],['r45','El Negro, de Villa María','tachero'],['r10','Mirta, de Alta Gracia','dona'],['r46','Beto, de Jesús María','asador'],['r47','Don Nicanor, de Mina Clavero','veterano'],['r11','Doña Rosa, de Cruz del Eje','abuela']],
+ cuyo:[['r12','Lucas, de Mendoza','cheto'],['r48','Flor, de Tunuyán','hippie'],['r13','Don Cirilo, de San Juan','veterano'],['r49','Chino, de San Rafael','mochilero'],['r14','Agus, de San Luis','estudiante'],['r50','Doña Amalia, de Luján de Cuyo','abuela'],['r51','El Contratista, de Jáchal','godin'],['r15','Bautista Funes, de Maipú','asador']],
+ noa:[['r16','Ernesto, de Tilcara','mochilero'],['r52','Yami, de Tucumán','murguera'],['r17','Rosario, de Santiago del Estero','hippie'],['r53','Don Lindor, de Belén','gaucho'],['r18','Don Segundo, de Cafayate','gaucho'],['r54','Coya, de Humahuaca','veterano'],['r55','La Chinita, de La Rioja','dona'],['r19','Facundo, el payador de Salta','tanguero']],
+ nea:[['r20','Coco, de Resistencia','godin'],['r56','Nelly, de Charata','abuela'],['r21','Mabel, de Formosa','dona'],['r57','Toto, de Sáenz Peña','hincha'],['r22','El Pescador de Clorinda','mochilero'],['r58','El Mensú, de Las Lomitas','asador'],['r59','Don Olegario, de Pampa del Infierno','gaucho'],['r23','Don Gauna, del Impenetrable','veterano']],
+ patagonia:[['r24','Julieta, de Bariloche','influencer'],['r60','Mauro, de Cipolletti','rolinga'],['r25','Tomás, de Neuquén','cheto'],['r61','Ailén, de Esquel','hippie'],['r26','Doña Elba, de Trelew','abuela'],['r62','El Petrolero, de Comodoro','godin'],['r63','Don Ñancul, de Junín de los Andes','veterano'],['r27','El Esquilador de Río Gallegos','gaucho']],
+ tdf:[['r32','Lalo, de Río Grande','fisura'],['r64','Vero, de Tolhuin','hincha'],['r33','Marina, de Ushuaia','hippie'],['r65','El Centollero del Canal','asador'],['r34','El Farero de Ushuaia','tanguero'],['r66','Doña Antártida, de Ushuaia','abuela'],['r67','El Baqueano del Fin del Mundo','gaucho'],['r35','La Leyenda del Último Faro','veterano']],
+ malvinas:[['r28','Juana, de Puerto Argentino','hincha'],['r68','El Pingüinero de Soledad','mochilero'],['r29','El Ovejero de Gran Malvina','gaucho'],['r69','Doña Isla, de Darwin','abuela'],['r30','Don Ramiro, de Bahía Fox','veterano'],['r70','El Marinero del Estrecho','tanguero'],['r71','La Voz del Atlántico Sur','murguera'],['r31','El Guardián de las Islas','tanguero']],
+};
+/* need: los porotos para desbloquearlo (repartidos entre la apertura de la zona y la de la siguiente).
+   copas: su nivel para la tabla y para calcular cuánto se gana o se pierde. */
+const RIVALS=ZONES.flatMap((z,zi)=>{const end=(ZONES[zi+1]||{need:z.need+600}).need,span=end-z.need,list=RIVALS_Z[z.id];
+  return list.map(([id,name,av],i)=>{const boss=i===list.length-1,need=z.need+Math.round(i*span/list.length/5)*5,copas=boss?end+50:z.need+Math.round((i+1)*span/list.length/5)*5;
+    const skill=Math.min(1,Math.max(.05,copas/2400+(boss?.08:0)));return{id,zone:z.id,name,av,copas,need,boss,skill,diff:skill<.3?'facil':skill<.65?'medio':'dificil'}})});
+const rivalOpen=r=>zoneOpen(ZM[r.zone])&&(WAL.copas||0)>=r.need;
 const stars=k=>{const n=Math.max(1,Math.min(5,Math.round(k*5)));return '★'.repeat(n)+'☆'.repeat(5-n)};
 const RM=Object.fromEntries(RIVALS.map(r=>[r.id,r]));
 const TITLES=[[0,'Pichón'],[150,'Aprendiz de pulpería'],[350,'Baqueano'],[600,'Truquero de ley'],[900,'Taita'],[1250,'Gaucho mayor'],[1650,'Maestro del truco'],[2100,'Leyenda del Último Faro'],[2600,'Guardián de las Islas']];
@@ -1227,11 +1235,11 @@ function mapSVG(){const main=pathOf(AR_MAIN),tdf=pathOf(AR_TDF),isl=AR_ISL.map(p
   o+=`<rect x="-15" y="-11" width="230" height="434" rx="4" fill="none" stroke="#4a3626" stroke-width=".8"/><rect x="-12.5" y="-8.5" width="225" height="429" rx="3" fill="none" stroke="#4a3626" stroke-width=".35"/>
     <rect x="-18" y="-14" width="236" height="440" rx="6" fill="url(#mapvig)" pointer-events="none"/>`;
   return o+'</svg>'}
-function rivalCard(r){const open=zoneOpen(ZM[r.zone]),wins=(WAL.gira&&WAL.gira.beat[r.id])||0;const my=WAL.copas||0;
+function rivalCard(r){const open=rivalOpen(r),wins=(WAL.gira&&WAL.gira.beat[r.id])||0;const my=WAL.copas||0;
   const win=copasDelta(my,r.copas,true),lose=copasDelta(my,r.copas,false);
-  return `<li class="rv ${r.boss?'boss':''}">${avatarSVG(r.av,46)}<div class="rvi"><b>${esc(r.name)}</b><small>${r.boss?'Jefe de la zona · Premio: '+esc(prizeLabel(BOSS_PRIZE[r.zone]))+' · ':''}<span class="stars" aria-label="Nivel ${Math.round(r.skill*5)} de 5">${stars(r.skill)}</span> · ${r.boss?'a 30':'a 15'}</small>
+  return `<li class="rv ${r.boss?'boss':''} ${open?'':'locked'}">${avatarSVG(r.av,46)}<div class="rvi"><b>${esc(r.name)}</b><small>${r.boss?'Jefe de la zona · Premio: '+esc(prizeLabel(BOSS_PRIZE[r.zone]))+' · ':''}<span class="stars" aria-label="Nivel ${Math.round(r.skill*5)} de 5">${stars(r.skill)}</span> · ${r.boss?'a 30':'a 15'}</small>
     <small><span class="cup"><i class="poroto" aria-hidden="true"></i>${fmt(r.copas)}</span> · <span title="Si ganás / si perdés">+${win} / ${lose}</span>${wins?` · ✓ ${wins}`:''}</small></div>
-    <button class="btn ${r.boss?'prim':'brass'} sm" data-a="girago" data-id="${r.id}" ${open?'':'disabled'}>Jugar</button></li>`}
+    ${open?`<button class="btn ${r.boss?'prim':'brass'} sm" data-a="girago" data-id="${r.id}">Jugar</button>`:`<span class="rvlock" title="Se desbloquea con ${fmt(r.need)} porotos">🔒︎ <b>${fmt(r.need)}</b></span>`}</li>`}
 function giraHTML(){const c=WAL.copas||0,z=ZM[giraZone]||ZONES[0],open=zoneOpen(z);const next=ZONES.find(x=>!zoneOpen(x));
   const prevNeed=next?((ZONES[ZONES.indexOf(next)-1]||{need:0}).need):0;const pct=next?Math.round((c-prevNeed)*100/Math.max(1,next.need-prevNeed)):100;
   const zi=ZONES.indexOf(z),zp=ZONES[(zi+ZONES.length-1)%ZONES.length],zn=ZONES[(zi+1)%ZONES.length],nR=RIVALS.filter(r=>r.zone===z.id).length;
@@ -1248,7 +1256,7 @@ function rivalesHTML(){const z=ZM[giraZone]||ZONES[0],open=zoneOpen(z);return `<
 function tablaHTML(){const c=WAL.copas||0;const table=RIVALS.map(r=>({n:r.name,c:r.copas,av:r.av})).concat({n:myDisp()+' (vos)',c,av:myAv(),me:1}).sort((a,b)=>b.c-a.c);const myPos=table.findIndex(x=>x.me);
   const win=table.slice(Math.max(0,myPos-3),myPos+4);
   return `<div class="over" data-a="close"><div class="panel lpanel" data-stop><h2>Tabla nacional</h2><p class="note" style="margin:0">Vas ${myPos+1}.º de ${table.length}.</p><ol class="lb">${win.map(x=>`<li class="${x.me?'me':''}"><span class="pos">${table.indexOf(x)+1}</span>${avatarSVG(x.av,30)}<span class="nm">${esc(x.n)}</span><b>${fmt(x.c)}</b></li>`).join('')}</ol><button class="btn ghost" data-a="close">Cerrar</button></div></div>`}
-function startGira(rid){const r=RM[rid];if(!r||!zoneOpen(ZM[r.zone]))return;TUT=null;mySena=null;
+function startGira(rid){const r=RM[rid];if(!r||!rivalOpen(r))return;TUT=null;mySena=null;
   CAMP={rid,before:WAL.copas||0};cfg={n:2,target:r.boss?30:15,stake:0,diff:r.diff,flor:SET.hflor!==false};
   botLooks={1:{av:r.av,dorso:['pampa','cuero','marino','noche','celeste','oro','fileteado','bordo','viento'][ZONES.findIndex(z=>z.id===r.zone)]||'pampa'}};
   if(SRV()){confirmExit=false;panel=null;NET.rooms.createRoom({n:2,target:cfg.target,flor:cfg.flor,stake:0,diff:r.diff,bots:1}).then(code=>NET.srv.call('salaEmpezar',{code}).then(()=>openTable(code))).catch(e=>{CAMP=null;toast(e.message||'No se pudo armar la partida')});return}

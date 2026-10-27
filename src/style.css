@@ -1107,3 +1107,7 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
 .result .autodeal small{font-size:.75rem;color:var(--muted)}
 @keyframes autodeal{to{transform:scaleX(1)}}
 @media (prefers-reduced-motion:reduce){.result .autodeal i::after{animation:none;transform:scaleX(1);opacity:.5}}
+/* La Huella: rivales que todavía no se desbloquean */
+.rv.locked{opacity:.72}.rv.locked svg{filter:grayscale(.85) brightness(.8)}
+.rv .rvlock{flex:none;display:inline-flex;align-items:center;gap:4px;font-size:.8rem;color:var(--muted);padding:4px 8px;border:1px dashed var(--line);border-radius:999px;white-space:nowrap}
+.rv .rvlock b{color:var(--text,inherit);font-variant-numeric:tabular-nums}
