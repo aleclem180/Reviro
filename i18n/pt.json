@@ -1660,5 +1660,18 @@
 "Conseguí todos los demás logros": "Consiga todas as outras conquistas",
 "Fácil": "Fácil",
 "Difícil": "Difícil",
-"Muy difícil": "Muito difícil"
+"Muy difícil": "Muito difícil",
+"Cobrar todo ({0})": "Resgatar tudo ({0})",
+"Ir a mi nivel": "Ir ao meu nível",
+"Niveles anteriores": "Níveis anteriores",
+"Niveles siguientes": "Próximos níveis",
+"Premios por nivel": "Prêmios por nível",
+"Cobrar el premio del nivel {0}": "Resgatar o prêmio do nível {0}",
+"fichas": "fichas",
+"{0} de {1} para el nivel {2}{3}": "{0} de {1} para o nível {2}{3}",
+" · quedan {0} días": " · faltam {0} dias",
+" · termina mañana": " · termina amanhã",
+" · la temporada terminó": " · a temporada terminou",
+"Llegá al nivel 25 del pase de temporada": "Chegue ao nível 25 do passe de temporada",
+"Subís jugando: {0} por partida y {1} más si ganás (el doble online), {2} por misión, {3} por logro y {4} por el premio del día. El pase se paga con monedas y no da fichas.": "Você sobe jogando: {0} por partida e {1} a mais se ganhar (o dobro online), {2} por missão, {3} por conquista e {4} pelo prêmio do dia. O passe é pago com moedas e não dá fichas."
 }

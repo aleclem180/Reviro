@@ -1424,3 +1424,78 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
 .ach.lv3 .achlv{background:rgba(179,53,43,.4);color:#f3c1ba}
 .ach.lv4 .achlv{background:linear-gradient(90deg,#c08a1a,#f6d77a);color:#3a210c}
 .ach.lv4{border-color:rgba(240,197,72,.6)}
+/* ---------- pase de temporada, versión 2: cartel de peña y camino sobre guarda pampa ---------- */
+.pase2{display:flex;flex-direction:column;gap:10px}
+.pase2 .pcartel{flex:none;position:relative;display:flex;align-items:center;gap:14px;padding:12px 14px 16px;border-radius:16px;overflow:hidden;
+  background:radial-gradient(120% 140% at 0% 0%,rgba(246,196,55,.16),transparent 55%),linear-gradient(150deg,#6e1d2c,#3e0f19 75%);
+  box-shadow:0 8px 20px rgba(0,0,0,.4),inset 0 0 0 1px rgba(240,197,72,.4)}
+.pase2 .pcartel::after{content:'';position:absolute;left:0;right:0;bottom:0;height:7px;opacity:.85;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='12'%3E%3Crect width='28' height='12' fill='%23efe0bf'/%3E%3Crect width='28' height='1.4' fill='%232a170b'/%3E%3Crect y='10.6' width='28' height='1.4' fill='%232a170b'/%3E%3Cpath d='M14 2.2L19 6L14 9.8L9 6Z' fill='%232a170b'/%3E%3Cpath d='M14 4.2L16.4 6L14 7.8L11.6 6Z' fill='%23b0261c'/%3E%3Cpath d='M0 3L3.4 6L0 9ZM28 3L24.6 6L28 9Z' fill='%23b0261c'/%3E%3Crect x='4.6' y='5.4' width='2.4' height='1.2' fill='%232a170b'/%3E%3Crect x='21' y='5.4' width='2.4' height='1.2' fill='%232a170b'/%3E%3C/svg%3E") left center/18px 8px repeat-x}
+/* la medalla: el número del nivel adentro de un aro que se llena con la experiencia */
+.pase2 .pmedal{flex:none;width:76px;height:76px;border-radius:50%;display:grid;place-items:center;
+  background:conic-gradient(#f6d77a calc(var(--p)*1%),rgba(0,0,0,.35) 0);box-shadow:0 4px 12px rgba(0,0,0,.45)}
+.pase2 .pmedal>span{width:62px;height:62px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 35% 30%,#f9de8a,#c08a1a 70%);color:#3a210c;box-shadow:inset 0 0 0 2px rgba(58,33,12,.35)}
+.pase2 .pmedal small{font-size:.62rem;font-weight:700;line-height:1;opacity:.8}
+.pase2 .pmedal b{font-family:var(--f-display);font-size:1.9rem;line-height:1;font-variant-numeric:tabular-nums}
+.pase2 .pdatos{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.pase2 .pdatos h3{margin:0;font-family:var(--f-display);font-size:clamp(1.15rem,4.4vw,1.5rem);color:#fff5dc;line-height:1.05}
+.pase2 .pdatos p{margin:0;font-size:.84rem;color:#e9d6b4;font-variant-numeric:tabular-nums}
+.pase2 .pacc{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.pase2 .pacc .btn{width:auto;padding:6px 12px;font-size:.88rem;display:inline-flex;align-items:center;gap:5px}
+.pase2 .ptiene{display:inline-block;padding:5px 12px;border-radius:99px;background:#f0c548;color:#3a210c;font-weight:700;font-size:.82rem}
+/* el camino */
+.pase2 .pcamino{flex:1 1 0;min-height:0;display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;gap:6px 6px;
+  background:var(--hide);border:1px solid var(--line);border-radius:16px;padding:10px 10px 8px 6px}
+.pase2 .plbl{grid-row:1;display:grid;grid-template-rows:minmax(0,1fr) 34px minmax(0,1fr);width:20px}
+.pase2 .plbl span{writing-mode:vertical-rl;transform:rotate(180deg);align-self:center;justify-self:center;font-size:.72rem;font-weight:700;letter-spacing:.06em;color:var(--muted)}
+.pase2 .plbl .pr{color:#f0c548}
+.pase2 .pscroll{grid-row:1;grid-column:2;min-height:0;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;scrollbar-width:none;border-radius:10px;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 14px,#000 calc(100% - 14px),transparent);mask-image:linear-gradient(90deg,transparent,#000 14px,#000 calc(100% - 14px),transparent)}
+.pase2 .pscroll::-webkit-scrollbar{display:none}
+.pase2 .pscroll:focus-visible{outline:2px solid var(--coin);outline-offset:2px}
+.pase2 .ptira{height:100%;width:calc(var(--col) * var(--n));display:grid;grid-template-rows:minmax(0,1fr) 34px minmax(0,1fr)}
+.pase2 .pfila{display:grid;grid-template-columns:repeat(var(--n),var(--col));min-height:0}
+/* la guarda con los números de nivel */
+.pase2 .pguarda{position:relative;display:grid;grid-template-columns:repeat(var(--n),var(--col));align-items:center;
+  background:linear-gradient(transparent 13px,rgba(0,0,0,.45) 13px,rgba(0,0,0,.45) 21px,transparent 21px)}
+.pase2 .pfill{position:absolute;left:0;top:13px;height:8px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='12'%3E%3Crect width='28' height='12' fill='%23efe0bf'/%3E%3Crect width='28' height='1.4' fill='%232a170b'/%3E%3Crect y='10.6' width='28' height='1.4' fill='%232a170b'/%3E%3Cpath d='M14 2.2L19 6L14 9.8L9 6Z' fill='%232a170b'/%3E%3Cpath d='M14 4.2L16.4 6L14 7.8L11.6 6Z' fill='%23b0261c'/%3E%3Cpath d='M0 3L3.4 6L0 9ZM28 3L24.6 6L28 9Z' fill='%23b0261c'/%3E%3Crect x='4.6' y='5.4' width='2.4' height='1.2' fill='%232a170b'/%3E%3Crect x='21' y='5.4' width='2.4' height='1.2' fill='%232a170b'/%3E%3C/svg%3E") left center/18px 8px repeat-x;box-shadow:0 0 10px rgba(240,197,72,.35);border-radius:0 4px 4px 0}
+.pase2 .pn{position:relative;z-index:1;justify-self:center;scroll-snap-align:center;display:grid;place-items:center;width:26px;height:26px;border-radius:50%;
+  font-size:.74rem;font-weight:800;font-variant-numeric:tabular-nums;color:var(--muted);background:#2a1a10;box-shadow:0 0 0 2px rgba(243,230,200,.18)}
+.pase2 .pn.on{background:#f0c548;color:#3a210c;box-shadow:0 0 0 2px #8a5a12}
+.pase2 .pn.next{color:#f0c548;box-shadow:0 0 0 2px #f0c548}
+.pase2 .pn.hito{width:30px;height:30px;transform:rotate(45deg);border-radius:6px}
+.pase2 .pn.hito{font-size:0}.pase2 .pn.hito::after{content:attr(data-l)}
+/* las celdas de premio */
+.pase2 .pc{all:unset;box-sizing:border-box;position:relative;margin:3px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;min-height:0;overflow:hidden;
+  background:rgba(243,230,200,.05);border:1px solid var(--line)}
+.pase2 .pc-prem{background:linear-gradient(180deg,rgba(110,29,44,.55),rgba(62,15,25,.6));border-color:rgba(240,197,72,.25)}
+.pase2 .pc.vacia{background:transparent;border:0}
+.pase2 .pc.fut .pvis,.pase2 .pc.lockr .pvis{opacity:.55;filter:saturate(.6)}
+.pase2 .pc.got{opacity:.45}
+.pase2 .pc.ready{cursor:pointer;border-color:#f0c548;background:radial-gradient(90% 80% at 50% 30%,rgba(246,215,122,.25),rgba(0,0,0,.15));box-shadow:0 0 0 2px rgba(240,197,72,.35),0 0 16px rgba(240,197,72,.3)}
+.pase2 .pc.ready:focus-visible{outline:2px solid var(--coin);outline-offset:2px}
+.pase2 .pc.ready:active{transform:scale(.96)}
+.pase2 .pc.hito{border-color:rgba(240,197,72,.7)}
+.pase2 .pvis{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;padding:0 3px}
+.pase2 .pvis b{font-size:.92rem;line-height:1;font-variant-numeric:tabular-nums;color:var(--ink)}
+.pase2 .pvis small{font-size:.62rem;color:var(--muted);line-height:1}
+.pase2 .pitem b{font-size:.68rem;line-height:1.1;font-weight:700}
+.pase2 .pchip,.pase2 .pcoin{display:block;width:24px;height:24px;border-radius:50%;flex:none}
+.pase2 .pchip{background:radial-gradient(circle,var(--brass) 0 36%,var(--brass-ink) 37% 45%,var(--brass) 46%);box-shadow:0 0 0 2px var(--brass-ink) inset,0 2px 4px rgba(0,0,0,.4)}
+.pase2 .pcoin{background:radial-gradient(circle at 35% 30%,#fff3c4 0 12%,var(--coin) 13% 62%,#b8861f 63%);box-shadow:0 0 0 1px #8a6114,0 2px 4px rgba(0,0,0,.4)}
+.pase2 .pdorso{display:block;width:clamp(24px,5dvh,36px);aspect-ratio:2/3;border-radius:4px;background-size:cover!important;box-shadow:0 3px 8px rgba(0,0,0,.5),0 0 0 1.5px #f6eed8}
+.pase2 .ppano{display:block;width:clamp(34px,7dvh,52px);aspect-ratio:4/3;border-radius:5px;background-size:cover!important;box-shadow:0 3px 8px rgba(0,0,0,.5),0 0 0 1.5px #f6eed8}
+.pase2 .pmark{position:absolute;top:3px;right:4px;font-size:.72rem;line-height:1}
+.pase2 .pmark.ok{color:var(--good);font-weight:900}
+.pase2 .pgo{font-size:.68rem;font-weight:800;padding:2px 8px;border-radius:99px;background:#c0392b;color:#fff}
+.pase2 .pnav{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:10px}
+.pase2 .pnav .btn{width:auto}
+@media (max-height:700px){.pase2 .pmedal{width:58px;height:58px}.pase2 .pmedal>span{width:47px;height:47px}.pase2 .pmedal b{font-size:1.4rem}.pase2 .pcartel{padding:8px 12px 12px}.pase2 .pvis small{display:none}.pase2 .snote{display:none}}
+@media (prefers-reduced-motion:reduce){.pase2 .pc.ready{box-shadow:0 0 0 2px rgba(240,197,72,.5)}}
+/* cada premio se centra en su nivel y ocupa el lugar libre de los costados (los caminos van alternados) */
+.pase2 .pfila .pc:not(.vacia){justify-self:center;width:calc(var(--col) * 1.72);margin:4px 0;z-index:1}
+.pase2 .pfila .pc.vacia{visibility:hidden}
+.pase2 .pfila.pfp{background:none}
+.pase2 .pvis b{font-size:1rem}
+.pase2 .pchip,.pase2 .pcoin{width:28px;height:28px}
+@media (max-height:700px){.pase2 .pchip,.pase2 .pcoin{width:20px;height:20px}.pase2 .pvis b{font-size:.86rem}.pase2 .pacc .btn{padding:4px 10px;font-size:.8rem}}

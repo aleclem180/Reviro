@@ -432,7 +432,7 @@ function fitList(key,arr,fn,cls='',empty=''){const n=arr.length;if(!n)return emp
 function sizeMap(){const w=document.querySelector('.glay .mapwrap'),m=w&&w.querySelector('.armap');if(!m)return;const cs=getComputedStyle(w);
   const W=w.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight),H=w.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom);if(W<20||H<20)return;
   const r=236/440,h=Math.min(H,W/r);m.style.height=Math.floor(h)+'px';m.style.width=Math.floor(h*r)+'px'}
-function fitPass(){sizeMap();let ch=false;const nw={};document.querySelectorAll('[data-fit]').forEach(box=>{const k=box.dataset.fit,n=+box.dataset.n,kids=[...box.children];if(!kids.length)return;
+function fitPass(){sizeMap();paseAfter();let ch=false;const nw={};document.querySelectorAll('[data-fit]').forEach(box=>{const k=box.dataset.fit,n=+box.dataset.n,kids=[...box.children];if(!kids.length)return;
     const H=box.clientHeight;if(H<8)return;const cs=getComputedStyle(box),rg=parseFloat(cs.rowGap)||0;
     let cols=1;if(cs.display.includes('grid'))cols=Math.max(1,cs.gridTemplateColumns.split(' ').filter(Boolean).length);
     /* filas que ya se ven enteras */
@@ -1012,31 +1012,57 @@ async function paseComprar(){const p=paseW();if(p.prem)return;if(!paseActiva()){
   if(WAL.coins<SEASON.price){toast('No te alcanzan las monedas');return}
   if(SRV()){try{await NET.srv.call('billetera',{op:'paseComprar'});sfx('buy');toast('¡Ya tenés el pase de la '+SEASON.name+'!')}catch(e){toast(e.message||'No se pudo')}return}
   const ok=await applyTx('pase-'+SEASON.id+'-prem',{coins:-SEASON.price});if(ok){p.prem=true;saveWallet();sfx('buy');toast('¡Ya tenés el pase de la '+SEASON.name+'!');render()}else toast('No te alcanzan las monedas')}
-let PASEPG=null;
-const pasePer=()=>innerWidth<460?4:innerWidth<760?5:10;
+/* el camino del pase: una tira horizontal de 50 niveles sobre una guarda pampa que se va llenando.
+   Arriba el premio gratis, abajo el del pase. Se desliza con el dedo; la posición se guarda entre redibujos. */
+let PASESX=null;
+const PASECOL=()=>innerWidth<460?78:innerWidth<760?86:96;
+function paseRewardVis(r){
+  if(r.t==='chips')return `<span class="pvis"><i class="pchip" aria-hidden="true"></i><b>${fmt(r.v)}</b><small>fichas</small></span>`;
+  if(r.t==='coins')return `<span class="pvis"><i class="pcoin" aria-hidden="true"></i><b>${fmt(r.v)}</b><small>monedas</small></span>`;
+  const d=r.t==='dorso',it=d?DM[r.v]:PM[r.v];
+  return `<span class="pvis pitem"><i class="${d?'pdorso':'ppano'}" style="background:${d?backBg(r.v):panoBg(r.v)}" aria-hidden="true"></i><b>${esc(it.name)}</b></span>`}
 function paseCell(track,l){const r=paseRw(track,l),p=paseW(),lv=paseLvl();
-  if(!r)return `<div class="pcell empty"></div>`;
-  const got=paseHas(track,l),reach=lv>=l,lock=track==='prem'&&!p.prem;
-  const vis=r.t==='chips'?`<span class="pv">${chipI}<b>${fmt(r.v)}</b></span>`:r.t==='coins'?`<span class="pv">${coinI}<b>${fmt(r.v)}</b></span>`
-    :r.t==='dorso'?`<span class="pv"><i class="pdorso" style="background:${backBg(r.v)}"></i><b>${esc(DM[r.v].name)}</b></span>`:`<span class="pv"><i class="ppano" style="background:${panoBg(r.v)}"></i><b>${esc(PM[r.v].name)}</b></span>`;
-  const st=got?'<span class="pst ok" aria-label="Cobrado">✓</span>':lock?'<span class="pst" aria-label="Con el pase">🔒︎</span>':reach?`<button class="btn sm prim" data-a="pasecobrar" data-t="${track}" data-l="${l}">Cobrar</button>`:'';
-  return `<div class="pcell ${got?'got':''} ${reach&&!got&&!lock?'ready':''} ${lock?'lock':''}">${vis}${st}</div>`}
-function paseHTML(inShop){const p=paseW(),lv=paseLvl(),per=pasePer(),pages=Math.ceil(SEASON.levels/per);
-  if(PASEPG===null||PASEPG>=pages)PASEPG=Math.min(pages-1,Math.floor(Math.min(lv,SEASON.levels-1)/per));
-  const from=PASEPG*per+1,lvls=Array.from({length:per},(_,i)=>from+i).filter(l=>l<=SEASON.levels);
-  const inLv=lv>=SEASON.levels?SEASON.xpLevel:(p.xp||0)%SEASON.xpLevel;
-  const dias=Math.max(0,Math.ceil((Date.parse(SEASON.end+'T23:59:59-03:00')-Date.now())/864e5)),act=paseActiva();
-  return (inShop?'':phd('Pase de temporada','','shop'))+`<div class="pbody pase ${inShop?'inshop':''}">
-    <section class="box phead"><div class="plv"><small>Nivel</small><b>${lv}</b></div>
-      <div class="pinfo"><b>${esc(SEASON.name)}</b><small>${act?(dias===1?'Termina mañana':'Termina en '+dias+' días'):'La temporada terminó'}</small>
-        <div class="bar"><i style="width:${Math.round(inLv*100/SEASON.xpLevel)}%"></i></div><small>${lv>=SEASON.levels?'¡Llegaste al último nivel!':inLv+' de '+SEASON.xpLevel+' para el nivel '+(lv+1)}</small></div>
-      ${p.prem?'<span class="pprem">Tenés el pase</span>':`<button class="btn brass" data-a="pasecomprar" ${act?'':'disabled'}>Comprar el pase · ${coinI}${fmt(SEASON.price)}</button>`}</section>
-    <section class="box ptrack"><div class="pgrid" style="--n:${lvls.length}">
-      <span></span>${lvls.map(l=>`<span class="pl ${lv>=l?'on':''}">${l}</span>`).join('')}
-      <span class="prow">Gratis</span>${lvls.map(l=>paseCell('free',l)).join('')}
-      <span class="prow pr">Pase</span>${lvls.map(l=>paseCell('prem',l)).join('')}</div>
-      <div class="pager" role="group" aria-label="Páginas"><button type="button" class="pgb" data-a="pasepg" data-d="-1" ${PASEPG?'':'disabled'} aria-label="Página anterior">‹</button><span>Niveles ${from} a ${lvls[lvls.length-1]}</span><button type="button" class="pgb" data-a="pasepg" data-d="1" ${PASEPG<pages-1?'':'disabled'} aria-label="Página siguiente">›</button></div></section>
-    <p class="note snote">Subís jugando: ${SEASON.xp.partida} por partida, ${SEASON.xp.ganada} más si ganás (el doble online), ${SEASON.xp.mision} por misión y ${SEASON.xp.logro} por logro. El pase se paga con monedas y no da fichas.</p></div>`}
+  if(!r)return `<div class="pc pc-${track} vacia" aria-hidden="true"></div>`;
+  const got=paseHas(track,l),reach=lv>=l,lock=track==='prem'&&!p.prem,ready=reach&&!got&&!lock,item=r.t==='dorso'||r.t==='pano';
+  const cls=`pc pc-${track} ${item?'hito':''} ${got?'got':ready?'ready':reach&&lock?'lockr':'fut'}`;
+  const tag=got?'<span class="pmark ok" aria-label="Cobrado">✓</span>':lock?'<span class="pmark lk" aria-label="Con el pase">🔒︎</span>':'';
+  if(ready)return `<button type="button" class="${cls}" data-a="pasecobrar" data-t="${track}" data-l="${l}" aria-label="Cobrar el premio del nivel ${l}">${paseRewardVis(r)}<span class="pgo">Cobrar</span></button>`;
+  return `<div class="${cls}">${paseRewardVis(r)}${tag}</div>`}
+function paseListos(){const p=paseW(),lv=paseLvl(),o=[];for(let l=1;l<=lv;l++){if(paseRw('free',l)&&!paseHas('free',l))o.push(['free',l]);if(p.prem&&paseRw('prem',l)&&!paseHas('prem',l))o.push(['prem',l])}return o}
+async function paseCobrarTodo(){for(const [t,l] of paseListos())await paseCobrar(t,l)}
+function paseScroll(where){const sc=document.querySelector('.pscroll');if(!sc)return;const col=PASECOL(),lv=paseLvl();
+  const x=where==='mio'?Math.max(0,(Math.max(1,lv)-1)*col-sc.clientWidth/2+col*1.5):sc.scrollLeft+(where>0?1:-1)*Math.max(col,sc.clientWidth-col*2);
+  sc.scrollTo({left:x,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}
+/* después de cada redibujo: volver a donde estaba, o la primera vez, a tu nivel */
+function paseAfter(){const sc=document.querySelector('.pscroll');if(!sc||sc.dataset.ok)return;sc.dataset.ok=1;
+  const col=PASECOL(),lv=paseLvl();sc.scrollLeft=PASESX!==null?PASESX:Math.max(0,(Math.max(1,lv)-1)*col-sc.clientWidth/2+col*1.5);
+  sc.addEventListener('scroll',()=>{PASESX=sc.scrollLeft},{passive:true})}
+function paseHTML(inShop){const p=paseW(),lv=paseLvl(),N=SEASON.levels,col=PASECOL();
+  const inLv=lv>=N?SEASON.xpLevel:(p.xp||0)%SEASON.xpLevel,frac=inLv/SEASON.xpLevel;
+  const dias=Math.max(0,Math.ceil((Date.parse(SEASON.end+'T23:59:59-03:00')-Date.now())/864e5)),act=paseActiva(),listos=paseListos().length;
+  const fill=lv>=N?N*col:Math.max(0,(lv+frac)*col-col/2);
+  const nodes=Array.from({length:N},(_,k)=>{const l=k+1;return `<span data-l="${l}" class="pn ${lv>=l?'on':''} ${l===lv+1&&lv<N?'next':''} ${paseRw('free',l)&&['dorso','pano'].includes(paseRw('free',l).t)||paseRw('prem',l)&&['dorso','pano'].includes(paseRw('prem',l).t)?'hito':''}">${l}</span>`}).join('');
+  const cols=Array.from({length:N},(_,k)=>k+1);
+  return (inShop?'':phd('Pase de temporada','','shop'))+`<div class="pbody pase pase2 ${inShop?'inshop':''}">
+    <section class="pcartel">
+      <div class="pmedal" style="--p:${Math.round(frac*100)}" role="img" aria-label="Nivel ${lv} de ${N}"><span><small>Nivel</small><b>${lv}</b></span></div>
+      <div class="pdatos"><h3>${esc(SEASON.name)}</h3>
+        <p>${lv>=N?'¡Llegaste al último nivel!':`${inLv} de ${SEASON.xpLevel} para el nivel ${lv+1}`}<span class="pdias">${act?(dias===1?' · termina mañana':` · quedan ${dias} días`):' · la temporada terminó'}</span></p>
+        <div class="pacc">${p.prem?'<span class="ptiene">Tenés el pase</span>':`<button class="btn brass" data-a="pasecomprar" ${act?'':'disabled'}>Comprar el pase · ${coinI}${fmt(SEASON.price)}</button>`}
+          ${listos>1?`<button class="btn prim" data-a="pasetodo">Cobrar todo (${listos})</button>`:''}</div></div>
+    </section>
+    <section class="pcamino" style="--col:${col}px;--n:${N}">
+      <div class="plbl" aria-hidden="true"><span>Gratis</span><span></span><span class="pr">Pase</span></div>
+      <div class="pscroll" tabindex="0" aria-label="Premios por nivel">
+        <div class="ptira">
+          <div class="pfila">${cols.map(l=>paseCell('free',l)).join('')}</div>
+          <div class="pguarda"><i class="pfill" style="width:${fill}px"></i>${nodes}</div>
+          <div class="pfila pfp">${cols.map(l=>paseCell('prem',l)).join('')}</div>
+        </div>
+      </div>
+      <div class="pnav"><button type="button" class="pgb" data-a="pasemove" data-d="-1" aria-label="Niveles anteriores">‹</button><button type="button" class="btn sm ghost" data-a="pasemove" data-d="mio">Ir a mi nivel</button><button type="button" class="pgb" data-a="pasemove" data-d="1" aria-label="Niveles siguientes">›</button></div>
+    </section>
+    <p class="note snote">Subís jugando: ${SEASON.xp.partida} por partida y ${SEASON.xp.ganada} más si ganás (el doble online), ${SEASON.xp.mision} por misión, ${SEASON.xp.logro} por logro y ${SEASON.xp.diario} por el premio del día. El pase se paga con monedas y no da fichas.</p></div>`}
 
 /* ---------- tutorial ---------- */
 let TUT=null;
@@ -1945,7 +1971,8 @@ document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closes
   case 'lang':setLang(t.dataset.v);return;
   case 'pasecobrar':paseCobrar(t.dataset.t,+t.dataset.l);return;
   case 'pasecomprar':paseComprar();return;
-  case 'pasepg':PASEPG=Math.max(0,(PASEPG||0)+(+t.dataset.d));render();return;
+  case 'pasemove':paseScroll(t.dataset.d==='mio'?'mio':+t.dataset.d);return;
+  case 'pasetodo':paseCobrarTodo();return;
   case 'srvtest':SRVTEST='Probando el servidor…';render();NET.srv.probar().then(()=>{SRVTEST='El servidor responde bien: ya se puede prender.';render()}).catch(e=>{SRVTEST='El servidor no responde: todavía no están subidas las funciones ('+(e.code||e.message)+').';render()});return;
   case 'srvon':srvSwitch(true);return;
   case 'srvoff':srvSwitch(false);return;
