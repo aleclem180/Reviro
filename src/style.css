@@ -1600,3 +1600,5 @@ body:not([data-view=game]):not([data-view=room]) :is(.mode,.xb,.mz,.tcard,.lesso
   body:not([data-view=game]):not([data-view=room]) *:hover,body:not([data-view=game]):not([data-view=room]) *:hover svg,body:not([data-view=game]):not([data-view=room]) *:hover img{animation:none!important}
   body:not([data-view=game]):not([data-view=room]) .btn:hover::after{transition:none!important;transform:translateX(-130%)!important}
 }
+/* opciones de partida en pantallas bajas: más apretado para que entre la fila de la falta */
+@media (max-height:700px){.opanel{gap:6px!important;padding-top:12px!important;padding-bottom:12px!important}.opanel h2{font-size:1.45rem;margin:0}.opanel .field{gap:3px}.opanel .field>span{font-size:.8rem}.opanel .seg button{padding-top:6px;padding-bottom:6px}.opanel>.note{display:none}}

@@ -70,7 +70,7 @@ const coinI='<i class="coin" aria-hidden="true"></i>';
 let LOGOPEN=false,SELCARD=null,REPAINT=null,view='menu',mode=null,G=null,mySeat=0,cfg=null,CL=null,db=null,usr=null,uid=null,roomCap=null,R=null,myName='';
 let T=null,tableRef=null,unsubTable=null,unsubLobby=null,lobby=[],NAMES={},LOOKS={},isHost=false,busy=false,driveT=null;
 let confirmMazo=false,confirmExit=false,overlayView=null,shopTab='av',pendingBuy=null,panel=null,FX={},transient={},botLooks={},partnerSena=null,lastReward=null;
-const SET={diff:'medio',n:2,target:30,stake:0,flor:true,sound:true,music:true,mute:false,track:'zamba',vol:80,volMusic:60,volFx:90,hflor:true,help:true,tap2:true,notif:{on:false,tours:true,start:true,inv:true},on:{n:2,target:30,stake:0,flor:true}};
+const SET={diff:'medio',n:2,target:30,stake:0,flor:true,falta:'una',sound:true,music:true,mute:false,track:'zamba',vol:80,volMusic:60,volFx:90,hflor:true,help:true,tap2:true,notif:{on:false,tours:true,start:true,inv:true},on:{n:2,target:30,stake:0,flor:true,falta:'una'}};
 try{const s=JSON.parse(localStorage.getItem('reviro.set')||'{}');Object.assign(SET,s);SET.on=Object.assign({n:2,target:30,stake:0,flor:true},s.on||{})}catch(e){}
 function saveSet(){try{localStorage.setItem('reviro.set',JSON.stringify(SET))}catch(e){}}
 setLangNow(SET.lang||guessLang());i18nWatch();
@@ -491,7 +491,7 @@ const fileteHTML=(cls='')=>`<h1 class="filete logo ${cls}"><img src="${LOGO_SRC}
 let SOLOOPTS=false,ONOPTS=false;
 function playHTML(){const remembered=(()=>{try{return localStorage.getItem('reviro.table')}catch(e){return null}})();
   const onlineOk=!!(db&&uid);const dz={facil:'fácil',medio:'medio',dificil:'difícil'}[SET.diff];
-  const sum=`${SET.n==4?'2 contra 2':'Mano a mano'} · ${dz} · a ${SET.target} · ${SET.flor===false||SET.flor==='false'?'sin flor':'con flor'}${+SET.stake?` · ${fmt(SET.stake)} fichas`:''}`;
+  const sum=`${SET.n==4?'2 contra 2':'Mano a mano'} · ${dz} · a ${SET.target} · ${SET.flor===false||SET.flor==='false'?'sin flor':'con flor'}${+SET.target===30&&SET.falta==='dos'?' · a dos faltas':''}${+SET.stake?` · ${fmt(SET.stake)} fichas`:''}`;
   const openT=(TOURS||[]).filter(t=>t.status==='open'&&!tClosed(t)).length,nOpen=lobby.filter(t=>!t.tour&&Date.now()-(t.created||0)<3*3600e3).length;
   const st=(FB&&MYUSER&&MYUSER.stats)||null,cz=[...ZONES].reverse().find(zoneOpen)||ZONES[0];
   return `<section class="phead"><button type="button" class="pav" data-a="nav" data-v="shop" aria-label="Cambiar personaje">${avatarSVG(myAv(),54)}</button><div><b>${esc(myDisp())}</b><small>${esc(myTitulo())}${st&&st.played?` · ${st.played} partidas online · ${Math.round(st.winRate*100)}% ganadas`:''}</small></div><button type="button" class="btn sm ghost" data-a="nav" data-v="profile">Perfil</button></section>
@@ -538,6 +538,7 @@ function soloOptsHTML(){return `<div class="over" data-a="close"><div class="pan
     <div class="field"><span>Jugadores</span>${seg('n',[[2,'1 contra 1'],[4,'2 contra 2']],SET.n)}</div>
     <div class="field"><span>Partida a</span>${seg('target',[[15,'15 puntos'],[30,'30 puntos']],SET.target)}</div>
     <div class="field"><span>Flor</span>${seg('flor',[['true','Con flor'],['false','Sin flor']],SET.flor)}</div>
+    <div class="field"><span>Falta envido</span>${seg('falta',[['una','A una falta'],['dos','A dos faltas']],SET.falta,x=>x==='dos'&&+SET.target!==30)}</div>
     <div class="field"><span>Apuesta en fichas</span>${seg('stake',STAKES.map(v=>[v,v?fmt(v):'Sin apuesta']),SET.stake,v=>+v>WAL.chips)}</div>
     <p class="note">Ganando sumás ${({facil:20,medio:40,dificil:80})[SET.diff]} monedas. Contra la máquina es práctica: no cuenta en tu historial.</p>
     <div class="btns"><button class="btn prim" data-a="solo" ${SET.stake>WAL.chips?'disabled':''}>Repartir</button><button class="btn ghost" data-a="close">Listo</button></div></div></div>`}
@@ -556,6 +557,7 @@ function onOptsHTML(){const on=SET.on;return `<div class="over" data-a="close"><
     <div class="field"><span>Jugadores</span>${seg('on.n',[[2,'2 jugadores'],[4,'4 jugadores']],on.n)}</div>
     <div class="field"><span>Partida a</span>${seg('on.target',[[15,'15'],[30,'30']],on.target)}</div>
     <div class="field"><span>Flor</span>${seg('on.flor',[['true','Con flor'],['false','Sin flor']],on.flor)}</div>
+    <div class="field"><span>Falta envido</span>${seg('on.falta',[['una','A una falta'],['dos','A dos faltas']],on.falta,x=>x==='dos'&&+on.target!==30)}</div>
     <div class="field"><span>Entrada por jugador</span>${seg('on.stake',ONSTAKES.map(v=>[v,v?fmt(v):'Amistosa']),on.stake,v=>+v>WAL.chips)}</div>${+on.stake?`<p class="note" style="margin:0">Premio: <b>${fmt(tablePrize(+on.stake,+on.n))}</b> fichas ${+on.n===4?'para cada ganador':'para el ganador'}.</p>`:''}
     <div class="btns"><button class="btn prim" data-a="create" ${on.stake>WAL.chips?'disabled':''}>Crear la mesa</button><button class="btn ghost" data-a="close">Cancelar</button></div></div></div>`}
 const RULES_ORDER=['1E','1B','7E','7O','3E','2E','1C','12E','11E','10E','7C','6E','5E','4E'];
@@ -573,7 +575,8 @@ const RULES={
   envido:()=>`<p>Se canta <b>en la primera</b>, antes de tirar tu primera carta. Se puede encadenar: envido, envido, real envido, falta envido.</p>
     ${rtab([['Envido','2'],['Real envido','3'],['Falta envido','lo que le falta al que va ganando'],['No querido','1, o lo que valía antes del último canto']],'num')}
     <p><b>El tanto:</b> 20 más las dos cartas del mismo palo; las figuras valen 0. Sin dos del mismo palo, vale tu carta más alta. Ejemplo: 7 y 5 de oro = <b>32</b>.</p>
-    <p>Si empatan, gana el mano. <b>En las malas</b>, la falta envido gana el partido.</p>`,
+    <p>Si empatan, gana el mano.</p>
+    <p><b>Falta envido</b>, según cómo se arme la mesa: <b>a una falta</b>, vale lo que le falta al que va ganando para ganar el partido; <b>a dos faltas</b> (partidas a 30), en las malas vale lo que le falta para llegar a las buenas, y en las buenas, lo que le falta para ganar.</p>`,
   flor:()=>`<p><b>Flor:</b> tres cartas del mismo palo. Solo cuenta si la mesa es <b>con flor</b>, y quien la tiene <b>debe cantarla</b> antes de tirar. Anula el envido.</p>
     ${rtab([['Flor','3'],['Con flor me achico','4 para el que cantó primero'],['Contraflor','6'],['Contraflor al resto','lo que le falta al que va ganando']],'num')}
     <p>Vale 20 más las tres cartas (las figuras en 0). Si los dos tienen flor, gana la más alta; si empatan, el mano.</p>`,
@@ -790,7 +793,7 @@ function overlayHTML(){
 /* ---------- control de partida ---------- */
 function startSolo(){TUT=null;mySena=null;CAMP=null;if(FB){fbStartAI();return}const n=+SET.n,stake=+SET.stake;if(stake>WAL.chips){toast('No te alcanzan las fichas');return}
   const seats=Array.from({length:n},(_,i)=>i===0?{me:true}:{bot:true});
-  cfg={n,target:+SET.target,stake,diff:SET.diff,flor:SET.flor===true||SET.flor==='true'};botLooks=pickBotLooks(n);
+  cfg={n,target:+SET.target,stake,diff:SET.diff,flor:SET.flor===true||SET.flor==='true',falta:SET.falta==='dos'?'dos':'una'};botLooks=pickBotLooks(n);
   mode='offline';mySeat=0;view='game';confirmExit=false;panel=null;
   setG(newMatch({...cfg,seats,matchId:'solo-'+Date.now().toString(36)}));
   if(stake)applyTx(G.matchId+':in',{chips:-stake});render();drive()}
@@ -871,7 +874,7 @@ const CODECH='ABCDEFGHJKLMNPQRSTUVWXYZ';
 function genCode(){let c='';for(let i=0;i<4;i++)c+=CODECH[Math.floor(Math.random()*CODECH.length)];return c}
 function subLobby(){if(!db||unsubLobby)return;try{unsubLobby=db.collection('tables').where('status','==','waiting').onSnapshot(s=>{lobby=s.docs.map(d=>d.data());if(view==='menu')render()},()=>{unsubLobby=null})}catch(e){}}
 async function createTable(){const on=SET.on;if(on.stake>WAL.chips){toast('No te alcanzan las fichas');return}
-  if(FB){try{const code=await NET.rooms.createRoom({n:+on.n,target:+on.target,stake:+on.stake,flor:on.flor===true||on.flor==='true'});INVITED=new Set();openTable(code);return code}catch(e){toast('No se pudo crear la sala. Revisá tu conexión.');return}}
+  if(FB){try{const code=await NET.rooms.createRoom({n:+on.n,target:+on.target,stake:+on.stake,flor:on.flor===true||on.flor==='true',falta:+on.target===30&&on.falta==='dos'?'dos':'una'});INVITED=new Set();openTable(code);return code}catch(e){toast('No se pudo crear la sala. Revisá tu conexión.');return}}
   try{let code,ref;for(let i=0;i<5;i++){code=genCode();ref=db.doc('tables/'+code);const ex=await ref.get();if(!ex.exists)break}
     const seats=Array.from({length:+on.n},(_,i)=>i===0?{id:uid,bot:false}:{id:null,bot:false});
     await ref.set({code,n:+on.n,target:+on.target,stake:+on.stake,flor:on.flor===true||on.flor==='true',host:uid,seats,status:'waiting',created:Date.now(),game:null});INVITED=new Set();openTable(code);return code}
@@ -908,8 +911,8 @@ async function setSeat(i,val){if(FB){try{await NET.rooms.updateSeats(T.code,s=>{
   try{await withLease(async d=>{const seats=d.seats.slice();seats[i]=val;await tableRef.update({seats})})}catch(e){toast('No se pudo cambiar el asiento')}}
 async function startOnline(){if(!T)return;
   if(SRV()){try{await NET.srv.call('salaEmpezar',{code:T.code})}catch(e){toast(e.message||'No se pudo empezar la partida')}return}
-  if(FB){try{const r=await NET.rooms.startRoom(T.code,(seats,d)=>newMatch({n:d.n,target:d.target,stake:d.stake,flor:d.flor!==false,seats:seats.map(s=>({id:s.id,bot:!!s.bot})),matchId:d.code+'-'+Date.now().toString(36),diff:d.diff||'medio'}));if(!r.ok)toast('No se pudo empezar la partida')}catch(e){toast('No se pudo empezar la partida')}return}
-  const g=newMatch({n:T.n,target:T.target,stake:T.stake,flor:T.flor!==false,seats:T.seats.map(s=>({id:s.id,bot:!!s.bot})),matchId:T.code+'-'+Date.now().toString(36),diff:'medio'});
+  if(FB){try{const r=await NET.rooms.startRoom(T.code,(seats,d)=>newMatch({n:d.n,target:d.target,stake:d.stake,flor:d.flor!==false,falta:d.falta,seats:seats.map(s=>({id:s.id,bot:!!s.bot})),matchId:d.code+'-'+Date.now().toString(36),diff:d.diff||'medio'}));if(!r.ok)toast('No se pudo empezar la partida')}catch(e){toast('No se pudo empezar la partida')}return}
+  const g=newMatch({n:T.n,target:T.target,stake:T.stake,flor:T.flor!==false,falta:T.falta,seats:T.seats.map(s=>({id:s.id,bot:!!s.bot})),matchId:T.code+'-'+Date.now().toString(36),diff:'medio'});
   try{await tableRef.update({status:'playing',game:g,startedAt:Date.now()})}catch(e){toast('No se pudo empezar la partida')}}
 async function leaveTable(silent){const ref=tableRef,t=T;if(unsubTable){unsubTable();unsubTable=null}if(manoUnsub){manoUnsub();manoUnsub=null}MYHAND=null;if(R){R.leave().catch(()=>{});R=null}
   if(FB&&t){const c=t.code;abandonP.finally(()=>NET.rooms.leaveRoom(c)).catch(()=>{});abandonP=Promise.resolve()}
@@ -1707,9 +1710,9 @@ function fbAccountHTML(){if(!FB)return'';const ver=AUTHINFO&&AUTHINFO.emailVerif
   return `${ver?'':`<div class="demo">Todavía no verificaste tu mail. ${NET.ADMIN_EMAILS.includes((myEmail||'').toLowerCase())?'Hasta que lo verifiques no se activan tus permisos de admin. ':''}<button class="btn sm" data-a="reverify">Reenviar mail</button></div>`}
     <button class="btn ghost" data-a="logout">Cerrar sesión</button>`}
 async function fbStartAI(){const n=+SET.n,stake=+SET.stake;if(stake>WAL.chips){toast('No te alcanzan las fichas');return}
-  if(SRV()){try{const code=await NET.rooms.createRoom({n,target:+SET.target,flor:SET.flor===true||SET.flor==='true',stake,diff:SET.diff,bots:n-1});await NET.srv.call('salaEmpezar',{code});openTable(code)}catch(e){toast(e.message||'No se pudo armar la partida. Revisá tu conexión.')}return}
-  try{const code=await NET.rooms.createRoom({n,target:+SET.target,flor:SET.flor===true||SET.flor==='true',stake,diff:SET.diff,bots:n-1});
-    await NET.rooms.startRoom(code,(seats,d)=>newMatch({n:d.n,target:d.target,stake:d.stake,flor:d.flor!==false,seats:seats.map(s=>({id:s.id,bot:!!s.bot})),matchId:code+'-'+Date.now().toString(36),diff:d.diff||'medio'}));
+  if(SRV()){try{const code=await NET.rooms.createRoom({n,target:+SET.target,flor:SET.flor===true||SET.flor==='true',falta:+SET.target===30&&SET.falta==='dos'?'dos':'una',stake,diff:SET.diff,bots:n-1});await NET.srv.call('salaEmpezar',{code});openTable(code)}catch(e){toast(e.message||'No se pudo armar la partida. Revisá tu conexión.')}return}
+  try{const code=await NET.rooms.createRoom({n,target:+SET.target,flor:SET.flor===true||SET.flor==='true',falta:+SET.target===30&&SET.falta==='dos'?'dos':'una',stake,diff:SET.diff,bots:n-1});
+    await NET.rooms.startRoom(code,(seats,d)=>newMatch({n:d.n,target:d.target,stake:d.stake,flor:d.flor!==false,falta:d.falta,seats:seats.map(s=>({id:s.id,bot:!!s.bot})),matchId:code+'-'+Date.now().toString(36),diff:d.diff||'medio'}));
     openTable(code)}catch(e){toast('No se pudo armar la partida. Revisá tu conexión.')}}
 
 /* ---------- torneos (web con cuenta). Entrada y premios en fichas: no tienen valor en dinero ---------- */
@@ -1865,7 +1868,7 @@ async function tourStart(){const t=TV&&TV.t;if(!t||tourBusy)return;if(tourConfir
 async function tourCancel(){const t=TV&&TV.t;if(!t||tourBusy)return;if(tourConfirm!=='cancel'){tourConfirm='cancel';render();return}tourConfirm=null;
   try{await NET.tour.cancel(t.id);toast('Torneo cancelado: se devuelven las entradas')}catch(e){toast('No se pudo cancelar')}}
 async function tourPlay(mid){const t=TV&&TV.t;if(!t)return;try{const code=await NET.tour.openMatch(t.id,mid);if(!code){toast('Ese partido ya no está para jugar');return}TOPEN.add(code);openTable(code)}catch(e){toast('No se pudo abrir la partida. Revisá tu conexión.')}}
-const tourBuild=(seats,d)=>newMatch({n:d.n,target:d.target,stake:0,flor:d.flor!==false,seats:seats.map(s=>({id:s.id,bot:!!s.bot})),matchId:d.code+'-'+Date.now().toString(36),diff:d.diff||'dificil'});
+const tourBuild=(seats,d)=>newMatch({n:d.n,target:d.target,stake:0,flor:d.flor!==false,falta:d.falta,seats:seats.map(s=>({id:s.id,bot:!!s.bot})),matchId:d.code+'-'+Date.now().toString(36),diff:d.diff||'dificil'});
 /* la sala de un partido del torneo: se marca quién llegó y arranca sola cuando están todos */
 function tourOnTable(){if(!T||!T.tour||mySeat<0)return;const code=T.code;
   if(T.status==='waiting'){const here=T.here||{};

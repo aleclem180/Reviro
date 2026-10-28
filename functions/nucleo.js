@@ -373,7 +373,7 @@
         let stake = room.tour ? 0 : +room.stake || 0;
         if (stake && on && stake < R.MIN_STAKE) stake = 0;
         const ws = {}; for (const id of ids) ws[id] = walOf(await t.get('wallets/' + id));
-        const g = M.newMatch({ n, target: room.target, stake, flor: room.flor !== false, seats, matchId: code + '-' + ahora().toString(36), diff: room.diff || (room.tour ? 'dificil' : 'medio') });
+        const g = M.newMatch({ n, target: room.target, stake, flor: room.flor !== false, falta: room.falta === 'dos' && room.target === 30 ? 'dos' : 'una', seats, matchId: code + '-' + ahora().toString(36), diff: room.diff || (room.tour ? 'dificil' : 'medio') });
         if (typeof room.skill === 'number' && !stake && seats.some(x => x.bot)) { g.skill = Math.max(0, Math.min(1, room.skill)); g.gira = { boss: !!room.boss, zone: String(room.zone || '').slice(0, 20) }; }   // rivales de La Huella
         g.lastAct = ahora();
         const cobrados = {};

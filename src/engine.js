@@ -18,7 +18,7 @@ function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random
 const clone=o=>JSON.parse(JSON.stringify(o));
 
 function newMatch(o){
-  const g={v:1,seq:0,n:o.n,target:o.target,flor:!!o.flor,seats:o.seats,scores:[0,0],mano:Math.floor(Math.random()*o.n),
+  const g={v:1,seq:0,n:o.n,target:o.target,flor:!!o.flor,falta:o.falta==='dos'?'dos':'una',seats:o.seats,scores:[0,0],mano:Math.floor(Math.random()*o.n),
     handNo:0,log:[],matchOver:null,stake:o.stake||0,matchId:o.matchId,diff:o.diff||'medio',lastAct:Date.now()};
   dealHand(g,true);return g}
 function dealHand(g,first){
@@ -40,7 +40,9 @@ function mustFlor(g,s){const h=g.hand;return g.flor&&!h.flor.done&&!h.flor.pendi
 function canEnvido(g,s){const h=g.hand;return !h.env.done&&!h.flor.pending&&h.results.length===0&&!playedIn0(h,s)&&h.truco.level===1&&!(g.flor&&hasFlor(h.orig[s]))}
 function envidoOptions(chain){if(!chain.length)return['envido','real','falta'];const last=chain[chain.length-1];
   if(last==='falta')return[];if(last==='real')return['falta'];return chain.filter(x=>x==='envido').length<2?['envido','real','falta']:['real','falta']}
-function faltaFor(g,w){const mx=Math.max(g.scores[0],g.scores[1]);if(g.target===30&&mx<15)return g.target-g.scores[w];return g.target-mx}
+/* falta envido: «a una falta» vale lo que le falta al que va ganando para ganar el partido; «a dos faltas» (a 30), en las malas
+   vale lo que le falta para llegar a las buenas y en las buenas, lo que le falta para ganar */
+function faltaFor(g,w){const mx=Math.max(g.scores[0],g.scores[1]);if(g.falta==='dos'&&g.target===30&&mx<15)return 15-mx;return g.target-mx}
 function envWanted(g,chain,w){if(chain.includes('falta'))return faltaFor(g,w);return chain.reduce((s,k)=>s+(k==='envido'?2:3),0)}
 function envNot(chain){if(chain.length===1)return 1;return chain.slice(0,-1).reduce((s,k)=>s+(k==='envido'?2:3),0)}
 function legal(g,s){const h=g.hand,L={play:false,truco:null,envido:[],flor:false,florOpts:[],respond:null,canQuiero:false,mazo:false};
