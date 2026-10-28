@@ -1624,3 +1624,21 @@ body:not([data-view=game]):not([data-view=room]) :is(.mode,.xb,.mz,.tcard,.lesso
   .game .actions{min-height:112px}
   .game .actions .btn{padding:8px 14px;font-size:.98rem}
 }
+/* ---------- anotador de la partida en compu: dos papelitos compactos y centrados ----------
+   El número grande a un costado y los fósforos al lado (espejados para Ellos), como se anota en la mesa. */
+@media (min-width:720px){
+  .game .score{grid-template-columns:minmax(0,270px) auto minmax(0,270px);justify-content:center;align-items:center;gap:14px}
+  .game .score .sc{display:grid;grid-template-columns:auto 1fr;grid-template-areas:"lbl lbl" "num fos";column-gap:14px;row-gap:0;align-items:center;padding:6px 14px 8px}
+  .game .score .sc .lbl{grid-area:lbl}
+  .game .score .sc b{grid-area:num;min-width:1.2ch}
+  .game .score .sc svg{grid-area:fos;justify-self:start;max-width:none}
+  .game .score .sc.them{grid-template-columns:1fr auto;grid-template-areas:"lbl lbl" "fos num";text-align:right}
+  .game .score .sc.them svg{justify-self:end}
+  .game .score .sc.them .lbl{text-align:right}
+  .game .score .mid{text-align:center;line-height:1.25}
+}
+@media (min-width:1180px) and (min-height:720px){
+  .game .score .sc b{font-size:2.2rem}
+  .game .score .mid b{font-size:1.1rem}
+}
+@media (min-width:720px){.game .score .sc svg{height:22px;width:auto}}
