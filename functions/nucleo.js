@@ -23,7 +23,7 @@
     MIN_STAKE: 1000,                         // mesas entre personas: entrada desde 1.000 fichas (o amistosa)
     PREMIO_ONLINE: 60, PREMIO_IA: { facil: 20, medio: 40, dificil: 80 }, PERDER: 5,
     PTS_ONLINE: 30, PTS_IA: { facil: 3, medio: 8, dificil: 15 },
-    DIARIO_MONEDAS: 30, DIARIO_FICHAS: 1000,
+    DIARIO_MONEDAS: 30,
     REF_NEW: 1500, REF_DEFAULT: 2500,
     TURNO_MS: 30000,                         // tiempo para jugar; después juega el bot por vos
     AUSENTE_MS: 45000,                       // sin señal de vida: se lo da por ausente
@@ -35,7 +35,7 @@
     CARGAS: [500, 1000, 5000], LECCIONES: 9, LECCION_MONEDAS: 20,
     ADMIN_EMAILS: ['alejandro.clemente05@gmail.com'],
   };
-  const WAL0 = () => ({ chips: 1000, coins: 150, owned: [], stats: { played: 0, won: 0, streak: 0, best: 0, earned: 0, pts: 0 },
+  const WAL0 = () => ({ chips: 0, coins: 150, owned: [], stats: { played: 0, won: 0, streak: 0, best: 0, earned: 0, pts: 0 },
     daily: '', applied: [], mis: null, ach: { cnt: {}, done: [] }, evk: [], tutPaid: [], tours: {} });
   const STATS0 = { played: 0, wins: 0, losses: 0, winRate: 0, currentStreak: 0, bestStreak: 0 };
 
@@ -142,7 +142,7 @@
           const d0 = hoy();
           if (w.daily !== d0) {
             w.daily = d0;
-            const top = Math.max(0, R.DIARIO_FICHAS - w.chips);
+            const top = 0;   // el premio del día ya no repone fichas
             mover(t, uid, w, { key: 'daily-' + d0, coins: R.DIARIO_MONEDAS, chips: top, tipo: 'premio del día' });
             if (SE) sumarXP(w, SE.xp.diario);
             res = { ok: true, monedas: R.DIARIO_MONEDAS, fichas: top, avisos: eventos(t, uid, w, []) };   // revisa logros (p. ej. el nivel del pase)

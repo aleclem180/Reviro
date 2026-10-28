@@ -195,7 +195,7 @@ prueba('premio del día una vez por día y lecciones pagadas una sola vez', asyn
   const { S, N } = mundo(); await usuario(S, 'a');
   await S.set('wallets/a', { chips: 200, coins: 0, owned: [], applied: [] });
   const r1 = await N.billetera(ctxOf('a'), { op: 'diario' });
-  assert.strictEqual(r1.chips, 1000); assert.strictEqual(r1.coins, 30);
+  assert.strictEqual(r1.chips, 200, 'el premio del día no da fichas'); assert.strictEqual(r1.coins, 30);
   assert((await N.billetera(ctxOf('a'), { op: 'diario' })).ya);
   pasa(24 * 3600e3);
   assert.strictEqual((await N.billetera(ctxOf('a'), { op: 'diario' })).coins, 60);
@@ -267,7 +267,7 @@ prueba('pase de temporada: experiencia jugando, compra con monedas y premios por
   assert(w1.pase && w1.pase.xp >= C.SEASON.xp.partida, 'suma experiencia al terminar la partida');
   await assert.rejects(N.billetera(ctxOf('a'), { op: 'paseCobrar', track: 'prem', l: 1 }), /pase|nivel/);
   // lo llevamos al nivel 6
-  await S.set('wallets/a', Object.assign(w1, { pase: { id: C.SEASON.id, xp: 650, prem: false, cf: [], cp: [] }, coins: 1000 }));
+  await S.set('wallets/a', Object.assign(w1, { pase: { id: C.SEASON.id, xp: 650, prem: false, cf: [], cp: [] }, coins: 4000 }));
   const antes = (await S.get('wallets/a')).coins, fichas0 = (await S.get('wallets/a')).chips;
   await N.billetera(ctxOf('a'), { op: 'paseCobrar', track: 'free', l: 2 });
   await N.billetera(ctxOf('a'), { op: 'paseCobrar', track: 'free', l: 2 });
@@ -278,7 +278,7 @@ prueba('pase de temporada: experiencia jugando, compra con monedas y premios por
   await assert.rejects(N.billetera(ctxOf('a'), { op: 'paseCobrar', track: 'free', l: 10 }), /nivel/);
   await assert.rejects(N.billetera(ctxOf('a'), { op: 'comprar', tipo: 'dorso', id: 'guitarra', moneda: 'monedas' }), /no-se-vende/);
   await N.billetera(ctxOf('a'), { op: 'paseComprar' });
-  assert.strictEqual((await S.get('wallets/a')).coins, 1000 + 20 - C.SEASON.price);
+  assert.strictEqual((await S.get('wallets/a')).coins, 4000 + 20 - C.SEASON.price);
   await N.billetera(ctxOf('a'), { op: 'paseCobrar', track: 'prem', l: 1 });
   assert((await S.get('wallets/a')).owned.includes('dorso:guitarra'));
   assert(C.SEASON.prem.concat(C.SEASON.free).every((r) => r.t !== 'chips'), 'el pase no tiene fichas en ningún camino');

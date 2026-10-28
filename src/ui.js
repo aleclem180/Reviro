@@ -140,7 +140,7 @@ function renderSnd(){const on=!SET.mute;const b=$('#sndbtn');b.setAttribute('ari
   b.innerHTML=`<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6h3l4-3v10l-4-3H2z" fill="var(--ink)"/>${on?'<path d="M11 5.5q2 2.5 0 5M12.6 4q3 4 0 8" stroke="var(--ink)" stroke-width="1.3" fill="none" stroke-linecap="round"/>':'<path d="M11 5.5l4 5M15 5.5l-4 5" stroke="var(--bad)" stroke-width="1.4" stroke-linecap="round"/>'}</svg>`}
 
 /* ---------- billetera: fichas, monedas, cosas compradas ---------- */
-const WAL={chips:1000,coins:150,owned:[],eq:{av:'gaucho',dorso:'pampa',pano:'quincho',kit:'arg'},stats:{played:0,won:0,streak:0,best:0,earned:0},daily:'',applied:[],mis:null,ach:{cnt:{},done:[]},evk:[],tut:[]};
+const WAL={chips:0,coins:150,owned:[],eq:{av:'gaucho',dorso:'pampa',pano:'quincho',kit:'arg'},stats:{played:0,won:0,streak:0,best:0,earned:0},daily:'',applied:[],mis:null,ach:{cnt:{},done:[]},evk:[],tut:[]};
 let walRef=null,walQ=Promise.resolve(),walReady=false;
 const WAL0=JSON.parse(JSON.stringify(WAL));
 /* en la web con cuentas, cada usuario guarda su billetera aparte en este dispositivo */
@@ -177,8 +177,8 @@ async function loadWallet(){try{const l=JSON.parse(localStorage.getItem(walKey()
     if(syncLang())saveWallet();if(!WAL.fcode){WAL.fcode=genFriendCode();saveWallet()}writeLooks();render();return}
   walReady=true;renderWallet();
   const today=new Date().toLocaleDateString('en-CA');
-  /* premio del día: 30 monedas y, si te quedaste corto, las fichas se completan hasta 1.000 */
-  if(WAL.daily!==today){WAL.daily=today;const top=Math.max(0,1000-WAL.chips);await applyTx('daily-'+today,{coins:30,chips:top});paseXP(SEASON.xp.diario);toast('Premio del día: +30 monedas'+(top?` y tus fichas vuelven a 1.000`:''))}
+  /* premio del día: 30 monedas (las fichas no se regalan) */
+  if(WAL.daily!==today){WAL.daily=today;await applyTx('daily-'+today,{coins:30});paseXP(SEASON.xp.diario);toast('Premio del día: +30 monedas')}
   if(syncLang())saveWallet();
   if(!WAL.fcode){WAL.fcode=genFriendCode();saveWallet()}
   if(!WAL.th2){WAL.th2=1;if(WAL.eq.pano==='bordo')WAL.eq.pano='quincho';if(WAL.eq.dorso==='bordo')WAL.eq.dorso='pampa';saveWallet()}

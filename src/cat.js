@@ -107,15 +107,15 @@ const PM=Object.fromEntries(PANOS.map(p=>[p.id,p]));
 /* lo que se gana con el pase y no es un dorso ni un paño: cantos de peña para usar en la mesa y títulos para tu perfil */
 const SREACTS={mate:'¡Pasame el mate!',adentro:'¡Adentro!',aro:'¡Aro, aro, aro!',segunda:'¡Se va la segunda!',zapateo:'¡Zapateá, paisano!',vino:'¡Que traigan el vino!',guitarrazo:'¡Que suene la guitarra!',sapucai:'¡Sapucai!'};
 const TITULOS={guitarrero:'Guitarrero',bombisto:'Bombisto',cantor:'Cantor de peña',bailarin:'Bailarín de chacarera',payador:'Payador',zambero:'Zambero de ley',alma:'Alma de la peña',rey:'Rey de la peña'};
-const SEASON={id:'t1',name:'Temporada de la Peña',start:'2026-10-27',end:'2026-12-31',price:600,levels:50,xpLevel:100,
+const SEASON={id:'t1',name:'Temporada de la Peña',start:'2026-10-27',end:'2026-12-31',price:3000,levels:50,xpLevel:100,
   xp:{partida:20,ganada:15,online:2,mision:40,logro:60,diario:10},
   /* sin fichas: las fichas no se consiguen jugando */
   free:[{l:2,t:'coins',v:20},{l:4,t:'react',v:'mate'},{l:6,t:'coins',v:25},{l:8,t:'titulo',v:'guitarrero'},{l:10,t:'coins',v:30},{l:12,t:'react',v:'adentro'},{l:14,t:'coins',v:35},{l:16,t:'dorso',v:'mate'},
     {l:18,t:'coins',v:40},{l:20,t:'dorso',v:'bombo'},{l:22,t:'coins',v:45},{l:24,t:'titulo',v:'bombisto'},{l:26,t:'coins',v:50},{l:28,t:'react',v:'zapateo'},{l:30,t:'coins',v:55},{l:32,t:'coins',v:60},
     {l:34,t:'titulo',v:'cantor'},{l:36,t:'coins',v:65},{l:38,t:'react',v:'vino'},{l:40,t:'coins',v:70},{l:42,t:'coins',v:75},{l:44,t:'titulo',v:'bailarin'},{l:46,t:'coins',v:80},{l:48,t:'coins',v:90},{l:50,t:'pano',v:'poncho'}],
-  prem:[{l:1,t:'dorso',v:'guitarra'},{l:3,t:'coins',v:40},{l:5,t:'react',v:'aro'},{l:7,t:'coins',v:50},{l:9,t:'titulo',v:'payador'},{l:11,t:'coins',v:60},{l:13,t:'react',v:'segunda'},{l:15,t:'coins',v:70},
-    {l:17,t:'dorso',v:'panuelo'},{l:19,t:'coins',v:80},{l:21,t:'coins',v:80},{l:23,t:'pano',v:'fogon'},{l:25,t:'coins',v:90},{l:27,t:'react',v:'guitarrazo'},{l:29,t:'coins',v:100},{l:31,t:'coins',v:100},
-    {l:33,t:'titulo',v:'zambero'},{l:35,t:'pano',v:'pena'},{l:37,t:'coins',v:110},{l:39,t:'react',v:'sapucai'},{l:41,t:'coins',v:120},{l:43,t:'coins',v:120},{l:45,t:'titulo',v:'alma'},{l:47,t:'coins',v:150},{l:49,t:'titulo',v:'rey'}]};
+  prem:[{l:1,t:'dorso',v:'guitarra'},{l:3,t:'coins',v:200},{l:5,t:'react',v:'aro'},{l:7,t:'coins',v:250},{l:9,t:'titulo',v:'payador'},{l:11,t:'coins',v:300},{l:13,t:'react',v:'segunda'},{l:15,t:'coins',v:350},
+    {l:17,t:'dorso',v:'panuelo'},{l:19,t:'coins',v:400},{l:21,t:'coins',v:400},{l:23,t:'pano',v:'fogon'},{l:25,t:'coins',v:450},{l:27,t:'react',v:'guitarrazo'},{l:29,t:'coins',v:500},{l:31,t:'coins',v:500},
+    {l:33,t:'titulo',v:'zambero'},{l:35,t:'pano',v:'pena'},{l:37,t:'coins',v:550},{l:39,t:'react',v:'sapucai'},{l:41,t:'coins',v:600},{l:43,t:'coins',v:600},{l:45,t:'titulo',v:'alma'},{l:47,t:'coins',v:750},{l:49,t:'titulo',v:'rey'}]};
 const BOSS_PRIZE={ba:['dorso','ombu'],litoral:['pano','ibera'],centro:['dorso','cuarteto'],cuyo:['pano','vinedo'],noa:['dorso','sietecolores'],nea:['pano','monte'],patagonia:['dorso','viento'],tdf:['pano','faro'],malvinas:['dorso','cruzsur']};
 const prizeLabel=p=>p?(p[0]==='dorso'?'el dorso '+DM[p[1]].name:'el paño '+PM[p[1]].name):'';
 /* paquetes de monedas: el más chico es de $ 1.000 */
