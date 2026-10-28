@@ -75,6 +75,9 @@ const DORSOS=[
  {id:'fileteado',name:'Fileteado porteño',price:900,bio:'Rosetón rojo y dorado sobre negro, como los carteles de colectivo.',bg:'radial-gradient(circle at 50% 50%, #e9c46a 0 14%, #c0392b 15% 24%, transparent 25%), repeating-radial-gradient(circle at 50% 50%, transparent 0 4px, rgba(233,196,106,.55) 4px 5px), #111'},
 ];
 DORSOS.push(
+ {id:'aguayo',name:'Aguayo norteño',price:600,bio:'Las franjas tejidas de la Quebrada, con sus rombos de colores.',bg:'#c0392b'},
+ {id:'bandoneon',name:'Bandoneón',price:750,bio:'El fuelle abierto sobre negro de tanguería, para jugar a media luz.',bg:'#1c1a20'},
+ {id:'mburucuya',name:'Mburucuyá',price:850,bio:'La flor del litoral, violeta y blanca, con su corona de filamentos.',bg:'#235443'},
  {id:'ombu',name:'Ombú',boss:'ba',bio:'Premio del jefe de la Llanura del Ombú.',bg:'radial-gradient(circle at 50% 38%, #3e7a38 0 20%, transparent 21%), radial-gradient(circle at 34% 46%, #4c8c44 0 13%, transparent 14%), radial-gradient(circle at 66% 46%, #4c8c44 0 13%, transparent 14%), linear-gradient(#5a3a22,#5a3a22) 50% 78%/10% 28% no-repeat, linear-gradient(#cfe3f0 0 72%, #c9a227 72%)'},
  {id:'cuarteto',name:'Cuarteto',boss:'centro',bio:'Premio del jefe de las Sierras del Cuarteto.',bg:'repeating-linear-gradient(135deg, #e0453a 0 4px, #ffd23f 4px 8px, #3ec1d3 8px 12px, #7a3fa0 12px 16px)'},
  {id:'sietecolores',name:'Siete Colores',boss:'noa',bio:'Premio del jefe de los Cerros de Siete Colores.',bg:'linear-gradient(#c4532d 0 14%,#d9822b 14% 28%,#e8c35a 28% 42%,#8a5a9e 42% 56%,#3f8f6b 56% 70%,#b5302a 70% 84%,#6b3f1e 84%)'},
@@ -99,6 +102,10 @@ const PANOS=[
  {id:'fileteado',name:'Negro fileteado',price:1200,bio:'Negro brillante con volutas de filete en las esquinas.',bg:'radial-gradient(90% 70% at 50% 45%, #2a2426, #121012)',edge:'#e9c46a'},
 ];
 PANOS.push(
+ {id:'potrero',name:'Potrero',price:800,bio:'El pasto y las líneas de cal de la cancha del barrio.',bg:'#3f7a2a',edge:'#2a5a1a'},
+ {id:'hule',name:'Hule de la abuela',price:850,bio:'El mantel plastificado con limones y cerezas de la cocina de siempre.',bg:'#f4efe0',edge:'#c9a21a'},
+ {id:'formica',name:'Mesa de fórmica',price:900,bio:'Celeste de bar de los sesenta, con bumeranes y alguna marca de vaso.',bg:'#9cc9c9',edge:'#2f5a6a'},
+ {id:'salinas',name:'Salinas Grandes',price:1100,bio:'La costra de sal en hexágonos, blanca como la puna al mediodía.',bg:'#eef2f4',edge:'#8aa0aa'},
  {id:'ibera',name:'Esteros del Iberá',boss:'litoral',bio:'Premio del jefe de la Tierra del Chamamé.',bg:'radial-gradient(ellipse 8% 5% at 20% 30%, #6fbf73 98%, transparent), radial-gradient(ellipse 6% 4% at 70% 72%, #6fbf73 98%, transparent), radial-gradient(ellipse 7% 4% at 82% 25%, #f2c6d8 98%, transparent), radial-gradient(90% 70% at 50% 45%, #1f6b6b, #0e3b3d)',edge:'#a7d3c4'},
  {id:'vinedo',name:'Viñedo de altura',boss:'cuyo',bio:'Premio del jefe de los Valles de la Vendimia.',bg:'repeating-linear-gradient(100deg, rgba(70,120,45,.6) 0 6px, transparent 6px 20px), linear-gradient(180deg, #6b3f2a, #3f2416)',edge:'#7b2f4a'},
  {id:'monte',name:'Monte chaqueño',boss:'nea',bio:'Premio del jefe del Monte Impenetrable.',bg:'radial-gradient(circle at 15% 25%, #2f5a1f 0 6%, transparent 7%), radial-gradient(circle at 60% 70%, #2f5a1f 0 8%, transparent 9%), radial-gradient(circle at 85% 30%, #3d6b28 0 7%, transparent 8%), radial-gradient(90% 70% at 50% 45%, #4a6b2a, #243a14)',edge:'#c9a227'},

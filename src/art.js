@@ -114,6 +114,24 @@ const DORSO_ART={
       <path d="M20 40c6-3 14 3 20 0M19 50c6-3 15 3 21 0" fill="none" stroke="#d9cdb4" stroke-width=".6"/>`;
     const notes=`<g fill="#f6c437"><circle cx="11" cy="80" r="1.6"/><path d="M12.4 80V73l4 -1.2v6.6" fill="none" stroke="#f6c437" stroke-width=".7"/><circle cx="16.4" cy="78.6" r="1.6"/><circle cx="47" cy="10" r="1.3"/><path d="M48.2 10V4.6" stroke="#f6c437" stroke-width=".6"/></g>`;
     return{base:FIELD('#7a1f1a'),art:FIELD('#9a2a22')+p+notes,top:''}},
+  /* aguayo del norte: franjas tejidas con rombos y triángulos de colores */
+  aguayo(){const cols=['#c0392b','#f2a516','#2f7a5a','#7a3fa0','#e0453a','#1f4f8a','#f6c437'];let o='';let y=FY0;let k=0;
+    while(y<FY0+FH){const h=k%3===1?9:4.6,c=cols[k%cols.length];o+=`<rect x="${FX0}" y="${y.toFixed(1)}" width="${FW}" height="${h}" fill="${c}"/>`;
+      if(h>5){for(let x=FX0+3;x<FX0+FW;x+=6.4)o+=rhomb(x,y+h/2,5.4,7,cols[(k+3)%cols.length])+rhomb(x,y+h/2,2.2,2.8,'#f4ead2')}
+      else{for(let x=FX0;x<FX0+FW;x+=3.2)o+=`<path d="M${x.toFixed(1)} ${(y+h).toFixed(1)}l1.6 -${h} 1.6 ${h}Z" fill="${cols[(k+2)%cols.length]}" opacity=".85"/>`}
+      y+=h+.6;k++}
+    return{base:FIELD('#2a170b'),art:FIELD('#2a170b')+o,top:''}},
+  /* bandoneón: el fuelle abierto sobre negro de tanguería */
+  bandoneon(){const pl=[];for(let i=0;i<9;i++){const x=17+i*3.25;pl.push(`<path d="M${x.toFixed(2)} 33L${(x+1.6).toFixed(2)} 31.4V58.6L${x.toFixed(2)} 57Z" fill="${i%2?'#7a2a2a':'#a83a32'}" stroke="#e9c46a" stroke-width=".35"/>`)}
+    const caja=(x)=>`<rect x="${x}" y="28" width="9.6" height="34" rx="1.6" fill="#1a1a1e" stroke="#b9a27a" stroke-width=".7"/><g fill="#efe6d2">${[0,1,2,3,4,5].map(r=>[0,1].map(c=>`<circle cx="${(x+3+c*3.6+(r%2)*1.2).toFixed(1)}" cy="${33+r*4.6}" r=".9"/>`).join('')).join('')}</g><rect x="${x+1.4}" y="25.6" width="6.8" height="2.6" rx=".8" fill="#6b4a2a"/>`;
+    const notas=`<g fill="none" stroke="#e9c46a" stroke-width=".7" stroke-linecap="round"><path d="M10 74q8-6 16 0t16 0t14 0" opacity=".6"/></g><g fill="#e9c46a"><circle cx="16" cy="18" r="1.4"/><path d="M17.3 18V12l3-1v5.6" fill="none" stroke="#e9c46a" stroke-width=".6"/><circle cx="20.2" cy="16.6" r="1.4"/></g>`;
+    return{base:FIELD('#141216'),art:FIELD('#1c1a20')+notas+caja(6.6)+pl.join('')+caja(44),top:''}},
+  /* mburucuyá: la flor del litoral, con su corona de filamentos */
+  mburucuya(){let pet='';for(let i=0;i<10;i++){const a=i*36;pet+=`<ellipse cx="30" cy="31" rx="3.6" ry="10" transform="rotate(${a} 30 45)" fill="${i%2?'#f2ecf6':'#e6dcf0'}" stroke="#8a6fa8" stroke-width=".35"/>`}
+    let fil='';for(let i=0;i<36;i++){const a=i/36*Math.PI*2;fil+=`<path d="M${(30+Math.cos(a)*4.6).toFixed(2)} ${(45+Math.sin(a)*4.6).toFixed(2)}L${(30+Math.cos(a)*9.6).toFixed(2)} ${(45+Math.sin(a)*9.6).toFixed(2)}" stroke="${i%2?'#5a2a7a':'#7a4aa8'}" stroke-width=".55"/>`}
+    const centro=`<circle cx="30" cy="45" r="4.6" fill="#f2f0e6"/><circle cx="30" cy="45" r="2" fill="#8fbf5a"/><g stroke="#5e7f2a" stroke-width=".6">${[0,72,144,216,288].map(a=>`<path d="M30 45l${(Math.cos(a*Math.PI/180)*3.6).toFixed(2)} ${(Math.sin(a*Math.PI/180)*3.6).toFixed(2)}"/>`).join('')}</g>`;
+    const hojas=`<path d="M8 80C14 70 20 66 26 66C22 72 16 78 8 80Z" fill="#3f7a3a"/><path d="M52 12C46 20 40 22 34 22C38 16 44 12 52 12Z" fill="#3f7a3a"/><path d="M8 80Q20 70 30 60M52 12Q42 22 36 30" stroke="#2f5a2a" stroke-width=".6" fill="none"/>`;
+    return{base:FIELD('#1f4a3a'),art:FIELD('#235443')+hojas+pet+fil+centro,top:''}},
   cruzsur(){const rn=srand(41);let st='';for(let i=0;i<38;i++)st+=`<circle cx="${(FX0+rn()*FW).toFixed(1)}" cy="${(FY0+rn()*50).toFixed(1)}" r="${(.18+rn()*.35).toFixed(2)}" fill="#f4f0e0"/>`;
     const cz=[[30,10,1.9],[30,30,1.6],[22.4,19.6,1.5],[37.2,21.4,1.3],[33.4,24.6,.8]].map(([x,y,r])=>`<path d="M${x} ${y-r*1.8}L${x+r*.45} ${y-r*.45}L${x+r*1.8} ${y}L${x+r*.45} ${y+r*.45}L${x} ${y+r*1.8}L${x-r*.45} ${y+r*.45}L${x-r*1.8} ${y}L${x-r*.45} ${y-r*.45}Z" fill="#f6e3a0"/>`).join('');
     const sea=`<rect x="${FX0}" y="62" width="${FW}" height="${FY0+FH-62}" fill="#1f3f6a"/><path d="M6 70q4-2 8 0t8 0M30 74q4-2 8 0t8 0M10 80q4-2 8 0t8 0" stroke="#6f93b3" stroke-width=".5" fill="none"/>`;
@@ -125,7 +143,7 @@ const DORSO_ART={
 
 };
 /* en los dorsos oscuros, el dibujo va también debajo en color pleno, así el lápiz suma textura sin lavar los tonos */
-const PSOLID={fogon:.85,cuero:.7,pena:.85,poncho:.8};const DSOLID={mate:.8,panuelo:.75,guitarra:.8,bombo:.6,cruzsur:.85,bordo:.8,marino:.8,cuero:.7,noche:.85,oro:.6,fileteado:.85,cuarteto:.7};
+const PSOLID={potrero:.7,hule:.9,salinas:.9,formica:.9,fogon:.85,cuero:.7,pena:.85,poncho:.8};const DSOLID={aguayo:.85,bandoneon:.85,mburucuya:.8,mate:.8,panuelo:.75,guitarra:.8,bombo:.6,cruzsur:.85,bordo:.8,marino:.8,cuero:.7,noche:.85,oro:.6,fileteado:.85,cuarteto:.7};
 function dorsoSVG(id){const D=(DORSO_ART[id]||DORSO_ART.pampa)();if(DSOLID[id])D.base+=`<g opacity="${DSOLID[id]}">${D.art}</g>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 90" width="240" height="360"><defs>${cardDefs()}<clipPath id="bkc"><rect x="${FX0}" y="${FY0}" width="${FW}" height="${FH}" rx="2.4"/></clipPath>${D.defs||''}</defs>
     <rect x=".5" y=".5" width="59" height="89" rx="4.6" fill="url(#gPapel)" stroke="#b9a27a" stroke-width=".7"/>
@@ -138,6 +156,29 @@ const P0=`<rect width="200" height="200"`;
 function feltArt(c,hi,emb){return{base:`${P0} fill="${c}"/>`,defs:`<radialGradient id="pgl" cx=".5" cy=".46" r=".62"><stop offset="0" stop-color="${hi}" stop-opacity=".9"/><stop offset="1" stop-color="${hi}" stop-opacity="0"/></radialGradient>`,art:`${P0} fill="${c}"/>${P0} fill="url(#pgl)"/>${emb}`}}
 const PANO_ART={
   /* pase: el fogón de la peña, con la ronda de piedras y las brasas */
+  /* potrero: pasto con las líneas de cal de la cancha del barrio */
+  potrero(){const f=feltArt('#3f7a2a','#5a9a3a','');let g='';for(let i=0;i<10;i++)g+=`<rect x="0" y="${i*20}" width="200" height="10" fill="#4a8a32" opacity=".55"/>`;
+    g+=`<g fill="none" stroke="#f4f1e6" stroke-width="2.2" opacity=".85"><rect x="10" y="10" width="180" height="180"/><path d="M10 100H190"/><circle cx="100" cy="100" r="26"/><rect x="60" y="10" width="80" height="30"/><rect x="60" y="160" width="80" height="30"/></g><circle cx="100" cy="100" r="2.6" fill="#f4f1e6"/>`;
+    f.art+=g;return f},
+  /* hule de la abuela: mantel plastificado con limones y cerezas */
+  hule(){let g=`${P0} fill="#f4efe0"/>`;const rn=srand(23);
+    for(let y=0;y<200;y+=25)for(let x=(y/25%2)*25;x<200;x+=50){
+      g+=`<g transform="translate(${x+12} ${y+12}) rotate(${Math.round(rn()*40-20)})"><ellipse rx="7.4" ry="5.4" fill="#f2d33a" stroke="#c9a21a" stroke-width=".8"/><path d="M-7 0l-2 -.6M7 0l2 .6" stroke="#c9a21a" stroke-width="1.2" stroke-linecap="round"/><path d="M1 -5q3 -5 8 -4q-3 4 -8 4z" fill="#5e9a3a"/></g>`;
+      g+=`<g transform="translate(${x+37} ${y+12})"><path d="M-3 2q2 -10 6 -12M3 3q0 -9 0 -13" stroke="#5e7f2a" stroke-width=".9" fill="none"/><circle cx="-3.4" cy="3.6" r="3.6" fill="#c0392b"/><circle cx="3.2" cy="4" r="3.6" fill="#a8261c"/><circle cx="-4.4" cy="2.4" r=".9" fill="#f6b0a6"/></g>`}
+    g+=`<path d="M0 100H200M100 0V200" stroke="#e2d6bc" stroke-width="1.2" opacity=".7"/>`;
+    return{base:`${P0} fill="#f4efe0"/>`,art:g}},
+  /* salinas grandes: la costra de sal en hexágonos bajo un cielo de puna */
+  salinas(){let g=`${P0} fill="#eef2f4"/>`;const rn=srand(31);
+    for(let r=0;r<9;r++)for(let c=0;c<8;c++){const cx=c*28+(r%2)*14,cy=r*24;let d='';for(let k=0;k<6;k++){const a=Math.PI/3*k+Math.PI/6,rr=15+rn()*1.6;d+=(k?'L':'M')+(cx+Math.cos(a)*rr).toFixed(1)+' '+(cy+Math.sin(a)*rr).toFixed(1)}
+      g+=`<path d="${d}Z" fill="${rn()<.5?'#f6f8f9':'#e6ecef'}" stroke="#b9c6cc" stroke-width="1.6" stroke-linejoin="round"/>`}
+    g+=`<rect width="200" height="200" fill="url(#pgl)" opacity=".35"/>`;
+    return{base:`${P0} fill="#eef2f4"/>`,defs:`<radialGradient id="pgl" cx=".5" cy=".46" r=".62"><stop offset="0" stop-color="#ffffff" stop-opacity=".9"/><stop offset="1" stop-color="#cfdbe0" stop-opacity="0"/></radialGradient>`,art:g}},
+  /* mesa de fórmica: celeste de bar de los sesenta, con bumeranes */
+  formica(){let g=`${P0} fill="#9cc9c9"/>`;const rn=srand(57);const cols=['#e9f2ee','#2f5a6a','#e07a4a','#f2d33a'];
+    for(let i=0;i<46;i++){const x=rn()*200,y=rn()*200,a=Math.round(rn()*360),c=cols[i%cols.length];
+      g+=i%3?`<path d="M${x.toFixed(1)} ${y.toFixed(1)}q6 -9 14 -4q-8 -1 -11 7z" fill="${c}" transform="rotate(${a} ${x.toFixed(1)} ${y.toFixed(1)})" opacity=".85"/>`:`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(1+rn()*1.6).toFixed(1)}" fill="${c}"/>`}
+    for(let i=0;i<120;i++)g+=`<circle cx="${(rn()*200).toFixed(1)}" cy="${(rn()*200).toFixed(1)}" r=".6" fill="#2f5a6a" opacity=".35"/>`;
+    return{base:`${P0} fill="#9cc9c9"/>`,art:g}},
   fogon(){const f=feltArt('#2a1a10','#6a3a18','');const rn=srand(97);let g='';
     for(let i=0;i<70;i++){const a=rn()*Math.PI*2,r=40+rn()*55;g+=`<circle cx="${(100+Math.cos(a)*r).toFixed(1)}" cy="${(100+Math.sin(a)*r).toFixed(1)}" r="${(.4+rn()*1.1).toFixed(2)}" fill="${rn()<.5?'#f6c437':'#e0453a'}" opacity="${(.25+rn()*.5).toFixed(2)}"/>`}
     g+=`<circle cx="100" cy="100" r="40" fill="#f08a2a" opacity=".22"/>`;
@@ -224,8 +265,8 @@ function artPump(){if(ARTBUSY||!ARTQ.length)return;ARTBUSY=true;const [k,kind,id
 /* lo que usan las pantallas */
 const backBg=id=>{const d=DM[id]?id:'pampa';return `${artVar('dorso',d)} center/100% 100% no-repeat, ${DBASE[d]||'#6e1f33'}`};
 const panoBg=id=>{const p=PM[id]?id:'quincho';return `${artVar('pano',p)} center/cover no-repeat, ${PBASE[p]||'#3a2416'}`};
-const DBASE={pampa:'#efe0bf',bordo:'#6e1f33',marino:'#1d2f57',cuero:'#8a5530',celeste:'#74acdf',noche:'#0f1638',oro:'#d9a84a',fileteado:'#141113',ombu:'#cfe3f0',cuarteto:'#7a3fa0',sietecolores:'#d9822b',viento:'#dde9f1',cruzsur:'#13254a',guitarra:'#5e1a2b',bombo:'#c4532d',mate:'#4f6b2a',panuelo:'#9a2a22'};
-const PBASE={cuero:'#6e4024',quincho:'#6b4224',cuerovaca:'#e6dccb',bordo:'#561a2e',verde:'#1a5e3e',azul:'#1c3566',petroleo:'#17545c',bodegon:'#efe6d6',fileteado:'#121012',ibera:'#195a5a',vinedo:'#5e3624',monte:'#1e3010',faro:'#0a1428',pena:'#1d3b3a',poncho:'#a8201a',fogon:'#2a1a10'};
+const DBASE={pampa:'#efe0bf',bordo:'#6e1f33',marino:'#1d2f57',cuero:'#8a5530',celeste:'#74acdf',noche:'#0f1638',oro:'#d9a84a',fileteado:'#141113',ombu:'#cfe3f0',cuarteto:'#7a3fa0',sietecolores:'#d9822b',viento:'#dde9f1',cruzsur:'#13254a',aguayo:'#2a170b',bandoneon:'#141216',mburucuya:'#1f4a3a',guitarra:'#5e1a2b',bombo:'#c4532d',mate:'#4f6b2a',panuelo:'#9a2a22'};
+const PBASE={cuero:'#6e4024',quincho:'#6b4224',cuerovaca:'#e6dccb',bordo:'#561a2e',verde:'#1a5e3e',azul:'#1c3566',petroleo:'#17545c',bodegon:'#efe6d6',fileteado:'#121012',ibera:'#195a5a',vinedo:'#5e3624',monte:'#1e3010',faro:'#0a1428',pena:'#1d3b3a',poncho:'#a8201a',fogon:'#2a1a10',potrero:'#3f7a2a',hule:'#f4efe0',salinas:'#eef2f4',formica:'#9cc9c9'};
 
 /* ===== íconos de Extra: dibujos a lápiz de color, como los dorsos y el mapa =====
    Cuadro de 120 × 120 con fondo transparente. "art" se colorea con el filtro de lápiz; "ink" es el trazo de tinta

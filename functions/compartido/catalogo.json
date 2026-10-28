@@ -171,6 +171,24 @@
    "season": null
   },
   {
+   "id": "aguayo",
+   "price": 600,
+   "boss": null,
+   "season": null
+  },
+  {
+   "id": "bandoneon",
+   "price": 750,
+   "boss": null,
+   "season": null
+  },
+  {
+   "id": "mburucuya",
+   "price": 850,
+   "boss": null,
+   "season": null
+  },
+  {
    "id": "ombu",
    "price": 0,
    "boss": "ba",
@@ -277,6 +295,30 @@
   {
    "id": "fileteado",
    "price": 1200,
+   "boss": null,
+   "season": null
+  },
+  {
+   "id": "potrero",
+   "price": 800,
+   "boss": null,
+   "season": null
+  },
+  {
+   "id": "hule",
+   "price": 850,
+   "boss": null,
+   "season": null
+  },
+  {
+   "id": "formica",
+   "price": 900,
+   "boss": null,
+   "season": null
+  },
+  {
+   "id": "salinas",
+   "price": 1100,
    "boss": null,
    "season": null
   },
