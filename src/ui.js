@@ -511,7 +511,7 @@ const iconTile=(attrs,ic,su,t,d)=>`<button type="button" class="mode ic s${su}" 
 /* el pase de temporada en Extra: tarjeta destacada con el nivel, la barra y lo que hay para cobrar */
 /* inicio: las opciones de juego como tres naipes grandes, con el dibujo a lápiz de cada una */
 /* naipe del inicio: marco de carta española, el dibujo en su ventana y el título en una cinta */
-const naipeTile=(attrs,ic,su,t,d,cls='')=>`<button type="button" class="naipe s${su} n-${ic} ${cls}" ${attrs} aria-label="${t}"><span class="nfr"><span class="nart"><img src="${INICIO_IMG[ic]||iconSrc(ic)}" alt="" aria-hidden="true" decoding="async"></span><b>${t}</b></span><i class="nesq tl" aria-hidden="true"></i><i class="nesq br" aria-hidden="true"></i></button>`;
+const naipeTile=(attrs,ic,su,t,d,cls='')=>`<button type="button" class="naipe nfull n-${ic} ${cls}" ${attrs} aria-label="${t}"><img src="${INICIO_IMG[ic]}" alt="" aria-hidden="true" decoding="async"><span class="vh">${t}</span></button>`;
 /* barra de extras del inicio; el aviso avisa de misiones y logros recién cumplidos (el premio ya se acreditó) */
 function doneKeys(){ensureMissions();return WAL.mis.done.map(id=>'m:'+WAL.mis.date+':'+id).concat(WAL.ach.done.map(id=>'a:'+id))}
 function newDone(){const k=doneKeys();if(!Array.isArray(SET.seenDone)){SET.seenDone=WAL.ach.done.map(id=>'a:'+id);saveSet()}return k.filter(x=>!SET.seenDone.includes(x)).length}
