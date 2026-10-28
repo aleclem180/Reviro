@@ -98,6 +98,22 @@ const DORSO_ART={
       <ellipse cx="30" cy="38" rx="16" ry="6.2" fill="#3b2010"/><ellipse cx="30" cy="38" rx="14.2" ry="5" fill="#efdcb2"/><path d="M19 37q11 4.4 22 0" stroke="#d6bf8a" stroke-width=".5" fill="none"/>`;
     const sticks=`<path d="M17 18L30.6 35M43 18L29.4 35" stroke="#3b2010" stroke-width="1.6" stroke-linecap="round"/><circle cx="16.4" cy="17.2" r="2.3" fill="#efdcb2" stroke="#3b2010" stroke-width=".6"/><circle cx="43.6" cy="17.2" r="2.3" fill="#efdcb2" stroke="#3b2010" stroke-width=".6"/>`;
     return{base:FIELD('#b2462a'),art:FIELD('#c4532d')+band+drum+sticks,top:''}},
+  /* pase: el mate con su bombilla, sobre verde yerba */
+  mate(){const rn=srand(83);let y='';for(let i=0;i<60;i++)y+=`<path d="M${(FX0+rn()*FW).toFixed(1)} ${(FY0+rn()*FH).toFixed(1)}l${(rn()*1.6-.8).toFixed(2)} ${(rn()*1.2).toFixed(2)}" stroke="#a9c46a" stroke-width=".5" stroke-linecap="round"/>`;
+    const gourd=`<path d="M19 44C17 52 18.6 64 24 69.6C27.6 73 32.4 73 36 69.6C41.4 64 43 52 41 44Z" fill="#8a5530" stroke="#3b2010" stroke-width=".9"/>
+      <path d="M22 50C21.4 56 23 63 26 67" fill="none" stroke="#b97c48" stroke-width="1.4" stroke-linecap="round"/>
+      <path d="M18 41.6H42V45.4H18Z" fill="#c9a24a" stroke="#6b4a12" stroke-width=".6"/><path d="M20 43.5h20" stroke="#f1d27a" stroke-width=".4" stroke-dasharray="1 1.2"/>
+      <ellipse cx="30" cy="41.8" rx="11.6" ry="2.4" fill="#4f6b2a"/><ellipse cx="28" cy="41.4" rx="5" ry="1" fill="#7a9a3f"/>`;
+    const bomb=`<path d="M33 41L41 12.4" stroke="#c9ced3" stroke-width="1.5" stroke-linecap="round"/><path d="M41 12.4L43 9.6" stroke="#8a9096" stroke-width="2" stroke-linecap="round"/><path d="M34 37.6l1.4-5" stroke="#f2f4f6" stroke-width=".4"/>`;
+    const steam=`<path d="M24 36q-2-3 0-6t0-6M28 34q-2-3 0-6t0-6" fill="none" stroke="#f1e3c3" stroke-width=".7" stroke-linecap="round" opacity=".7"/>`;
+    return{base:FIELD('#3e5a22'),art:FIELD('#4f6b2a')+y+steam+gourd+bomb,top:''}},
+  /* pase: el pañuelo de la zamba, blanco con guarda roja, en el aire */
+  panuelo(){const p=`<path d="M12 22C22 14 34 26 46 18C48 32 44 48 48 66C36 72 24 60 12 68C14 52 10 38 12 22Z" fill="#f6f1e6" stroke="#6b1a14" stroke-width=".8"/>
+      <path d="M15 25C24 18.6 34 29 43.4 22.4C45 34 41.6 48 45 63.4C35 68 24.6 58 15 64.4C16.6 50.6 13.4 38 15 25Z" fill="none" stroke="#c0392b" stroke-width="1.6"/>
+      <path d="M17.6 28C25 23 34 31 41 26.6" fill="none" stroke="#c0392b" stroke-width=".5" stroke-dasharray="1.2 1"/>
+      <path d="M20 40c6-3 14 3 20 0M19 50c6-3 15 3 21 0" fill="none" stroke="#d9cdb4" stroke-width=".6"/>`;
+    const notes=`<g fill="#f6c437"><circle cx="11" cy="80" r="1.6"/><path d="M12.4 80V73l4 -1.2v6.6" fill="none" stroke="#f6c437" stroke-width=".7"/><circle cx="16.4" cy="78.6" r="1.6"/><circle cx="47" cy="10" r="1.3"/><path d="M48.2 10V4.6" stroke="#f6c437" stroke-width=".6"/></g>`;
+    return{base:FIELD('#7a1f1a'),art:FIELD('#9a2a22')+p+notes,top:''}},
   cruzsur(){const rn=srand(41);let st='';for(let i=0;i<38;i++)st+=`<circle cx="${(FX0+rn()*FW).toFixed(1)}" cy="${(FY0+rn()*50).toFixed(1)}" r="${(.18+rn()*.35).toFixed(2)}" fill="#f4f0e0"/>`;
     const cz=[[30,10,1.9],[30,30,1.6],[22.4,19.6,1.5],[37.2,21.4,1.3],[33.4,24.6,.8]].map(([x,y,r])=>`<path d="M${x} ${y-r*1.8}L${x+r*.45} ${y-r*.45}L${x+r*1.8} ${y}L${x+r*.45} ${y+r*.45}L${x} ${y+r*1.8}L${x-r*.45} ${y+r*.45}L${x-r*1.8} ${y}L${x-r*.45} ${y-r*.45}Z" fill="#f6e3a0"/>`).join('');
     const sea=`<rect x="${FX0}" y="62" width="${FW}" height="${FY0+FH-62}" fill="#1f3f6a"/><path d="M6 70q4-2 8 0t8 0M30 74q4-2 8 0t8 0M10 80q4-2 8 0t8 0" stroke="#6f93b3" stroke-width=".5" fill="none"/>`;
@@ -109,7 +125,7 @@ const DORSO_ART={
 
 };
 /* en los dorsos oscuros, el dibujo va también debajo en color pleno, así el lápiz suma textura sin lavar los tonos */
-const PSOLID={cuero:.7,pena:.85,poncho:.8};const DSOLID={guitarra:.8,bombo:.6,cruzsur:.85,bordo:.8,marino:.8,cuero:.7,noche:.85,oro:.6,fileteado:.85,cuarteto:.7};
+const PSOLID={fogon:.85,cuero:.7,pena:.85,poncho:.8};const DSOLID={mate:.8,panuelo:.75,guitarra:.8,bombo:.6,cruzsur:.85,bordo:.8,marino:.8,cuero:.7,noche:.85,oro:.6,fileteado:.85,cuarteto:.7};
 function dorsoSVG(id){const D=(DORSO_ART[id]||DORSO_ART.pampa)();if(DSOLID[id])D.base+=`<g opacity="${DSOLID[id]}">${D.art}</g>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 90" width="240" height="360"><defs>${cardDefs()}<clipPath id="bkc"><rect x="${FX0}" y="${FY0}" width="${FW}" height="${FH}" rx="2.4"/></clipPath>${D.defs||''}</defs>
     <rect x=".5" y=".5" width="59" height="89" rx="4.6" fill="url(#gPapel)" stroke="#b9a27a" stroke-width=".7"/>
@@ -121,6 +137,13 @@ function dorsoSVG(id){const D=(DORSO_ART[id]||DORSO_ART.pampa)();if(DSOLID[id])D
 const P0=`<rect width="200" height="200"`;
 function feltArt(c,hi,emb){return{base:`${P0} fill="${c}"/>`,defs:`<radialGradient id="pgl" cx=".5" cy=".46" r=".62"><stop offset="0" stop-color="${hi}" stop-opacity=".9"/><stop offset="1" stop-color="${hi}" stop-opacity="0"/></radialGradient>`,art:`${P0} fill="${c}"/>${P0} fill="url(#pgl)"/>${emb}`}}
 const PANO_ART={
+  /* pase: el fogón de la peña, con la ronda de piedras y las brasas */
+  fogon(){const f=feltArt('#2a1a10','#6a3a18','');const rn=srand(97);let g='';
+    for(let i=0;i<70;i++){const a=rn()*Math.PI*2,r=40+rn()*55;g+=`<circle cx="${(100+Math.cos(a)*r).toFixed(1)}" cy="${(100+Math.sin(a)*r).toFixed(1)}" r="${(.4+rn()*1.1).toFixed(2)}" fill="${rn()<.5?'#f6c437':'#e0453a'}" opacity="${(.25+rn()*.5).toFixed(2)}"/>`}
+    g+=`<circle cx="100" cy="100" r="40" fill="#f08a2a" opacity=".22"/>`;
+    for(let i=0;i<14;i++){const a=i/14*Math.PI*2;g+=`<ellipse cx="${(100+Math.cos(a)*30).toFixed(1)}" cy="${(100+Math.sin(a)*30).toFixed(1)}" rx="6" ry="4.6" transform="rotate(${(a*180/Math.PI).toFixed(0)} ${(100+Math.cos(a)*30).toFixed(1)} ${(100+Math.sin(a)*30).toFixed(1)})" fill="#6b6259" stroke="#2a221c" stroke-width=".8"/>`}
+    g+=`<path d="M86 108L114 92M86 92L114 108" stroke="#4a2a12" stroke-width="5" stroke-linecap="round"/><path d="M100 82C92 92 92 104 100 112C108 104 108 92 100 82Z" fill="#f6c437"/><path d="M100 90C96 96 96 104 100 108C104 104 104 96 100 90Z" fill="#fff1c4"/><path d="M92 92C88 98 90 106 95 110M108 92C112 98 110 106 105 110" fill="none" stroke="#e0453a" stroke-width="2.4" stroke-linecap="round"/>`;
+    f.art+=g;return f},
   pena(){const f=feltArt('#1d3b3a','#2f5a58','');const cols=['#f6c437','#e0453a','#74acdf','#f1e3c3','#6fbf73'];let g='';
     for(const [y0,dir] of [[14,1],[186,-1]]){g+=`<path d="M-4 ${y0}Q50 ${y0+dir*16} 100 ${y0+dir*6}T204 ${y0}" fill="none" stroke="#0b1414" stroke-width="1"/>`;
       for(let i=0;i<9;i++){const x=10+i*22.5,t=(x+4)/208,yy=y0+dir*(Math.sin(t*Math.PI*2)*5+8*(1-Math.abs(2*t-1)));const c=cols[i%cols.length];
@@ -201,8 +224,8 @@ function artPump(){if(ARTBUSY||!ARTQ.length)return;ARTBUSY=true;const [k,kind,id
 /* lo que usan las pantallas */
 const backBg=id=>{const d=DM[id]?id:'pampa';return `${artVar('dorso',d)} center/100% 100% no-repeat, ${DBASE[d]||'#6e1f33'}`};
 const panoBg=id=>{const p=PM[id]?id:'quincho';return `${artVar('pano',p)} center/cover no-repeat, ${PBASE[p]||'#3a2416'}`};
-const DBASE={pampa:'#efe0bf',bordo:'#6e1f33',marino:'#1d2f57',cuero:'#8a5530',celeste:'#74acdf',noche:'#0f1638',oro:'#d9a84a',fileteado:'#141113',ombu:'#cfe3f0',cuarteto:'#7a3fa0',sietecolores:'#d9822b',viento:'#dde9f1',cruzsur:'#13254a',guitarra:'#5e1a2b',bombo:'#c4532d'};
-const PBASE={cuero:'#6e4024',quincho:'#6b4224',cuerovaca:'#e6dccb',bordo:'#561a2e',verde:'#1a5e3e',azul:'#1c3566',petroleo:'#17545c',bodegon:'#efe6d6',fileteado:'#121012',ibera:'#195a5a',vinedo:'#5e3624',monte:'#1e3010',faro:'#0a1428',pena:'#1d3b3a',poncho:'#a8201a'};
+const DBASE={pampa:'#efe0bf',bordo:'#6e1f33',marino:'#1d2f57',cuero:'#8a5530',celeste:'#74acdf',noche:'#0f1638',oro:'#d9a84a',fileteado:'#141113',ombu:'#cfe3f0',cuarteto:'#7a3fa0',sietecolores:'#d9822b',viento:'#dde9f1',cruzsur:'#13254a',guitarra:'#5e1a2b',bombo:'#c4532d',mate:'#4f6b2a',panuelo:'#9a2a22'};
+const PBASE={cuero:'#6e4024',quincho:'#6b4224',cuerovaca:'#e6dccb',bordo:'#561a2e',verde:'#1a5e3e',azul:'#1c3566',petroleo:'#17545c',bodegon:'#efe6d6',fileteado:'#121012',ibera:'#195a5a',vinedo:'#5e3624',monte:'#1e3010',faro:'#0a1428',pena:'#1d3b3a',poncho:'#a8201a',fogon:'#2a1a10'};
 
 /* ===== íconos de Extra: dibujos a lápiz de color, como los dorsos y el mapa =====
    Cuadro de 120 × 120 con fondo transparente. "art" se colorea con el filtro de lápiz; "ink" es el trazo de tinta

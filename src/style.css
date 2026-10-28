@@ -1514,3 +1514,23 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
 .pg-shop .item .iopen{gap:3px}.pg-shop .item{gap:4px}
 .pg-shop .item .iopen>b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.95rem}
 .pg-shop .item>.btn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}.pg-shop .item>.btn .chip{flex:none}
+/* pase: cantos y títulos */
+.pase2 .pcanto i,.pase2 .ptit i{font-style:normal;font-size:1.3rem;line-height:1}
+.pase2 .pcanto b,.pase2 .ptit b{font-size:.7rem;line-height:1.15;font-weight:700;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pase2 .pcanto b{font-style:italic}
+.pase2 .ptit b{font-family:var(--f-display);font-size:.8rem;color:#f0c548}
+/* elegir título */
+.prof .titbtn{width:auto;margin-top:4px;align-self:flex-start}
+.tpanel2 .titlist{display:flex;flex-direction:column;gap:6px;max-height:50dvh;overflow:auto}
+.titrow{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:2px;padding:9px 12px;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.18)}
+.titrow b{font-family:var(--f-display);font-size:1.05rem}.titrow small{color:var(--muted);font-size:.78rem}
+.titrow.on{border-color:var(--brass);background:rgba(217,164,65,.12)}.titrow:focus-visible{outline:2px solid var(--coin);outline-offset:2px}
+.pase2 .pvis.pitem b,.pase2 .pvis.pcanto b{font-size:.72rem;line-height:1.15}
+.pase2 .pvis.ptit b{font-size:.82rem;line-height:1.1}
+/* hitos (dorsos, paños): rombo detrás del número, que queda derecho */
+.pase2 .pn.hito{transform:none;border-radius:50%;font-size:.74rem;background:transparent!important;box-shadow:none!important;width:28px;height:28px}
+.pase2 .pn.hito::after{content:none}
+.pase2 .pn.hito::before{content:'';position:absolute;inset:3px;transform:rotate(45deg);border-radius:4px;background:#2a1a10;box-shadow:0 0 0 2px rgba(240,197,72,.6);z-index:-1}
+.pase2 .pn.hito.on::before{background:#f0c548;box-shadow:0 0 0 2px #8a5a12}
+.pase2 .pn.hito.next::before{box-shadow:0 0 0 2px #f0c548}
+.pase2 .pn{isolation:isolate}

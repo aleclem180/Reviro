@@ -75,6 +75,8 @@ DORSOS.push(
 /* del pase de temporada (no se venden en la tienda) */
 DORSOS.push(
  {id:'guitarra',name:'Guitarra criolla',season:'t1',lvl:1,bio:'Pase de la Peña: una criolla con el fileteado en la boca, sobre bordó.',bg:'radial-gradient(ellipse 22% 16% at 50% 62%, #d9a05b 96%, transparent), radial-gradient(ellipse 16% 12% at 50% 40%, #d9a05b 96%, transparent), #5e1a2b'},
+ {id:'mate',name:'Mate amargo',season:'t1',lvl:16,bg:'#4f6b2a',bio:'Pase de la Peña: el mate con su bombilla, para la ronda que no se corta.'},
+ {id:'panuelo',name:'Pañuelo de zamba',season:'t1',lvl:17,bg:'#9a2a22',bio:'Pase de la Peña: el pañuelo blanco con su guarda roja, revoleado en la zamba.'},
  {id:'bombo',name:'Bombo legüero',season:'t1',lvl:20,bio:'Pase de la Peña: el bombo que se escucha a una legua, con sus palillos.',bg:'radial-gradient(circle at 50% 50%, #f1e3c3 0 20%, #7a4b28 21% 30%, transparent 31%), repeating-linear-gradient(90deg, #c4532d 0 6px, #2a170b 6px 8px)'});
 const DM=Object.fromEntries(DORSOS.map(d=>[d.id,d]));
 const PANOS=[
@@ -94,6 +96,7 @@ PANOS.push(
  {id:'monte',name:'Monte chaqueño',boss:'nea',bio:'Premio del jefe del Monte Impenetrable.',bg:'radial-gradient(circle at 15% 25%, #2f5a1f 0 6%, transparent 7%), radial-gradient(circle at 60% 70%, #2f5a1f 0 8%, transparent 9%), radial-gradient(circle at 85% 30%, #3d6b28 0 7%, transparent 8%), radial-gradient(90% 70% at 50% 45%, #4a6b2a, #243a14)',edge:'#c9a227'},
  {id:'faro',name:'Noche del faro',boss:'tdf',bio:'Premio del jefe del Último Faro.',bg:'conic-gradient(from 200deg at 85% 15%, rgba(255,240,180,.35) 0deg 18deg, transparent 18deg), radial-gradient(90% 70% at 50% 45%, #1b2f55, #0a1428)',edge:'#f2d27a'});
 PANOS.push(
+ {id:'fogon',name:'Fogón',season:'t1',lvl:23,bg:'#2a1a10',bio:'Pase de la Peña: la ronda de piedras, las brasas y la noche alrededor.',edge:'#6a3a18'},
  {id:'pena',name:'Patio de peña',season:'t1',lvl:35,bio:'Pase de la Peña: farolitos colgados sobre el patio, para la última de la noche.',bg:'radial-gradient(circle at 20% 12%, #f6c437 0 2%, transparent 3%), radial-gradient(circle at 50% 8%, #e0453a 0 2%, transparent 3%), radial-gradient(circle at 80% 12%, #74acdf 0 2%, transparent 3%), radial-gradient(90% 70% at 50% 50%, #1d3b3a, #0d2120)',edge:'#f6c437'},
  {id:'poncho',name:'Poncho salteño',season:'t1',lvl:50,bio:'Pase de la Peña: rojo punzó con las guardas negras del poncho de Güemes.',bg:'linear-gradient(#1a0d08 0 6%, #a8201a 6% 94%, #1a0d08 94%)',edge:'#1a0d08'});
 const PM=Object.fromEntries(PANOS.map(p=>[p.id,p]));
@@ -101,15 +104,18 @@ const PM=Object.fromEntries(PANOS.map(p=>[p.id,p]));
    Se sube de nivel jugando (cada nivel son 100 puntos de experiencia). El camino gratis da fichas, monedas y cosas;
    el pase de la temporada se compra con monedas y suma más premios. Las monedas nunca se convierten en fichas:
    por eso el camino del pase no da fichas. */
-const SEASON=(()=>{const free=[],prem=[];
-  /* camino gratis (niveles pares): fichas y monedas que van creciendo; el bombo en el 20 y el poncho al final */
-  for(let l=2;l<=50;l+=2){if(l===20)free.push({l,t:'dorso',v:'bombo'});else if(l===50)free.push({l,t:'pano',v:'poncho'});
-    else if(l%4===2)free.push({l,t:'chips',v:300+(l-2)/4*100});else free.push({l,t:'coins',v:20+(l/4-1)*5})}
-  /* camino del pase (niveles impares): la guitarra al empezar, el patio de peña en el 35 y monedas; nunca fichas */
-  for(let l=1;l<50;l+=2){if(l===1)prem.push({l,t:'dorso',v:'guitarra'});else if(l===35)prem.push({l,t:'pano',v:'pena'});
-    else prem.push({l,t:'coins',v:40+Math.floor((l-3)/2)*3})}
-  return {id:'t1',name:'Temporada de la Peña',start:'2026-10-27',end:'2026-12-31',price:600,levels:50,xpLevel:100,
-    xp:{partida:20,ganada:15,online:2,mision:40,logro:60,diario:10},free,prem}})();
+/* lo que se gana con el pase y no es un dorso ni un paño: cantos de peña para usar en la mesa y títulos para tu perfil */
+const SREACTS={mate:'¡Pasame el mate!',adentro:'¡Adentro!',aro:'¡Aro, aro, aro!',segunda:'¡Se va la segunda!',zapateo:'¡Zapateá, paisano!',vino:'¡Que traigan el vino!',guitarrazo:'¡Que suene la guitarra!',sapucai:'¡Sapucai!'};
+const TITULOS={guitarrero:'Guitarrero',bombisto:'Bombisto',cantor:'Cantor de peña',bailarin:'Bailarín de chacarera',payador:'Payador',zambero:'Zambero de ley',alma:'Alma de la peña',rey:'Rey de la peña'};
+const SEASON={id:'t1',name:'Temporada de la Peña',start:'2026-10-27',end:'2026-12-31',price:600,levels:50,xpLevel:100,
+  xp:{partida:20,ganada:15,online:2,mision:40,logro:60,diario:10},
+  /* sin fichas: las fichas no se consiguen jugando */
+  free:[{l:2,t:'coins',v:20},{l:4,t:'react',v:'mate'},{l:6,t:'coins',v:25},{l:8,t:'titulo',v:'guitarrero'},{l:10,t:'coins',v:30},{l:12,t:'react',v:'adentro'},{l:14,t:'coins',v:35},{l:16,t:'dorso',v:'mate'},
+    {l:18,t:'coins',v:40},{l:20,t:'dorso',v:'bombo'},{l:22,t:'coins',v:45},{l:24,t:'titulo',v:'bombisto'},{l:26,t:'coins',v:50},{l:28,t:'react',v:'zapateo'},{l:30,t:'coins',v:55},{l:32,t:'coins',v:60},
+    {l:34,t:'titulo',v:'cantor'},{l:36,t:'coins',v:65},{l:38,t:'react',v:'vino'},{l:40,t:'coins',v:70},{l:42,t:'coins',v:75},{l:44,t:'titulo',v:'bailarin'},{l:46,t:'coins',v:80},{l:48,t:'coins',v:90},{l:50,t:'pano',v:'poncho'}],
+  prem:[{l:1,t:'dorso',v:'guitarra'},{l:3,t:'coins',v:40},{l:5,t:'react',v:'aro'},{l:7,t:'coins',v:50},{l:9,t:'titulo',v:'payador'},{l:11,t:'coins',v:60},{l:13,t:'react',v:'segunda'},{l:15,t:'coins',v:70},
+    {l:17,t:'dorso',v:'panuelo'},{l:19,t:'coins',v:80},{l:21,t:'coins',v:80},{l:23,t:'pano',v:'fogon'},{l:25,t:'coins',v:90},{l:27,t:'react',v:'guitarrazo'},{l:29,t:'coins',v:100},{l:31,t:'coins',v:100},
+    {l:33,t:'titulo',v:'zambero'},{l:35,t:'pano',v:'pena'},{l:37,t:'coins',v:110},{l:39,t:'react',v:'sapucai'},{l:41,t:'coins',v:120},{l:43,t:'coins',v:120},{l:45,t:'titulo',v:'alma'},{l:47,t:'coins',v:150},{l:49,t:'titulo',v:'rey'}]};
 const BOSS_PRIZE={ba:['dorso','ombu'],litoral:['pano','ibera'],centro:['dorso','cuarteto'],cuyo:['pano','vinedo'],noa:['dorso','sietecolores'],nea:['pano','monte'],patagonia:['dorso','viento'],tdf:['pano','faro'],malvinas:['dorso','cruzsur']};
 const prizeLabel=p=>p?(p[0]==='dorso'?'el dorso '+DM[p[1]].name:'el paño '+PM[p[1]].name):'';
 /* paquetes de monedas: el más chico es de $ 1.000 */

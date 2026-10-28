@@ -493,7 +493,7 @@ function playHTML(){const remembered=(()=>{try{return localStorage.getItem('revi
   const sum=`${SET.n==4?'2 contra 2':'Mano a mano'} · ${dz} · a ${SET.target} · ${SET.flor===false||SET.flor==='false'?'sin flor':'con flor'}${+SET.stake?` · ${fmt(SET.stake)} fichas`:''}`;
   const openT=(TOURS||[]).filter(t=>t.status==='open'&&!tClosed(t)).length,nOpen=lobby.filter(t=>!t.tour&&Date.now()-(t.created||0)<3*3600e3).length;
   const st=(FB&&MYUSER&&MYUSER.stats)||null,cz=[...ZONES].reverse().find(zoneOpen)||ZONES[0];
-  return `<section class="phead"><button type="button" class="pav" data-a="nav" data-v="shop" aria-label="Cambiar personaje">${avatarSVG(myAv(),54)}</button><div><b>${esc(myDisp())}</b><small>${esc(titleOf(WAL.copas||0))}${st&&st.played?` · ${st.played} partidas online · ${Math.round(st.winRate*100)}% ganadas`:''}</small></div><button type="button" class="btn sm ghost" data-a="nav" data-v="profile">Perfil</button></section>
+  return `<section class="phead"><button type="button" class="pav" data-a="nav" data-v="shop" aria-label="Cambiar personaje">${avatarSVG(myAv(),54)}</button><div><b>${esc(myDisp())}</b><small>${esc(myTitulo())}${st&&st.played?` · ${st.played} partidas online · ${Math.round(st.winRate*100)}% ganadas`:''}</small></div><button type="button" class="btn sm ghost" data-a="nav" data-v="profile">Perfil</button></section>
   ${remembered&&onlineOk?`<button type="button" class="rowb hot slim" data-a="rejoin" data-code="${esc(remembered)}"><b>Volver a la mesa ${esc(remembered)}</b><small>Tu partida sigue ahí</small></button>`:''}
   <section class="deal home">${fileteHTML()}
     <div class="naipes">
@@ -647,7 +647,7 @@ function profileHTML(){const a=AVM[WAL.eq.av]||AVM.gaucho,st=WAL.stats,pct=st.pl
       <button type="button" class="mz" data-a="shopgo" data-v="pano"><span class="swatch pano-${Pn.id}" style="background:${panoBg(Pn.id)};border-color:${Pn.edge}">${cardHTML('3O')}</span><b>${esc(Pn.name)}</b><small>Paño</small></button></div>
     <button class="btn" data-a="nav" data-v="shop">Ir a la tienda</button></section>`;
   return phd('Perfil','<button type="button" class="btn sm ghost" data-a="nav" data-v="settings">Ajustes</button>')+`
-  <section class="prof">${avatarSVG(myAv(),84,true)}<div><h2>${esc(myDisp())}${PREMIUM?' <span class="prem">Premium</span>':''}</h2><p>${esc(a.name)}${myEmail?' · '+esc(myEmail):''}</p>
+  <section class="prof">${avatarSVG(myAv(),84,true)}<div><h2>${esc(myDisp())}${PREMIUM?' <span class="prem">Premium</span>':''}</h2><p>${esc(myTitulo())}${myEmail?' · '+esc(myEmail):''}</p><button type="button" class="btn sm ghost titbtn" data-a="ov" data-v="titulos">Cambiar título</button>
     <form class="row" data-form="nick"><input type="text" id="nickin" class="plain" maxlength="20" placeholder="Tu apodo" value="${esc(WAL.nick||'')}" aria-label="Apodo" autocomplete="off"><button class="btn sm" type="submit">Guardar</button></form></div></section>
   <div class="stats">${stats}</div><p class="note snote">Cuentan solo las partidas online contra otras personas. Contra la máquina es práctica.</p>
   ${tabs}<div class="pbody">${tab==='mesa'?mesa:tab==='amigos'?friendsBoxHTML():refBoxHTML()}</div>`}
@@ -751,7 +751,7 @@ function partnerHuman(){if(!G||G.n!==4||mySeat<0)return false;if(mode==='offline
 function socialHTML(){if(!G||G.matchOver||mySeat<0)return'';const canReact=mode==='offline'||!!R;if(!canReact)return'';
   const sena=partnerHuman()&&!G.hand.ended;
   let o=`<div class="social"><button class="btn sm ${panel==='react'?'ink':'ghost'}" data-a="panel" data-v="react">Reaccionar</button>${sena?`<button class="btn sm ${panel==='sena'?'ink':'ghost'}" data-a="panel" data-v="sena">Hacer seña</button>`:''}</div>`;
-  if(panel==='react')o+=`<div class="chips">${Object.entries(REACTS).map(([k,t])=>`<button type="button" data-a="react" data-k="${k}">${t}</button>`).join('')}</div>`;
+  if(panel==='react')o+=`<div class="chips">${Object.entries(myReacts()).map(([k,t])=>`<button type="button" data-a="react" data-k="${k}">${t}</button>`).join('')}</div>`;
   if(panel==='sena'&&sena){const btn=([k,t])=>`<button type="button" data-a="sena" data-k="${k}">${t}</button>`;const all=Object.entries(SENA_SHORT);
     /* las dos tandas de señas van en un mismo panel, una debajo de la otra (antes se abrían en el mismo lugar y se pisaban) */
     o+=`<div class="chips senapop" role="group" aria-label="Señas para tu compañero"><div class="sgrp"><span class="chiph">Cartas</span>${all.filter(([k])=>!SENA_ENV.includes(k)).map(btn).join('')}</div><div class="sgrp"><span class="chiph">Envido</span>${all.filter(([k])=>SENA_ENV.includes(k)).map(btn).join('')}</div><p class="note">Solo la ve tu compañero. Podés hacer una de cartas y una de envido.</p></div>`}
@@ -771,6 +771,7 @@ function overlayHTML(){
     <div class="btns">${[500,1000,5000].map(v=>`<button class="btn prim" data-a="add" data-v="${v}">+ ${fmt(v)}</button>`).join('')}</div><button class="btn ghost" data-a="close">Cerrar</button></div></div>`;
   if(overlayView==='compartir')return shareHTML();
   if(overlayView==='ficha')return fichaHTML();
+  if(overlayView==='titulos')return titulosHTML();
   if(view==='game'&&G&&G.matchOver){const won=G.matchOver.winner===myTeam();const st=G.stake;const TT=mode==='online'&&T&&T.tour;const can=!TT&&(mode==='offline'||isHost);
     const rw=lastReward&&lastReward.matchId===G.matchId?lastReward.coins:null;
     let conf='';if(won&&FX.over){const suits=['O','C','E','B'];for(let i=0;i<26;i++){const s=suits[i%4];conf+=`<svg viewBox="0 0 24 24" style="left:${(Math.random()*100).toFixed(1)}%;animation-delay:${(Math.random()*.9).toFixed(2)}s;color:${SUITCOL[s]}"><use href="#s${s}"/></svg>`}}
@@ -855,13 +856,13 @@ async function srvAct(ac){const code=T&&T.code;if(!code||!G)return;const seq=G.s
   busy=false;if(!(r&&r.ok)&&T&&T.game)setG(T.game);else if(T&&T.game&&fresher(T.game,G)&&gsig(T.game)!==gsig(G))setG(T.game);render();drive()}
 function doAction(ac){if(busy||!G||mySeat<0||actor(G)!==mySeat)return;if(TUT&&!tutAllowed(ac)){toast('Seguí la indicación de la lección');return}if(SRV()&&mode==='online'){srvAct(ac);return}try{commit(act(G,mySeat,ac))}catch(e){console.error(e);toast('Esa jugada no es válida ahora')}}
 function showTransient(s,t,cls,ms=3600){transient[s]={t,cls,until:Date.now()+ms};render();setTimeout(()=>{if(transient[s]&&transient[s].until<=Date.now()){delete transient[s];if(view==='game')render()}},ms+50)}
-function sendReact(k){if(!REACTS[k]||mySeat<0)return;panel=null;showTransient(mySeat,REACTS[k],'react');
+function sendReact(k){const RX=myReacts();if(!RX[k]||mySeat<0)return;panel=null;showTransient(mySeat,RX[k],'react');
   if(mode==='online'&&R)R.emit('react',{seat:mySeat,k}).catch(()=>{});
   if(mode==='offline'&&Math.random()<.45){const others=[...Array(G.n).keys()].filter(s=>s!==mySeat);const s=others[Math.floor(Math.random()*others.length)];
     setTimeout(()=>{if(view==='game'&&G)showTransient(s,pickLine(seatLook(s).av,'reply')||'¡Ja!','react')},1100)}}
 function sendSena(k){if(!SENAS[k]||mySeat<0)return;if(mode==='offline'){panel=null;const prev=mySena&&mySena.handNo===G.handNo?mySena.ks:[];const isEnv=SENA_ENV.includes(k);mySena={handNo:G.handNo,ks:prev.filter(x=>SENA_ENV.includes(x)!==isEnv).concat(k)};toast('Tu compañero vio la seña');render();return}if(!R)return;panel=null;R.emit('sena',{seat:mySeat,k}).catch(()=>{});toast('Le hiciste la seña a tu compañero');render()}
 function validSender(msg,seat){if(!G||typeof seat!=='number'||seat<0||seat>=G.n)return false;const st=G.seats[seat];return !msg.by||!st.id||st.id===msg.by}
-function onReactMsg(msg){const d=msg.data||{};if(msg.isMe&&msg.sameTab)return;if(!validSender(msg,d.seat)||!REACTS[d.k])return;showTransient(d.seat,REACTS[d.k],'react')}
+function onReactMsg(msg){const d=msg.data||{};if(msg.isMe&&msg.sameTab)return;const RX=Object.assign({},REACTS,SREACTS);if(!validSender(msg,d.seat)||!RX[d.k])return;showTransient(d.seat,RX[d.k],'react')}
 function onSenaMsg(msg){const d=msg.data||{};if(msg.isMe)return;if(!validSender(msg,d.seat)||!SENAS[d.k])return;if(d.seat===mySeat||team(d.seat)!==myTeam())return;showTransient(d.seat,SENAS[d.k],'sena',6000)}
 
 /* ---------- online ---------- */
@@ -1006,9 +1007,9 @@ const paseRw=(track,l)=>(track==='prem'?SEASON.prem:SEASON.free).find(x=>x.l===l
 const paseHas=(track,l)=>{const p=paseW();return (track==='prem'?p.cp:p.cf||[]).includes(l)};
 async function paseCobrar(track,l){const r=paseRw(track,l);if(!r)return;const p=paseW();
   if(paseHas(track,l)||paseLvl()<l||(track==='prem'&&!p.prem))return;
-  const lbl=r.t==='chips'?fmt(r.v)+' fichas':r.t==='coins'?fmt(r.v)+' monedas':(r.t==='dorso'?'el dorso ':'el paño ')+itemOf(r.t,r.v).name;
+  const lbl=r.t==='coins'?fmt(r.v)+' monedas':r.t==='react'?'el canto «'+SREACTS[r.v]+'»':r.t==='titulo'?'el título «'+TITULOS[r.v]+'»':(r.t==='dorso'?'el dorso ':'el paño ')+itemOf(r.t,r.v).name;
   if(SRV()){try{await NET.srv.call('billetera',{op:'paseCobrar',track,l});sfx('buy');toast('Cobraste '+lbl)}catch(e){toast(e.message||'No se pudo')}return}
-  const d=r.t==='chips'?{chips:r.v}:r.t==='coins'?{coins:r.v}:{own:r.t+':'+r.v};
+  const d=r.t==='coins'?{coins:r.v}:{own:r.t+':'+r.v};
   const ok=await applyTx('pase-'+SEASON.id+'-'+track+'-'+l,d);if(ok){(track==='prem'?p.cp:p.cf).push(l);saveWallet();sfx('buy');toast('Cobraste '+lbl);render()}}
 async function paseComprar(){const p=paseW();if(p.prem)return;if(!paseActiva()){toast('La temporada ya terminó');return}
   if(WAL.coins<SEASON.price){toast('No te alcanzan las monedas');return}
@@ -1021,11 +1022,21 @@ const PASECOL=()=>innerWidth<460?78:innerWidth<760?86:96;
 function paseRewardVis(r){
   if(r.t==='chips')return `<span class="pvis"><i class="pchip" aria-hidden="true"></i><b>${fmt(r.v)}</b><small>fichas</small></span>`;
   if(r.t==='coins')return `<span class="pvis"><i class="pcoin" aria-hidden="true"></i><b>${fmt(r.v)}</b><small>monedas</small></span>`;
+  if(r.t==='react')return `<span class="pvis pcanto"><i aria-hidden="true">💬︎</i><b>${esc(SREACTS[r.v])}</b><small>canto</small></span>`;
+  if(r.t==='titulo')return `<span class="pvis ptit"><i aria-hidden="true">🎖︎</i><b>${esc(TITULOS[r.v])}</b><small>título</small></span>`;
   const d=r.t==='dorso',it=d?DM[r.v]:PM[r.v];
   return `<span class="pvis pitem"><i class="${d?'pdorso':'ppano'}" style="background:${d?backBg(r.v):panoBg(r.v)}" aria-hidden="true"></i><b>${esc(it.name)}</b></span>`}
+/* cantos y títulos del pase */
+const myReacts=()=>{const o=Object.assign({},REACTS);for(const k in SREACTS)if(WAL.owned.includes('react:'+k))o[k]=SREACTS[k];return o};
+const myTitulo=()=>{const t=WAL.eq&&WAL.eq.titulo;return t&&TITULOS[t]&&WAL.owned.includes('titulo:'+t)?TITULOS[t]:titleOf(WAL.copas||0)};
+function titulosHTML(){const cur=WAL.eq.titulo&&WAL.owned.includes('titulo:'+WAL.eq.titulo)?WAL.eq.titulo:'';const mine=Object.keys(TITULOS).filter(k=>WAL.owned.includes('titulo:'+k));
+  const row=(k,l,sub)=>`<button type="button" class="titrow ${cur===k?'on':''}" data-a="equip" data-t="titulo" data-id="${k}"><b>${esc(l)}</b><small>${sub}</small></button>`;
+  return `<div class="over" data-a="close"><div class="panel tpanel2" data-stop><h2>Tu título</h2><p class="note" style="margin:0">Se ve debajo de tu nombre. Los títulos de peña se ganan con el pase de temporada.</p>
+    <div class="titlist">${row('',titleOf(WAL.copas||0),'Por tus porotos en La Huella')}${mine.map(k=>row(k,TITULOS[k],'Pase de temporada')).join('')}</div>
+    ${mine.length<Object.keys(TITULOS).length?`<p class="note" style="margin:0">Te faltan ${Object.keys(TITULOS).length-mine.length} títulos del pase.</p>`:''}<button class="btn ghost" data-a="close">Listo</button></div></div>`}
 function paseCell(track,l){const r=paseRw(track,l),p=paseW(),lv=paseLvl();
   if(!r)return `<div class="pc pc-${track} vacia" aria-hidden="true"></div>`;
-  const got=paseHas(track,l),reach=lv>=l,lock=track==='prem'&&!p.prem,ready=reach&&!got&&!lock,item=r.t==='dorso'||r.t==='pano';
+  const got=paseHas(track,l),reach=lv>=l,lock=track==='prem'&&!p.prem,ready=reach&&!got&&!lock,item=r.t!=='coins';
   const cls=`pc pc-${track} ${item?'hito':''} ${got?'got':ready?'ready':reach&&lock?'lockr':'fut'}`;
   const tag=got?'<span class="pmark ok" aria-label="Cobrado">✓</span>':lock?'<span class="pmark lk" aria-label="Con el pase">🔒︎</span>':'';
   if(ready)return `<button type="button" class="${cls}" data-a="pasecobrar" data-t="${track}" data-l="${l}" aria-label="Cobrar el premio del nivel ${l}">${paseRewardVis(r)}<span class="pgo">Cobrar</span></button>`;

@@ -185,8 +185,9 @@
           if (nivel(w) < l) throw err('estado', 'Todavía no llegaste a ese nivel');
           if (track === 'prem' && !p.prem) throw err('estado', 'Ese premio es del pase');
           if (track === 'prem' && r.t === 'chips') throw err('valor');   // el pase se paga con monedas: nunca da fichas
-          const own = r.t === 'dorso' || r.t === 'pano' ? r.t + ':' + r.v : null;
-          mover(t, uid, w, { chips: r.t === 'chips' ? r.v : 0, coins: r.t === 'coins' ? r.v : 0, own, tipo: 'pase: nivel ' + l, ref: SE.id + '-' + track });
+          if (r.t === 'chips') throw err('valor');   // el pase nunca da fichas
+          const own = r.t !== 'coins' ? r.t + ':' + r.v : null;
+          mover(t, uid, w, { coins: r.t === 'coins' ? r.v : 0, own, tipo: 'pase: nivel ' + l, ref: SE.id + '-' + track });
           list.push(l);
           res = { ok: true, avisos: own ? eventos(t, uid, w, []) : [] };
         } else if (op === 'cargar' || op === 'pack') {

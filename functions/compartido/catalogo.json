@@ -191,6 +191,18 @@
    "season": "t1"
   },
   {
+   "id": "mate",
+   "price": 0,
+   "boss": null,
+   "season": "t1"
+  },
+  {
+   "id": "panuelo",
+   "price": 0,
+   "boss": null,
+   "season": "t1"
+  },
+  {
    "id": "bombo",
    "price": 0,
    "boss": null,
@@ -275,6 +287,12 @@
    "price": 0,
    "boss": "tdf",
    "season": null
+  },
+  {
+   "id": "fogon",
+   "price": 0,
+   "boss": null,
+   "season": "t1"
   },
   {
    "id": "pena",
@@ -423,48 +441,48 @@
   "free": [
    {
     "l": 2,
-    "t": "chips",
-    "v": 300
-   },
-   {
-    "l": 4,
     "t": "coins",
     "v": 20
    },
    {
-    "l": 6,
-    "t": "chips",
-    "v": 400
+    "l": 4,
+    "t": "react",
+    "v": "mate"
    },
    {
-    "l": 8,
+    "l": 6,
     "t": "coins",
     "v": 25
    },
    {
-    "l": 10,
-    "t": "chips",
-    "v": 500
+    "l": 8,
+    "t": "titulo",
+    "v": "guitarrero"
    },
    {
-    "l": 12,
+    "l": 10,
     "t": "coins",
     "v": 30
    },
    {
-    "l": 14,
-    "t": "chips",
-    "v": 600
+    "l": 12,
+    "t": "react",
+    "v": "adentro"
    },
    {
-    "l": 16,
+    "l": 14,
     "t": "coins",
     "v": 35
    },
    {
+    "l": 16,
+    "t": "dorso",
+    "v": "mate"
+   },
+   {
     "l": 18,
-    "t": "chips",
-    "v": 700
+    "t": "coins",
+    "v": 40
    },
    {
     "l": 20,
@@ -473,73 +491,73 @@
    },
    {
     "l": 22,
-    "t": "chips",
-    "v": 800
-   },
-   {
-    "l": 24,
     "t": "coins",
     "v": 45
    },
    {
-    "l": 26,
-    "t": "chips",
-    "v": 900
+    "l": 24,
+    "t": "titulo",
+    "v": "bombisto"
    },
    {
-    "l": 28,
+    "l": 26,
     "t": "coins",
     "v": 50
    },
    {
-    "l": 30,
-    "t": "chips",
-    "v": 1000
+    "l": 28,
+    "t": "react",
+    "v": "zapateo"
    },
    {
-    "l": 32,
+    "l": 30,
     "t": "coins",
     "v": 55
    },
    {
-    "l": 34,
-    "t": "chips",
-    "v": 1100
-   },
-   {
-    "l": 36,
+    "l": 32,
     "t": "coins",
     "v": 60
    },
    {
-    "l": 38,
-    "t": "chips",
-    "v": 1200
+    "l": 34,
+    "t": "titulo",
+    "v": "cantor"
    },
    {
-    "l": 40,
+    "l": 36,
     "t": "coins",
     "v": 65
    },
    {
-    "l": 42,
-    "t": "chips",
-    "v": 1300
+    "l": 38,
+    "t": "react",
+    "v": "vino"
    },
    {
-    "l": 44,
+    "l": 40,
     "t": "coins",
     "v": 70
    },
    {
+    "l": 42,
+    "t": "coins",
+    "v": 75
+   },
+   {
+    "l": 44,
+    "t": "titulo",
+    "v": "bailarin"
+   },
+   {
     "l": 46,
-    "t": "chips",
-    "v": 1400
+    "t": "coins",
+    "v": 80
    },
    {
     "l": 48,
     "t": "coins",
-    "v": 75
+    "v": 90
    },
    {
     "l": 50,
@@ -560,78 +578,78 @@
    },
    {
     "l": 5,
-    "t": "coins",
-    "v": 43
+    "t": "react",
+    "v": "aro"
    },
    {
     "l": 7,
     "t": "coins",
-    "v": 46
+    "v": 50
    },
    {
     "l": 9,
-    "t": "coins",
-    "v": 49
+    "t": "titulo",
+    "v": "payador"
    },
    {
     "l": 11,
     "t": "coins",
-    "v": 52
+    "v": 60
    },
    {
     "l": 13,
-    "t": "coins",
-    "v": 55
+    "t": "react",
+    "v": "segunda"
    },
    {
     "l": 15,
     "t": "coins",
-    "v": 58
+    "v": 70
    },
    {
     "l": 17,
-    "t": "coins",
-    "v": 61
+    "t": "dorso",
+    "v": "panuelo"
    },
    {
     "l": 19,
     "t": "coins",
-    "v": 64
+    "v": 80
    },
    {
     "l": 21,
     "t": "coins",
-    "v": 67
+    "v": 80
    },
    {
     "l": 23,
-    "t": "coins",
-    "v": 70
+    "t": "pano",
+    "v": "fogon"
    },
    {
     "l": 25,
     "t": "coins",
-    "v": 73
+    "v": 90
    },
    {
     "l": 27,
-    "t": "coins",
-    "v": 76
+    "t": "react",
+    "v": "guitarrazo"
    },
    {
     "l": 29,
     "t": "coins",
-    "v": 79
+    "v": 100
    },
    {
     "l": 31,
     "t": "coins",
-    "v": 82
+    "v": 100
    },
    {
     "l": 33,
-    "t": "coins",
-    "v": 85
+    "t": "titulo",
+    "v": "zambero"
    },
    {
     "l": 35,
@@ -641,37 +659,37 @@
    {
     "l": 37,
     "t": "coins",
-    "v": 91
+    "v": 110
    },
    {
     "l": 39,
-    "t": "coins",
-    "v": 94
+    "t": "react",
+    "v": "sapucai"
    },
    {
     "l": 41,
     "t": "coins",
-    "v": 97
+    "v": 120
    },
    {
     "l": 43,
     "t": "coins",
-    "v": 100
+    "v": 120
    },
    {
     "l": 45,
-    "t": "coins",
-    "v": 103
+    "t": "titulo",
+    "v": "alma"
    },
    {
     "l": 47,
     "t": "coins",
-    "v": 106
+    "v": 150
    },
    {
     "l": 49,
-    "t": "coins",
-    "v": 109
+    "t": "titulo",
+    "v": "rey"
    }
   ]
  },

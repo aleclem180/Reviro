@@ -268,17 +268,20 @@ prueba('pase de temporada: experiencia jugando, compra con monedas y premios por
   await assert.rejects(N.billetera(ctxOf('a'), { op: 'paseCobrar', track: 'prem', l: 1 }), /pase|nivel/);
   // lo llevamos al nivel 6
   await S.set('wallets/a', Object.assign(w1, { pase: { id: C.SEASON.id, xp: 650, prem: false, cf: [], cp: [] }, coins: 1000 }));
-  const antes = (await S.get('wallets/a')).chips;
+  const antes = (await S.get('wallets/a')).coins, fichas0 = (await S.get('wallets/a')).chips;
   await N.billetera(ctxOf('a'), { op: 'paseCobrar', track: 'free', l: 2 });
   await N.billetera(ctxOf('a'), { op: 'paseCobrar', track: 'free', l: 2 });
-  assert.strictEqual((await S.get('wallets/a')).chips - antes, 300, 'se cobra una sola vez');
-  await assert.rejects(N.billetera(ctxOf('a'), { op: 'paseCobrar', track: 'free', l: 8 }), /nivel/);
+  assert.strictEqual((await S.get('wallets/a')).coins - antes, 20, 'se cobra una sola vez');
+  await N.billetera(ctxOf('a'), { op: 'paseCobrar', track: 'free', l: 4 });
+  assert((await S.get('wallets/a')).owned.includes('react:mate'), 'los cantos de peña quedan como propios');
+  assert.strictEqual((await S.get('wallets/a')).chips, fichas0, 'el pase no da fichas');
+  await assert.rejects(N.billetera(ctxOf('a'), { op: 'paseCobrar', track: 'free', l: 10 }), /nivel/);
   await assert.rejects(N.billetera(ctxOf('a'), { op: 'comprar', tipo: 'dorso', id: 'guitarra', moneda: 'monedas' }), /no-se-vende/);
   await N.billetera(ctxOf('a'), { op: 'paseComprar' });
-  assert.strictEqual((await S.get('wallets/a')).coins, 1000 - C.SEASON.price);
+  assert.strictEqual((await S.get('wallets/a')).coins, 1000 + 20 - C.SEASON.price);
   await N.billetera(ctxOf('a'), { op: 'paseCobrar', track: 'prem', l: 1 });
   assert((await S.get('wallets/a')).owned.includes('dorso:guitarra'));
-  assert(C.SEASON.prem.every((r) => r.t !== 'chips'), 'el camino del pase no tiene fichas');
+  assert(C.SEASON.prem.concat(C.SEASON.free).every((r) => r.t !== 'chips'), 'el pase no tiene fichas en ningún camino');
 });
 
 (async () => {
