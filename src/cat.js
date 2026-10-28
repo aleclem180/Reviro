@@ -49,7 +49,7 @@ const AVS=[
   spec:{bg:'#6f9a3a',skin:SK[1],hair:'bun',hc:'#5a3a22',eyes:'dot',mouth:'flat',facial:'beard',shirt:'#e9dcc2',outfit:'delantal',bare:true,prop:'girasol'}},
  {id:'delivery',name:'El Pibe del Delivery',price:350,bio:'Juega en el semáforo en rojo y te entrega la mano en quince minutos.',
   spec:{bg:'#e0453a',skin:SK[3],hair:'short',hc:'#141414',eyes:'dot',mouth:'grin',hat:'cap',hatc:'#f2a516',shirt:'#f2a516',jacket:'#e0453a',outfit:'campera',sleeve:'#e0453a',prop:'pizza'}},
- {id:'zumba',name:'La Profe de Zumba',price:450,bio:'Cuenta los puntos de a ocho tiempos y festeja cada baza con un paso.',
+ {id:'zumba',name:'La Profe de Zumba',price:450,bio:'Cuenta los puntos de a ocho tiempos y festeja cada vuelta ganada con un paso.',
   spec:{bg:'#f29fb3',skin:SK[2],hair:'long',hc:'#2b1b12',eyes:'wink',mouth:'grin',blush:true,hat:'vincha',band:'#3ad1e8',shirt:'#c23bd6',outfit:'top',bare:true,prop:'wave'}},
  {id:'sindicalista',name:'El Sindicalista',price:500,bio:'Para la mesa con un paro y te canta truco por megáfono.',
   spec:{lid:true,bg:'#5e6f8a',skin:SK[2],hair:'messy',hc:'#6a6a6a',eyes:'dot',mouth:'flat',facial:'mustache',fc:'#4a4a4a',shirt:'#e9e4d6',jacket:'#3a2c22',outfit:'campera',sleeve:'#3a2c22',prop:'mic'}},

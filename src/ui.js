@@ -562,12 +562,12 @@ const RULES={
   partida:()=>`<p>Se juega <b>1 contra 1</b> o <b>2 contra 2</b>, con los compañeros enfrentados. Cada uno recibe <b>3 cartas</b> y la partida va <b>a 15 o a 30 puntos</b>. A 30, los primeros 15 son <b>las malas</b> y los otros 15 <b>las buenas</b>.</p>
     <p><b>El mano</b> es quien juega primero; cambia en cada mano, hacia la derecha. Gana los empates de envido.</p>
     <p>En cada mano se juegan dos cosas por separado:</p>
-    ${rtab([['Envido','quién suma más con dos cartas del mismo palo'],['Truco','quién gana dos de las tres bazas']])}
+    ${rtab([['Envido','quién suma más con dos cartas del mismo palo'],['Truco','quién gana dos de las tres vueltas']])}
     <p>Podés ganar una y perder la otra. Los puntos se anotan al terminar la mano.</p>`,
   cartas:()=>`<p>Mazo de 40 cartas españolas, sin ochos ni nueves. <b>Orden</b>, de mayor a menor:</p><div class="rank">${RULES_ORDER.map(c=>cardHTML(c)).join('')}</div>
     <p>Siguen los <b>reyes</b>, <b>caballos</b> y <b>sotas</b>, los sietes de copa y basto, los seis, cincos y cuatros. Iguales de distinto palo empatan.</p>
-    <p><b>Pardas:</b> si se empata la primera baza, define la segunda; si se empata la segunda o la tercera, gana quien ganó la primera; si se empatan todas, gana el mano.</p>`,
-  envido:()=>`<p>Se canta <b>en la primera baza</b>, antes de tirar tu primera carta. Se puede encadenar: envido, envido, real envido, falta envido.</p>
+    <p><b>Pardas:</b> si es parda la primera, define la segunda; si es parda la segunda o la tercera, gana quien hizo la primera; si son pardas las tres, gana el mano.</p>`,
+  envido:()=>`<p>Se canta <b>en la primera</b>, antes de tirar tu primera carta. Se puede encadenar: envido, envido, real envido, falta envido.</p>
     ${rtab([['Envido','2'],['Real envido','3'],['Falta envido','lo que le falta al que va ganando'],['No querido','1, o lo que valía antes del último canto']],'num')}
     <p><b>El tanto:</b> 20 más las dos cartas del mismo palo; las figuras valen 0. Sin dos del mismo palo, vale tu carta más alta. Ejemplo: 7 y 5 de oro = <b>32</b>.</p>
     <p>Si empatan, gana el mano. <b>En las malas</b>, la falta envido gana el partido.</p>`,
@@ -578,12 +578,12 @@ const RULES={
     ${rtab([['Truco','2'],['Retruco','3'],['Vale cuatro','4'],['No querido','lo que valía antes del canto']],'num')}
     <p><b>Solo sube</b> el equipo que tiene el quiero: si aceptaste el truco, el retruco lo cantás vos.</p>
     <p><b>El envido está primero:</b> si te cantan truco antes de tu primera carta, podés contestar con envido y después responder el truco.</p>
-    <p><b>Irse al mazo</b> regala la mano; en la primera baza y sin envido cantado, el rival suma un punto más.</p>`,
+    <p><b>Irse al mazo</b> regala la mano; en la primera y sin envido cantado, el rival suma un punto más.</p>`,
   senas:()=>`<p>En <b>2 contra 2</b> tu compañero te avisa lo que tiene con gestos, y vos a él. Solo los ve tu equipo.</p>
     <div class="rsenas">${Object.keys(SENA_SHORT).map(k=>{const [g,m]=SENA_SHORT[k].split(' · ');return `<div><b>${esc(g)}</b><span>${esc(m)}</span></div>`}).join('')}</div>`,
   mas:()=>`<p><b>Fichas:</b> sirven para las mesas con entrada, los torneos y la tienda. Son de práctica y no tienen valor en dinero. Las <b>monedas</b> son otra forma de pagar en la tienda (las ganás jugando, con misiones y con logros) y nunca se cambian por fichas.</p>
     <p><b>Abandonar</b> una partida cuenta como derrota. Online tenés 30 segundos por jugada; si no jugás, juega la máquina por vos.</p>
-    <p><b>Palabras:</b> <i>baza</i>, cada vuelta de cartas; <i>mano</i>, las tres bazas; <i>pardas</i>, empate; <i>tanto</i>, los puntos de envido; <i>las malas y las buenas</i>, las dos mitades de una partida a 30.</p>`};
+    <p><b>Palabras:</b> <i>vuelta</i>, cada ronda en que todos tiran una carta: la primera, la segunda y la tercera; <i>mano</i>, las tres vueltas; <i>pardas</i>, empate; <i>tanto</i>, los puntos de envido; <i>las malas y las buenas</i>, las dos mitades de una partida a 30.</p>`};
 function rulesHTML(){return `<details class="rules"><summary>Reglamento</summary>${Object.values(RULES).map(f=>f()).join('')}</details>`}
 function rulesPageHTML(){const [tab,tabs]=ptabs('rules',[['partida','Partida'],['cartas','Cartas'],['envido','Envido'],['flor','Flor'],['truco','Truco'],['senas','Señas'],['mas','Más']],'partida');
   return phd('Reglamento','','menu')+tabs+`<section class="box rbody">${RULES[tab]()}</section>`}
@@ -693,8 +693,8 @@ function gameHTML(){if(!G)return'';const h=G.hand,me=mySeat,mt=myTeam(),a=actor(
       return `<div class="bcol ${r===undefined?'':r==='P'?'p':r===mt?'w':'l'}">${cell(op)}${cell(me0)}</div>`}).join('')}</div>`}
   const baz=[0,1,2].map(i=>{const r=h.results[i];if(r===undefined)return'<i></i>';if(r==='P')return'<i class="p" title="parda"></i>';return r===mt?'<i class="w" title="ganada"></i>':'<i class="l" title="perdida"></i>'}).join('');
   const deck=`<div class="deck" aria-hidden="true">${'<i style="background:'+backBg(WAL.eq.dorso)+'"></i>'.repeat(3)}</div>`;
-  let center=`<div class="crow">${deck}<div class="bazas" aria-label="Bazas">${baz}</div></div><div class="stat">${statusLine()}</div>@@INFO@@`;
-  if(G.n===2){duel+=`<div class="duelside">${deck}<div class="bazas" aria-label="Bazas">${baz}</div></div><div class="duelstat">${statusLine()}</div>`;center=''}
+  let center=`<div class="crow">${deck}<div class="bazas" aria-label="Vueltas">${baz}</div></div><div class="stat">${statusLine()}</div>@@INFO@@`;
+  if(G.n===2){duel+=`<div class="duelside">${deck}<div class="bazas" aria-label="Vueltas">${baz}</div></div><div class="duelstat">${statusLine()}</div>`;center=''}
   const co=coachNow();
   if(TUT&&h.ended){const nx=TUT.i+1<LESSONS.length;center=`<div class="result"><b>¡Lección cumplida!</b><span>${esc(co&&co.done||'')}</span><span>+20 monedas la primera vez</span><div class="btns">${nx?`<button class="btn prim" data-a="lesson" data-i="${TUT.i+1}">Siguiente lección</button>`:''}<button class="btn" data-a="tomenu">${nx?'Menú':'Volver al menú'}</button></div></div>`}
   else if(h.ended&&!G.matchOver){const gains=h.gains.map(x=>`${teamName(x.tm)} +${x.p} por ${x.why}`).join(' · ');
@@ -723,7 +723,7 @@ function gameHTML(){if(!G)return'';const h=G.hand,me=mySeat,mt=myTeam(),a=actor(
     `<div class="actions">${actionsHTML(L)}${TUT?'':socialHTML()}${absentNote}</div>`];
   return `<section class="game">${GPARTS.join('')}</section>`}
 function logText(e){if(e.k==='hand')return e.mano===mySeat?`Mano ${e.no}: sos mano vos`:`Mano ${e.no}: es mano ${nameOf(e.mano)}`;
-  if(e.k==='baza')return e.r==='P'?`Baza ${e.i}: parda`:`Baza ${e.i} para ${teamName(e.r).toLowerCase()}`;
+  if(e.k==='baza'){const o=['primera','segunda','tercera'][e.i-1]||'tercera';return e.r==='P'?`Parda la ${o}`:`La ${o} para ${teamName(e.r).toLowerCase()}`}
   if(e.k==='pts')return `${teamName(e.tm)} suma ${e.p} (${e.why})`;if(e.k==='txt')return e.t;
   return `${nameOf(e.s)}: ${e.t}`}
 const B=(a,l,c='')=>{if(TUT){const co=coachNow();if(co&&co.x){const ok=co.x(actKey(a));return `<button class="btn ${ok?c+' glow':''}" data-a="${a}" ${ok?'':'disabled'}>${l}</button>`}}return `<button class="btn ${c}" data-a="${a}">${l}</button>`};
@@ -1038,11 +1038,11 @@ function paseHTML(inShop){const p=paseW(),lv=paseLvl(),per=pasePer(),pages=Math.
 /* ---------- tutorial ---------- */
 let TUT=null;
 const LESSONS=[
- {title:'Las bazas',mano:0,flor:false,hands:[['1E','3O','4C'],['5E','12B','6C']],script:[{t:'play',card:'5E'},{t:'play',card:'12B'}],
+ {title:'Las vueltas',mano:0,flor:false,hands:[['1E','3O','4C'],['5E','12B','6C']],script:[{t:'play',card:'5E'},{t:'play',card:'12B'}],
   coach(g){const h=g.hand,my=actor(g)===0;
-    if(h.ended)return{done:'Ganaste dos bazas y la mano. En el truco gana quien gana dos de las tres bazas.'};
-    if(my&&h.results.length===0)return{t:'Cada mano tiene hasta tres bazas: gana la mano quien gana dos. El ancho de espada (el 1 de espada) es la carta más alta del mazo. Tiralo.',x:a=>a.t==='play'&&a.card==='1E'};
-    if(my&&h.results.length===1)return{t:'Ganaste la primera baza, así que empezás vos. Ahora tirá el 3 de oro: los treses están entre las cartas más fuertes.',x:a=>a.t==='play'&&a.card==='3O'};
+    if(h.ended)return{done:'Ganaste dos vueltas y la mano. En el truco gana quien gana dos de las tres vueltas.'};
+    if(my&&h.results.length===0)return{t:'Cada mano tiene hasta tres vueltas, la primera, la segunda y la tercera: gana la mano quien gana dos. El ancho de espada (el 1 de espada) es la carta más alta del mazo. Tiralo.',x:a=>a.t==='play'&&a.card==='1E'};
+    if(my&&h.results.length===1)return{t:'Hiciste la primera, así que empezás vos. Ahora tirá el 3 de oro: los treses están entre las cartas más fuertes.',x:a=>a.t==='play'&&a.card==='3O'};
     return{t:'Ahora juega la máquina…'}}},
  {title:'El envido',mano:0,flor:false,hands:[['7C','6C','12O'],['5E','4B','11O']],script:[{t:'quiero'}],
   coach(g){const h=g.hand,my=actor(g)===0;
@@ -1055,7 +1055,7 @@ const LESSONS=[
     if(h.ended)return{done:'Ganaste 2 puntos con el truco. Si la máquina no hubiera querido, sumabas 1 igual.'};
     if(h.truco.level===1&&!h.truco.pending&&my)return{t:'Tenés el ancho de basto y el siete de espada, dos de las cuatro mejores cartas. Cantá Truco: si la máquina quiere, la mano pasa a valer 2.',x:a=>a.t==='truco'&&a.level===2};
     if(h.truco.pending)return{t:'Esperá la respuesta…'};
-    return{t:'¡Quiso! Ahora la mano vale 2. Ganá dos bazas: arrancá con el siete de espada y guardá el ancho para después.'}}},
+    return{t:'¡Quiso! Ahora la mano vale 2. Ganá dos vueltas: arrancá con el siete de espada y guardá el ancho para después.'}}},
  {title:'Contestar y subir',mano:1,flor:false,hands:[['1E','7O','2C'],['4E','5B','6C']],script:[{t:'truco',level:2},{t:'noquiero'}],
   coach(g){const h=g.hand,my=actor(g)===0;
     if(h.ended)return{done:'No quiso el retruco: sumaste 2, lo que valía el truco que ya habías aceptado. Subir la apuesta con buenas cartas presiona al rival.'};
@@ -1068,9 +1068,9 @@ const LESSONS=[
     return{t:'Flor de 38: sumaste 3. Ahora jugá la mano; la máquina tiene cartas altas, así que tranquilo si la perdés.'}}},
  {title:'Las pardas',mano:0,flor:false,hands:[['3E','2O','4O'],['3B','1O','5C']],script:[{t:'play',card:'3B'},{t:'play',card:'1O'}],
   coach(g){const h=g.hand,my=actor(g)===0;
-    if(h.ended)return{done:'Primera parda y segunda tuya: ganaste la mano. Cuando la primera baza es parda, la define la segunda.'};
-    if(my&&h.results.length===0)return{t:'Tirá el 3 de espada. Los treses son de las cartas más altas, pero todos valen lo mismo: si el rival tira otro tres, la baza es parda (empate).',x:a=>a.t==='play'&&a.card==='3E'};
-    if(my&&h.results.length===1)return{t:'¡Parda! Ahora la segunda baza decide toda la mano. Seguís siendo vos el que arranca: tirá el 2 de oro, que le gana al ancho falso.',x:a=>a.t==='play'&&a.card==='2O'};
+    if(h.ended)return{done:'Primera parda y segunda tuya: ganaste la mano. Cuando es parda la primera, la define la segunda.'};
+    if(my&&h.results.length===0)return{t:'Tirá el 3 de espada. Los treses son de las cartas más altas, pero todos valen lo mismo: si el rival tira otro tres, es parda (empate).',x:a=>a.t==='play'&&a.card==='3E'};
+    if(my&&h.results.length===1)return{t:'¡Parda la primera! Ahora la segunda decide toda la mano. Seguís siendo vos el que arranca: tirá el 2 de oro, que le gana al ancho falso.',x:a=>a.t==='play'&&a.card==='2O'};
     return{t:'Ahora juega la máquina…'}}},
  {title:'Real envido',mano:0,flor:false,hands:[['6E','5E','12C'],['4O','7B','10C']],script:[{t:'noquiero'}],
   coach(g){const h=g.hand,my=actor(g)===0;
@@ -1080,7 +1080,7 @@ const LESSONS=[
     return{t:'No quiso: sumaste 1 punto sin mostrar tus cartas. Ahora jugá la mano como quieras.'}}},
  {title:'El envido está primero',mano:1,flor:false,hands:[['7B','4B','1C'],['3O','12E','5C']],script:[{t:'truco',level:2},{t:'quiero'}],
   coach(g){const h=g.hand,my=actor(g)===0;
-    if(h.ended)return{done:'Aunque te canten truco, en la primera baza el envido va primero: se responde el envido y después el truco.'};
+    if(h.ended)return{done:'Aunque te canten truco, en la primera el envido va primero: se responde el envido y después el truco.'};
     if(h.truco.pending&&!h.env.done&&!h.env.pending&&my)return{t:'La máquina cantó truco, pero todavía no tiraste ninguna carta: el envido está primero. Tenés 7 y 4 de basto, 31 de tanto. Contestá con Envido.',x:a=>a.t==='envido'};
     if(h.env.pending)return{t:'Esperá: la máquina contesta el envido…'};
     if(h.truco.pending&&h.truco.pending.level===2&&my)return{t:'Ganaste el envido. Ahora sí, respondé el truco que había quedado pendiente: querelo o no.',x:a=>a.t==='quiero'||a.t==='noquiero'};
@@ -1123,7 +1123,7 @@ function rankingHTML(){const head=phd('Ranking','','menu');if(!db||!uid)return h
   <div class="pbody">${RANK===null?'<p class="note">Cargando…</p>':fitList('rank-'+rankScope,rows.map((r,i)=>Object.assign({pos:i+1},r)),r=>`<li class="${r.id===uid?'me':''}"><span class="pos">${r.pos}</span>${avatarSVG(AVM[r.av]?r.av:'gaucho',36)}<span class="nm">${esc(r.id===uid?myDisp():((r.nick)||NAMES[r.id]||'Jugador'))}<small>${fmt(r.won||0)} ganadas de ${fmt(r.played||0)} · racha máx. ${r.best||0}</small></span><b>${fmt(r.pts||0)}</b></li>`,'lb',rankScope==='friends'?'<p class="note">Todavía no tenés amigos con partidas. Pasales tu link de amigo desde Perfil.</p>':'<p class="note">Todavía nadie terminó una partida. Jugá una y aparecés acá.</p>')}</div>
   <p class="note snote">Puntos: 30 por partida online ganada y 3, 8 o 15 por ganarle a la máquina en Fácil, Medio o Difícil.</p>`}
 function tutorialBoxHTML(){const done=WAL.tut||[];
-  return `<section class="box"><h2>¿Primera vez?</h2><p class="note">${LESSONS.length} lecciones cortas con manos armadas: bazas, pardas, envido, real envido, truco, cómo subir, el envido primero, cuándo no querer y la flor. Cada una te da 20 monedas la primera vez.</p>
+  return `<section class="box"><h2>¿Primera vez?</h2><p class="note">${LESSONS.length} lecciones cortas con manos armadas: vueltas, pardas, envido, real envido, truco, cómo subir, el envido primero, cuándo no querer y la flor. Cada una te da 20 monedas la primera vez.</p>
     ${fitList('lessons',LESSONS.map((L,i)=>({L,i})),({L,i})=>`<button type="button" class="lesson ${done.includes(i)?'ok':''}" data-a="lesson" data-i="${i}"><span>${done.includes(i)?'✓':i+1}</span>${esc(L.title)}</button>`,'lessons')}</section>`}
 
 
@@ -1503,7 +1503,7 @@ function settingsHTML(){const tg=(k,l,sub,inv)=>`<div class="toggle"><span>${l}<
   if(tab==='sonido')body=`<section class="box">${tg('mute','Sonido general','Apaga o prende todo el audio de Reviro',true)}${tg('music','Música','Suena de fondo en los menús')}${tg('sound','Efectos','Al tirar, cantar y sumar puntos')}
       ${[['vol','Volumen general'],['volMusic','Música'],['volFx','Efectos']].map(([k,l])=>`<label class="vol"><span>${l}</span><input type="range" min="0" max="100" step="5" value="${SET[k]??80}" data-vol="${k}" aria-label="${l}"><output id="vo-${k}">${SET[k]??80}%</output></label>`).join('')}
       <div class="field"><span>Tema</span>${musicPickerHTML(false)}<p class="note" style="margin:0">${esc((TRACKS[SET.track]||TRACKS.zamba).desc)}</p></div></section>`;
-  if(tab==='juego')body=`<section class="box">${tg('tap2','Tirar con dos toques','Tocás la carta, sube, y la tirás tocándola otra vez. Así no se escapa ninguna')}${tg('help','Ayuda en pantalla','Te muestra tu envido o tu flor en la primera baza')}
+  if(tab==='juego')body=`<section class="box">${tg('tap2','Tirar con dos toques','Tocás la carta, sube, y la tirás tocándola otra vez. Así no se escapa ninguna')}${tg('help','Ayuda en pantalla','Te muestra tu envido o tu flor en la primera')}
       <div class="field"><span>Flor en La Huella</span>${seg('hflor',[['true','Con flor'],['false','Sin flor']],SET.hflor!==false)}</div>
       <p class="note" style="margin:0">La dificultad, los puntos, la flor y la apuesta de cada partida se eligen en Jugar, con el botón Cambiar.</p></section>`;
   if(tab==='idioma')body=`<section class="box"><div class="field"><span>Idioma de Reviro</span>${langPickHTML()}</div><p class="note" style="margin:0">Cambia todos los textos de la página. Se guarda en tu cuenta, así lo encontrás igual en cualquier dispositivo.</p></section>`;
