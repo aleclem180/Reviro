@@ -275,6 +275,7 @@ function render(){const v=$('#view');routeSync();document.body.dataset.view=view
   $('#overlay').innerHTML=overlayHTML();FX={};musicUpdate();
   if(LANG!=='es'){if(view!=='game')trTree(v);trTree($('#overlay'))}
   if(view==='game')requestAnimationFrame(holdActions);
+  if(view!=='game'&&view!=='room')reGolpe();
   if(view!=='game'){requestAnimationFrame(fitPass);clearTimeout(FITT);FITT=setTimeout(()=>{FITPASS=0;fitPass()},350)}
   {const pl=document.querySelector('.pills');if(pl)pl.style.visibility=(view==='auth'||view==='boot'||view==='login')?'hidden':'visible'}
   if(view==='room'&&T){const ids=T.seats.filter(s=>s.id).map(s=>s.id);ensureNames(ids);fetchLooks(ids)}
@@ -2085,7 +2086,14 @@ document.addEventListener('click',e=>{unlockSound();ac();const t=e.target.closes
   if(a&&a.startsWith('truco:')){doAction({t:'truco',level:+a.slice(6)});return}
 });
 /* la onda dorada al tocar: va en una capa aparte, así sigue aunque la pantalla se redibuje con el toque */
+/* el golpe del botón sigue aunque la pantalla se redibuje al tocarlo */
+let GOLPE=null;
+function addGolpe(el){el.classList.remove('golpe');void el.offsetWidth;el.classList.add('golpe');el.addEventListener('animationend',()=>el.classList.remove('golpe'),{once:true})}
+function reGolpe(){if(!GOLPE||Date.now()-GOLPE.at>250||!GOLPE.a)return;const g=GOLPE;
+  const el=[...document.querySelectorAll('[data-a="'+CSS.escape(g.a)+'"]')].find(x=>x.dataset.v===g.v&&x.dataset.id===g.id&&x.dataset.t===g.t&&x.dataset.k===g.k);if(el&&!el.classList.contains('naipe'))addGolpe(el)}
 document.addEventListener('pointerdown',e=>{const el=e.target.closest('button,.btn,.rowb,.mode,.tcard,.mz,a.pill');if(!el||el.disabled||el.closest('.hand'))return;
+  /* fuera de la partida, el botón se golpea contra la mesa (los naipes del inicio no) */
+  if(view!=='game'&&view!=='room'&&!el.classList.contains('naipe')){addGolpe(el);const d=el.dataset;GOLPE={a:d.a,v:d.v,id:d.id,t:d.t,k:d.k,at:Date.now()}}
   try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)return}catch(err){}
   const r=el.getBoundingClientRect();if(r.width<8)return;const w=document.createElement('div');w.className='ripple';
   const br=getComputedStyle(el).borderRadius;w.style.cssText=`left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;border-radius:${br}`;

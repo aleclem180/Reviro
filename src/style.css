@@ -1534,3 +1534,69 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
 .pase2 .pn.hito.on::before{background:#f0c548;box-shadow:0 0 0 2px #8a5a12}
 .pase2 .pn.hito.next::before{box-shadow:0 0 0 2px #f0c548}
 .pase2 .pn{isolation:isolate}
+
+/* ================= animaciones de botones (fuera de la partida) =================
+   Al pasar el puntero: los botones de metal brillan como un bronce que agarra la luz; las tarjetas se levantan
+   como un naipe que sacás del mazo. Al apretar: un golpe seco contra la mesa (se achata y rebota).
+   La mesa de juego y la sala de espera no cambian. */
+@keyframes golpe{0%{transform:scale(1)}30%{transform:scale(.92,.88)}62%{transform:scale(1.04,1.05)}100%{transform:scale(1)}}
+@keyframes golpecard{0%{transform:translateY(-3px)}30%{transform:translateY(1px) scale(.97)}65%{transform:translateY(-4px) scale(1.01)}100%{transform:translateY(-3px)}}
+@keyframes saltito{0%,100%{transform:translateY(0)}45%{transform:translateY(-4px)}70%{transform:translateY(-1px)}}
+@keyframes vaiven{0%,100%{transform:rotate(0)}30%{transform:rotate(-8deg)}65%{transform:rotate(5deg)}}
+body:not([data-view=game]):not([data-view=room]) .golpe{animation:golpe .32s cubic-bezier(.3,.7,.4,1)}
+body:not([data-view=game]):not([data-view=room]) :is(.mode,.xb,.mz,.tcard,.lesson,.titrow,.rowb,.item .iopen,.pc.ready).golpe{animation:golpecard .34s cubic-bezier(.3,.7,.4,1)}
+@media (hover:hover) and (pointer:fine){
+  /* botones: se elevan y les pasa un brillo de bronce */
+  body:not([data-view=game]):not([data-view=room]) .btn{position:relative;overflow:hidden;transition:transform .18s cubic-bezier(.3,.7,.4,1),box-shadow .18s,filter .18s,background-color .18s,border-color .18s}
+  body:not([data-view=game]):not([data-view=room]) .btn::after{content:'';position:absolute;inset:-1px;background:linear-gradient(105deg,transparent 30%,rgba(255,236,190,.32) 48%,rgba(255,236,190,.08) 56%,transparent 70%);transform:translateX(-130%);pointer-events:none}
+  body:not([data-view=game]):not([data-view=room]) .btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 7px 16px rgba(0,0,0,.38)}
+  body:not([data-view=game]):not([data-view=room]) .btn:hover:not(:disabled)::after{transform:translateX(130%);transition:transform .65s cubic-bezier(.3,.6,.3,1)}
+  body:not([data-view=game]):not([data-view=room]) .btn.prim:hover:not(:disabled){box-shadow:0 7px 18px rgba(192,57,43,.45),inset 0 -2px 0 rgba(0,0,0,.25)}
+  body:not([data-view=game]):not([data-view=room]) .btn.brass:hover:not(:disabled){background:rgba(217,164,65,.12)}
+  body:not([data-view=game]):not([data-view=room]) .btn.ghost:hover:not(:disabled){border-color:rgba(243,230,200,.4)}
+  /* flechas: se corren hacia donde llevan */
+  body:not([data-view=game]):not([data-view=room]) .pback{transition:transform .18s cubic-bezier(.3,.7,.4,1),background-color .18s}
+  body:not([data-view=game]):not([data-view=room]) .pback:hover{transform:translateX(-3px)}
+  body:not([data-view=game]):not([data-view=room]) .pgb{transition:transform .18s cubic-bezier(.3,.7,.4,1),border-color .18s,color .18s}
+  body:not([data-view=game]):not([data-view=room]) .pgb:not(:disabled):hover{border-color:var(--brass);color:var(--brass)}
+  body:not([data-view=game]):not([data-view=room]) .pgb[data-d="-1"]:not(:disabled):hover{transform:translateX(-2px)}
+  body:not([data-view=game]):not([data-view=room]) .pgb:is([data-d="1"],[data-d="mio"]):not(:disabled):hover{transform:translateX(2px)}
+  /* pastillas, pestañas de sección y opciones: se encienden en bronce */
+  body:not([data-view=game]):not([data-view=room]) :is(.pill,.subtabs button,.seg button){transition:transform .16s,border-color .16s,color .16s,background-color .16s}
+  body:not([data-view=game]):not([data-view=room]) :is(.subtabs button,.seg button):not([aria-pressed="true"]):not(:disabled):hover{border-color:rgba(217,164,65,.55);color:#f3e6c8;transform:translateY(-1px)}
+  body:not([data-view=game]):not([data-view=room]) a.pill:hover,body:not([data-view=game]):not([data-view=room]) button.pill:hover{border-color:var(--brass)}
+  /* barra de secciones: el ícono pega un saltito; Jugar se balancea como una carta en la mano */
+  body:not([data-view=game]):not([data-view=room]) .tabs button:not([aria-current="page"]):hover{color:var(--ink)}
+  body:not([data-view=game]):not([data-view=room]) .tabs button:hover svg{animation:saltito .42s cubic-bezier(.3,.7,.4,1)}
+  body:not([data-view=game]):not([data-view=room]) .tabs button.tmain:hover svg{animation:vaiven .5s ease-in-out}
+  /* tarjetas (menús, tienda, extras, perfil, torneos, tutorial): se levantan como un naipe del mazo */
+  body:not([data-view=game]):not([data-view=room]) :is(.mode,.xb,.mz,.tcard,.lesson,.titrow,.rowb){transition:transform .22s cubic-bezier(.3,.7,.4,1),box-shadow .22s,border-color .22s}
+  body:not([data-view=game]):not([data-view=room]) :is(.mode,.xb,.mz,.tcard,.lesson,.titrow,.rowb):hover{transform:translateY(-3px) rotate(-.4deg);box-shadow:0 10px 22px rgba(0,0,0,.42)}
+  body:not([data-view=game]):not([data-view=room]) :is(.xb,.lesson,.titrow,.rowb):hover{border-color:rgba(217,164,65,.5)}
+  body:not([data-view=game]):not([data-view=room]) .xb img,body:not([data-view=game]):not([data-view=room]) .mz :is(svg,.bigback,.swatch){transition:transform .25s cubic-bezier(.3,.7,.4,1)}
+  body:not([data-view=game]):not([data-view=room]) .xb:hover img,body:not([data-view=game]):not([data-view=room]) .mz:hover :is(svg,.bigback,.swatch){transform:rotate(-4deg) scale(1.06)}
+  body:not([data-view=game]):not([data-view=room]) .item{transition:transform .22s cubic-bezier(.3,.7,.4,1),box-shadow .22s,border-color .22s}
+  body:not([data-view=game]):not([data-view=room]) .item:hover{transform:translateY(-3px);box-shadow:0 10px 22px rgba(0,0,0,.42);border-color:rgba(217,164,65,.45)}
+  body:not([data-view=game]):not([data-view=room]) .item .prev>:first-child{transition:transform .25s cubic-bezier(.3,.7,.4,1)}
+  body:not([data-view=game]):not([data-view=room]) .item:hover .prev>:first-child{transform:rotate(-2deg) scale(1.04)}
+  body:not([data-view=game]):not([data-view=room]) .rv{transition:border-color .2s,background-color .2s}
+  body:not([data-view=game]):not([data-view=room]) .rv:not(.locked):hover{border-color:rgba(217,164,65,.55);background:rgba(217,164,65,.06)}
+  body:not([data-view=game]):not([data-view=room]) .pc.ready{transition:transform .2s cubic-bezier(.3,.7,.4,1)}
+  body:not([data-view=game]):not([data-view=room]) .pc.ready:hover{transform:translateY(-3px) scale(1.02)}
+  /* enlaces de texto: el subrayado se tiñe de bronce */
+  body:not([data-view=game]):not([data-view=room]) :is(.optline,.linkrow){transition:color .16s}
+  body:not([data-view=game]):not([data-view=room]) .optline:hover u{text-decoration-color:var(--brass);color:#f6d77a}
+  body:not([data-view=game]):not([data-view=room]) .waline{transition:transform .18s,filter .18s}
+  body:not([data-view=game]):not([data-view=room]) .waline:hover{transform:translateY(-1px);filter:brightness(1.15)}
+  /* naipes del inicio: al pasar el puntero se sacan del mazo (se levantan, giran un poco y brilla el borde) */
+  body:not([data-view=game]):not([data-view=room]) .naipes .naipe.nfull{transition:transform .32s cubic-bezier(.25,.8,.3,1.2),box-shadow .32s}
+  body:not([data-view=game]):not([data-view=room]) .naipes .naipe.nfull:hover{transform:translateY(-10px) rotate(-2.5deg);box-shadow:0 18px 30px rgba(0,0,0,.6),0 0 0 2px rgba(240,197,72,.7),0 0 26px rgba(240,197,72,.25)}
+  body:not([data-view=game]):not([data-view=room]) .naipes .naipe.nfull.ncen:hover{transform:translateY(-12px) scale(1.03)}
+  body:not([data-view=game]):not([data-view=room]) .naipes .naipe.nfull:last-child:hover{transform:translateY(-10px) rotate(2.5deg)}
+  body:not([data-view=game]):not([data-view=room]) .naipes .naipe.nfull:hover img{transform:scale(1.04)}
+}
+@media (prefers-reduced-motion:reduce){
+  body:not([data-view=game]):not([data-view=room]) .golpe{animation:none!important}
+  body:not([data-view=game]):not([data-view=room]) *:hover,body:not([data-view=game]):not([data-view=room]) *:hover svg,body:not([data-view=game]):not([data-view=room]) *:hover img{animation:none!important}
+  body:not([data-view=game]):not([data-view=room]) .btn:hover::after{transition:none!important;transform:translateX(-130%)!important}
+}
