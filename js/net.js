@@ -201,7 +201,7 @@ const CODE_CH = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
 const newCode = () => Array.from({ length: 4 }, () => CODE_CH[Math.floor(Math.random() * CODE_CH.length)]).join('');
 
 /** Lobby: crea una sala vacía con el creador sentado en el asiento 1. Devuelve el código. */
-async function createRoom({ n = 2, target = 30, flor = true, stake = 0, diff = 'medio', bots = 0, skill = null }) {
+async function createRoom({ n = 2, target = 30, flor = true, stake = 0, diff = 'medio', bots = 0, skill = null, boss = false, zone = null }) {
   const uid = me().uid;
   if (!bots && stake && stake < MIN_STAKE) stake = 0;   // mesas entre personas: entrada de 1.000 fichas o más (o amistosa)
   for (let attempt = 0; attempt < 6; attempt++) {
@@ -213,7 +213,7 @@ async function createRoom({ n = 2, target = 30, flor = true, stake = 0, diff = '
         code, n, target, flor, stake, diff, type: typeOf(n, seats),
         host: uid, seats, playerIds: humans(seats), teams: {}, status: 'waiting',
         gameJson: null, seq: 0, matchId: null, result: null,
-        ...(typeof skill === 'number' && bots ? { skill: Math.max(0, Math.min(1, skill)) } : {}),
+        ...(typeof skill === 'number' && bots ? { skill: Math.max(0, Math.min(1, skill)), boss: !!boss, zone: zone || null } : {}),
         created: Date.now(), updatedAt: Date.now(),
       });
       return true;

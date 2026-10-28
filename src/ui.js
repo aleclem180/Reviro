@@ -971,7 +971,8 @@ function dayHash(s){let h=0;for(const ch of s)h=(h*31+ch.charCodeAt(0))>>>0;retu
 function ensureMissions(){const today=new Date().toLocaleDateString('en-CA');if(WAL.mis&&WAL.mis.date===today)return;
   const ids=MISSIONS.map(m=>m.id);let x=dayHash(today);const pick=[];while(pick.length<3){x=(x*1103515245+12345)>>>0;const id=ids[x%ids.length];if(!pick.includes(id))pick.push(id)}
   WAL.mis={date:today,ids:pick,prog:{},done:[]}}
-function achValue(a){if(a.ev==='@streak')return Math.max(WAL.stats.best||0,WAL.stats.abest||0);if(a.ev==='@avatars')return AVS.filter(x=>owns('av',x.id,x.price)).length;return (WAL.ach.cnt[a.ev]||0)}
+const bossCount=()=>new Set(Object.keys(WAL.ach.cnt||{}).filter(k=>k.startsWith('boss:')).map(k=>k.slice(5)).concat((WAL.gira&&WAL.gira.bosses)||[])).size;
+function achValue(a){if(a.ev==='@streak')return Math.max(WAL.stats.best||0,WAL.stats.abest||0);if(a.ev==='@pase')return paseLvl();if(a.ev==='@bosses')return bossCount();if(a.ev==='@ach')return WAL.ach.done.filter(x=>x!=='todos').length;if(a.ev==='@avatars')return AVS.filter(x=>owns('av',x.id,x.price)).length;return (WAL.ach.cnt[a.ev]||0)}
 function recordEvents(key,evs){if(SRV())return walQ;walQ=walQ.then(async()=>{if(key&&WAL.evk.includes(key))return;ensureMissions();const msgs=[];let coins=0,xp=0;
     for(const ev of evs){WAL.ach.cnt[ev]=(WAL.ach.cnt[ev]||0)+1;
       for(const id of WAL.mis.ids){const m=MISSIONS.find(x=>x.id===id);if(!m||m.ev!==ev||WAL.mis.done.includes(id))continue;
@@ -984,9 +985,11 @@ function handEvents(g){const h=g.hand,mt=myTeam(),won=h.ended&&h.ended.winner===
   if(won&&h.results.includes('P'))evs.push('parda_won');
   for(const x of h.gains){if(x.tm!==mt)continue;if(x.why==='envido'||x.why==='falta envido')evs.push('envido_won');if(x.why==='falta envido')evs.push('falta_won');
     if(x.why==='flor'||x.why==='contraflor')evs.push('flor_won');if(x.why==='mazo')evs.push('mazo_rival')}
+  if(mySeat>=0&&h.gains.some(x=>x.tm===mt&&(x.why==='envido'||x.why==='falta envido'))&&envidoOf(h.orig[mySeat])===33)evs.push('envido33');
   return evs}
 function matchEvents(g){const won=g.matchOver.winner===myTeam(),evs=['match_played'];if(won)evs.push('match_won');
-  if(won&&mode==='offline'&&g.diff==='dificil')evs.push('match_won_dificil');if(mode==='online')evs.push('online_played');return evs}
+  if(won&&mode==='offline'&&g.diff==='dificil')evs.push('match_won_dificil');if(mode==='online')evs.push('online_played');if(won&&mode==='online')evs.push('online_won');if(won&&g.scores[1-myTeam()]===0)evs.push('shutout');
+  if(won&&mode==='offline'&&CAMP&&RM[CAMP.rid]){evs.push('gira_won');const r=RM[CAMP.rid];if(r.boss)evs.push('boss:'+r.zone)}return evs}
 
 /* ---------- pase de temporada ----------
    Se sube de nivel jugando. El camino gratis da fichas, monedas y cosas; el pase (con monedas) suma más premios,
@@ -1114,7 +1117,7 @@ function missionsHTML(){ensureMissions();markDoneSeen();const now=new Date(),mid
   const body=tab==='hoy'?`<p class="note snote">Se renuevan en ${hrs} h.</p><div class="mislist">${mis.map(m=>{const p=WAL.mis.prog[m.id]||0,done=WAL.mis.done.includes(m.id);
       return `<div class="mis ${done?'ok':''}"><div class="mtop"><b>${esc(m.t)}</b><span class="rw">${coinI}+${fmt(m.r)}</span></div><div class="bar"><i style="width:${Math.round(p*100/m.goal)}%"></i></div><small>${done?'Cumplida':p+' de '+m.goal}</small></div>`}).join('')}</div>`
     :fitList('achs',ACHS,a=>{const v=Math.min(a.goal,achValue(a)),done=WAL.ach.done.includes(a.id);
-      return `<div class="ach ${done?'ok':''}"><span class="medal" aria-hidden="true">${done?'★':'☆'}</span><div><b>${esc(a.t)}</b><small>${esc(a.d)}</small><div class="bar"><i style="width:${Math.round(v*100/a.goal)}%"></i></div><small>${done?'Conseguido':v+' de '+a.goal} · ${coinI.replace('class="coin"','class="coin" style="display:inline-block;width:11px;height:11px;vertical-align:-1px"')} ${fmt(a.r)} monedas</small></div></div>`},'achs');
+      return `<div class="ach lv${a.lv||1} ${done?'ok':''}"><span class="medal" aria-hidden="true">${done?'★':'☆'}</span><div><b>${esc(a.t)} <span class="achlv">${['','Fácil','Medio','Difícil','Muy difícil'][a.lv||1]}</span></b><small>${esc(a.d)}</small><div class="bar"><i style="width:${Math.round(v*100/a.goal)}%"></i></div><small>${done?'Conseguido':v+' de '+a.goal} · ${coinI.replace('class="coin"','class="coin" style="display:inline-block;width:11px;height:11px;vertical-align:-1px"')} ${fmt(a.r)} monedas</small></div></div>`},'achs');
   return phd('Misiones y logros','','menu')+tabs+`<div class="pbody">${body}</div>`}
 function rankingHTML(){const head=phd('Ranking','','menu');if(!db||!uid)return head+`<section class="box"><p class="note" style="margin:0">${LOCAL?'El ranking funciona con tu cuenta en la web.':'El ranking necesita que abras Reviro con tu cuenta de claude.ai.'}</p></section>`;
   subRank();subFriends();const fs=friendSet();const rows=(RANK||[]).filter(r=>r.played>0&&(rankScope==='all'||r.id===uid||fs.has(r.id)));const ids=rows.map(r=>r.id);if(ids.length)ensureNames(ids);
@@ -1362,7 +1365,7 @@ function tablaHTML(){const c=WAL.copas||0;const table=RIVALS.map(r=>({n:r.name,c
 function startGira(rid){const r=RM[rid];if(!r||!rivalOpen(r))return;TUT=null;mySena=null;
   CAMP={rid,before:WAL.copas||0};cfg={n:2,target:r.boss?30:15,stake:0,diff:r.diff,flor:SET.hflor!==false};
   botLooks={1:{av:r.av,dorso:['pampa','cuero','marino','noche','celeste','oro','fileteado','bordo','viento'][ZONES.findIndex(z=>z.id===r.zone)]||'pampa'}};
-  if(SRV()){confirmExit=false;panel=null;NET.rooms.createRoom({n:2,target:cfg.target,flor:cfg.flor,stake:0,diff:r.diff,bots:1,skill:r.skill}).then(code=>NET.srv.call('salaEmpezar',{code}).then(()=>openTable(code))).catch(e=>{CAMP=null;toast(e.message||'No se pudo armar la partida')});return}
+  if(SRV()){confirmExit=false;panel=null;NET.rooms.createRoom({n:2,target:cfg.target,flor:cfg.flor,stake:0,diff:r.diff,bots:1,skill:r.skill,boss:r.boss,zone:r.zone}).then(code=>NET.srv.call('salaEmpezar',{code}).then(()=>openTable(code))).catch(e=>{CAMP=null;toast(e.message||'No se pudo armar la partida')});return}
   mode='offline';mySeat=0;view='game';confirmExit=false;panel=null;
   const gm=newMatch({...cfg,seats:[{me:true},{bot:true}],matchId:'gira-'+rid+'-'+Date.now().toString(36)});gm.skill=r.skill;setG(gm);render();drive()}
 function settleGira(g){if(!CAMP||!g.matchOver||CAMP.done===g.matchId)return;const C=CAMP;C.done=g.matchId;const r=RM[C.rid];const won=g.matchOver.winner===0;

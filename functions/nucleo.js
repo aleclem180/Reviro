@@ -100,6 +100,9 @@
     function valorLogro(w, a) {
       if (a.ev === '@streak') return Math.max(w.stats.best || 0, w.stats.abest || 0);
       if (a.ev === '@avatars') return avataresDe(w);
+      if (a.ev === '@pase') return SE ? nivel(w) : 0;
+      if (a.ev === '@bosses') return Object.keys(w.ach.cnt).filter((k) => k.startsWith('boss:')).length;
+      if (a.ev === '@ach') return w.ach.done.filter((x) => x !== 'todos').length;
       return w.ach.cnt[a.ev] || 0;
     }
     /** Suma eventos (manos ganadas, partidas, etc.): avanza misiones y logros y paga sus fichas. */
@@ -142,7 +145,7 @@
             const top = Math.max(0, R.DIARIO_FICHAS - w.chips);
             mover(t, uid, w, { key: 'daily-' + d0, coins: R.DIARIO_MONEDAS, chips: top, tipo: 'premio del día' });
             if (SE) sumarXP(w, SE.xp.diario);
-            res = { ok: true, monedas: R.DIARIO_MONEDAS, fichas: top };
+            res = { ok: true, monedas: R.DIARIO_MONEDAS, fichas: top, avisos: eventos(t, uid, w, []) };   // revisa logros (p. ej. el nivel del pase)
           } else res = { ok: true, ya: true };
           asegurarMisiones(w);
         } else if (op === 'comprar') {
@@ -239,7 +242,7 @@
     }
 
     /* eventos de misiones de cada mano y de la partida (los mismos que contaba la página) */
-    function eventosMano(g, mt) {
+    function eventosMano(g, mt, seat) {
       const h = g.hand, won = h.ended && h.ended.winner === mt, evs = [];
       if (won) evs.push('hand_won'); if (won && h.truco.level >= 3) evs.push('retruco_won'); if (won && h.truco.level === 4) evs.push('vale4_won');
       if (won && h.results.includes('P')) evs.push('parda_won');
@@ -248,11 +251,14 @@
         if (x.why === 'envido' || x.why === 'falta envido') evs.push('envido_won'); if (x.why === 'falta envido') evs.push('falta_won');
         if (x.why === 'flor' || x.why === 'contraflor') evs.push('flor_won'); if (x.why === 'mazo') evs.push('mazo_rival');
       }
+      if (seat != null && h.gains.some((x) => x.tm === mt && (x.why === 'envido' || x.why === 'falta envido')) && M.envidoOf(h.orig[seat]) === 33) evs.push('envido33');
       return evs;
     }
     function eventosPartida(g, mt) {
       const won = g.matchOver.winner === mt, on = esOnline(g), evs = ['match_played'];
       if (won) evs.push('match_won'); if (won && !on && g.diff === 'dificil') evs.push('match_won_dificil'); if (on) evs.push('online_played');
+      if (won && on) evs.push('online_won'); if (won && g.scores[1 - mt] === 0) evs.push('shutout');
+      if (won && !on && g.gira) { evs.push('gira_won'); if (g.gira.boss && g.gira.zone) evs.push('boss:' + g.gira.zone); }
       return evs;
     }
     function nextStats(prev, won) {
@@ -294,7 +300,7 @@
       const abandonos = room.abandonos || {};
       // misiones de la mano que se acaba de terminar
       if (g.hand.ended && !(prev && prev.hand.ended && prev.handNo === g.handNo)) {
-        g.seats.forEach((st, s) => { if (!st.id || st.bot || abandonos[st.id]) return; eventos(t, st.id, L.w[st.id], eventosMano(g, s % 2), g.matchId + ':h' + g.handNo); });
+        g.seats.forEach((st, s) => { if (!st.id || st.bot || abandonos[st.id]) return; eventos(t, st.id, L.w[st.id], eventosMano(g, s % 2, s), g.matchId + ':h' + g.handNo); });
       }
       if (g.matchOver && !(prev && prev.matchOver)) {
         const mo = g.matchOver, on = esOnline(g), stake = g.stake || 0, tour = !!room.tour;
@@ -367,7 +373,7 @@
         if (stake && on && stake < R.MIN_STAKE) stake = 0;
         const ws = {}; for (const id of ids) ws[id] = walOf(await t.get('wallets/' + id));
         const g = M.newMatch({ n, target: room.target, stake, flor: room.flor !== false, seats, matchId: code + '-' + ahora().toString(36), diff: room.diff || (room.tour ? 'dificil' : 'medio') });
-        if (typeof room.skill === 'number' && !stake && seats.some(x => x.bot)) g.skill = Math.max(0, Math.min(1, room.skill));   // rivales de La Huella
+        if (typeof room.skill === 'number' && !stake && seats.some(x => x.bot)) { g.skill = Math.max(0, Math.min(1, room.skill)); g.gira = { boss: !!room.boss, zone: String(room.zone || '').slice(0, 20) }; }   // rivales de La Huella
         g.lastAct = ahora();
         const cobrados = {};
         if (stake) for (const id of ids) {

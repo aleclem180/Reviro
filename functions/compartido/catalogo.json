@@ -607,16 +607,34 @@
    "r": 50
   },
   {
-   "id": "diez",
-   "ev": "match_won",
-   "goal": 10,
-   "r": 150
+   "id": "alumno",
+   "ev": "tutorial_done",
+   "goal": 1,
+   "r": 60
   },
   {
-   "id": "cien",
-   "ev": "hand_won",
-   "goal": 100,
-   "r": 200
+   "id": "retruco1",
+   "ev": "retruco_won",
+   "goal": 1,
+   "r": 40
+  },
+  {
+   "id": "parda1",
+   "ev": "parda_won",
+   "goal": 1,
+   "r": 40
+  },
+  {
+   "id": "huella1",
+   "ev": "gira_won",
+   "goal": 1,
+   "r": 40
+  },
+  {
+   "id": "debut",
+   "ev": "online_won",
+   "goal": 1,
+   "r": 60
   },
   {
    "id": "faltero",
@@ -625,28 +643,58 @@
    "r": 80
   },
   {
-   "id": "florista",
-   "ev": "flor_won",
+   "id": "diez",
+   "ev": "match_won",
    "goal": 10,
    "r": 150
   },
   {
-   "id": "vale4x5",
-   "ev": "vale4_won",
-   "goal": 5,
-   "r": 150
+   "id": "cantor",
+   "ev": "envido_won",
+   "goal": 25,
+   "r": 120
   },
   {
-   "id": "dificil",
-   "ev": "match_won_dificil",
+   "id": "cien",
+   "ev": "hand_won",
+   "goal": 100,
+   "r": 200
+  },
+  {
+   "id": "jefe1",
+   "ev": "@bosses",
+   "goal": 1,
+   "r": 120
+  },
+  {
+   "id": "zapatero",
+   "ev": "shutout",
    "goal": 1,
    "r": 150
   },
   {
-   "id": "maestro",
-   "ev": "match_won_dificil",
+   "id": "treintaitres",
+   "ev": "envido33",
+   "goal": 1,
+   "r": 150
+  },
+  {
+   "id": "mazo10",
+   "ev": "mazo_rival",
    "goal": 10,
-   "r": 400
+   "r": 100
+  },
+  {
+   "id": "fierro",
+   "ev": "match_played",
+   "goal": 50,
+   "r": 150
+  },
+  {
+   "id": "pase10",
+   "ev": "@pase",
+   "goal": 10,
+   "r": 120
   },
   {
    "id": "online10",
@@ -667,10 +715,64 @@
    "r": 120
   },
   {
-   "id": "alumno",
-   "ev": "tutorial_done",
+   "id": "dificil",
+   "ev": "match_won_dificil",
    "goal": 1,
-   "r": 60
+   "r": 150
+  },
+  {
+   "id": "florista",
+   "ev": "flor_won",
+   "goal": 10,
+   "r": 150
+  },
+  {
+   "id": "vale4x5",
+   "ev": "vale4_won",
+   "goal": 5,
+   "r": 150
+  },
+  {
+   "id": "maestro",
+   "ev": "match_won_dificil",
+   "goal": 10,
+   "r": 400
+  },
+  {
+   "id": "racha10",
+   "ev": "@streak",
+   "goal": 10,
+   "r": 300
+  },
+  {
+   "id": "online50",
+   "ev": "online_won",
+   "goal": 50,
+   "r": 400
+  },
+  {
+   "id": "mil",
+   "ev": "hand_won",
+   "goal": 1000,
+   "r": 400
+  },
+  {
+   "id": "jefes9",
+   "ev": "@bosses",
+   "goal": 9,
+   "r": 400
+  },
+  {
+   "id": "pase20",
+   "ev": "@pase",
+   "goal": 20,
+   "r": 300
+  },
+  {
+   "id": "todos",
+   "ev": "@ach",
+   "goal": 28,
+   "r": 1000
   }
  ]
 }

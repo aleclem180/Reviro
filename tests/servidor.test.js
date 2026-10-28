@@ -177,6 +177,20 @@ prueba('tienda: precios del servidor, sin saldo no se compra, no se compra dos v
   assert.strictEqual(movs.length, 1); assert.strictEqual(movs[0].fichas, -av.price * 5);
 });
 
+prueba('logros nuevos: jefes de La Huella y «Leyenda del truco» al tener todos los demás', async () => {
+  const { S, N } = mundo(); await usuario(S, 'a');
+  await sala(S, 'GGGG', [{ id: 'a', bot: false }, { id: null, bot: true }], { diff: 'facil', skill: 0.05, boss: true, zone: 'ba' });
+  await N.salaEmpezar(ctxOf('a'), { code: 'GGGG' });
+  await jugarTodo(S, N, 'GGGG');
+  const g = await estado(S, 'GGGG'), w = await S.get('wallets/a');
+  if (g.matchOver.winner === 0) { assert.strictEqual(w.ach.cnt.gira_won, 1); assert.strictEqual(w.ach.cnt['boss:ba'], 1); assert(w.ach.done.includes('jefe1')); }
+  else assert(!w.ach.cnt['boss:ba']);
+  const C = require('../functions/compartido/catalogo.json');
+  const w2 = await S.get('wallets/a'); w2.ach.done = C.ACHS.map((x) => x.id).filter((x) => x !== 'todos'); await S.set('wallets/a', w2);
+  await N.billetera(ctxOf('a'), { op: 'diario' });
+  assert((await S.get('wallets/a')).ach.done.includes('todos'));
+});
+
 prueba('premio del día una vez por día y lecciones pagadas una sola vez', async () => {
   const { S, N } = mundo(); await usuario(S, 'a');
   await S.set('wallets/a', { chips: 200, coins: 0, owned: [], applied: [] });
