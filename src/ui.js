@@ -441,7 +441,9 @@ function fitPass(){sizeMap();paseAfter();let ch=false;const nw={};document.query
     if(fitRows<rows.length)per=Math.max(1,fitRows*cols);
     else{const last=rows[rows.length-1].b,maxH=Math.max(...rows.map(r=>r.b-r.t));let more=Math.max(0,Math.floor((H-last)/(maxH+rg)));
       const pg=box.parentElement.querySelector('.pager');if(pg&&cur+more*cols<n){/* sin el paginador, ¿entran todos? */const extra=pg.offsetHeight+(parseFloat(getComputedStyle(box.parentElement).rowGap)||0);if(cur+Math.floor((H+extra-last)/(maxH+rg))*cols>=n)more=Math.ceil((n-cur)/cols)}
-      per=cur<(FITN[k]||4)&&cur<n?(FITN[k]||4):cur+more*cols}
+      per=cur<(FITN[k]||4)&&cur<n?(FITN[k]||4):(cols>1?rows.length*cols:cur)+more*cols}
+    /* en grillas, solo filas completas: nada de una última fila a medias */
+    if(cols>1&&per<n)per=Math.max(cols,Math.floor(per/cols)*cols);
     per=Math.max(1,Math.min(n,per));if((FITN[k]||Math.min(n,4))!==per){nw[k]=per;ch=true}});
   if(ch&&FITPASS++<6){Object.assign(FITN,nw);render()}else if(!ch)FITPASS=0}
 try{document.fonts&&document.fonts.ready.then(()=>{FITPASS=0;if(view!=='game')fitPass()})}catch(e){}
@@ -590,7 +592,7 @@ function rulesPageHTML(){const [tab,tabs]=ptabs('rules',[['partida','Partida'],[
 function tutorialPageHTML(){return phd('Tutorial','','menu')+tutorialBoxHTML()}
 /* ---------- tienda ---------- */
 function buyBtn(type,id,price,name){const own=owns(type,id,price),on=WAL.eq[type]===id;const it=itemOf(type,id);
-  if(it&&it.boss&&!own)return `<button class="btn" disabled>Ganale al jefe de ${esc(ZM[it.boss].name)}</button>`;
+  if(it&&it.boss&&!own)return `<button class="btn" disabled title="Ganale al jefe de ${esc(ZM[it.boss].name)}">Jefe · ${esc(ZM[it.boss].short||ZM[it.boss].name)}</button>`;
   if(it&&it.season&&!own)return `<button class="btn" data-a="nav" data-v="pase">Pase de temporada · nivel ${it.lvl}</button>`;
   if(on)return `<button class="btn" disabled>Usando</button>`;
   if(own)return `<button class="btn ink" data-a="equip" data-t="${type}" data-id="${id}">Usar</button>`;

@@ -1776,5 +1776,6 @@
 " · termina mañana": " · ends tomorrow",
 " · la temporada terminó": " · the season is over",
 "Llegá al nivel 25 del pase de temporada": "Reach level 25 of the season pass",
-"Subís jugando: {0} por partida y {1} más si ganás (el doble online), {2} por misión, {3} por logro y {4} por el premio del día. El pase se paga con monedas y no da fichas.": "You level up by playing: {0} per game and {1} more if you win (double online), {2} per mission, {3} per achievement and {4} for the daily prize. The pass is paid with coins and never gives chips."
+"Subís jugando: {0} por partida y {1} más si ganás (el doble online), {2} por misión, {3} por logro y {4} por el premio del día. El pase se paga con monedas y no da fichas.": "You level up by playing: {0} per game and {1} more if you win (double online), {2} per mission, {3} per achievement and {4} for the daily prize. The pass is paid with coins and never gives chips.",
+"Jefe · {0}": "Boss · {0}"
 }
