@@ -1609,6 +1609,28 @@ body:not([data-view=game]):not([data-view=room]) :is(.mode,.xb,.mz,.tcard,.lesso
 }
 /* opciones de partida en pantallas bajas: más apretado para que entre la fila de la falta */
 @media (max-height:700px){.opanel{gap:6px!important;padding-top:12px!important;padding-bottom:12px!important}.opanel h2{font-size:1.45rem;margin:0}.opanel .field{gap:3px}.opanel .field>span{font-size:.8rem}.opanel .seg button{padding-top:6px;padding-bottom:6px}.opanel>.note{display:none}}
+/* ---------- partida en compu grande: paño más ancho y todo lo de adentro más grande ----------
+   El registro sigue afuera, a la derecha; el paño ocupa el resto del ancho disponible. */
+@media (min-width:1180px) and (min-height:720px){
+  body[data-view=game] #view{max-width:min(1120px,calc(100vw - 520px))}
+  body[data-view=game] .game{max-width:none}
+  body[data-view=game] .topbar,body[data-view=game] .guarda{max-width:min(1120px,calc(100vw - 520px))}
+  .felt.n2.duel>*{--pc:clamp(40px,min(calc((100cqh - 22px) / 2.5),calc((100cqw - 300px) / 3.3)),250px)}
+  .felt.n4>.seat,.felt.n4>.center{--pc:clamp(30px,min(calc((100cqh - 170px) / 4.1),calc(100cqw / 5.4)),110px)}
+  .game .felt .badge{font-size:1rem;padding:3px 14px 3px 3px;gap:9px}
+  .game .felt .badge .av{width:46px!important;height:46px!important}
+  .felt.n2.duel>.seat .badge{max-width:260px}
+  .game .bubble{font-size:1.05rem}
+  .duelstat{font-size:.92rem!important;max-width:200px!important}
+  .duelside .deck i{transform:scale(1.25)}
+  .duelside .bazas i{transform:scale(1.25)}
+  .game .score .sc b{font-size:2rem}
+}
+@media (min-width:1180px) and (min-height:720px){
+  /* en pantalla ancha los botones entran en una fila: menos lugar reservado abajo y más paño */
+  .game .actions{min-height:112px}
+  .game .actions .btn{padding:8px 14px;font-size:.98rem}
+}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
