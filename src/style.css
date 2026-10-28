@@ -1402,3 +1402,18 @@ button,.btn,.rowb,.mode,.tcard,.mz,.pill,.pgb,.pback,.linkrow,.kitb,.regav{-webk
 .naipes .naipe.nfull.ncen{box-shadow:0 12px 28px rgba(0,0,0,.6),0 0 0 2px rgba(217,164,65,.85),0 0 22px rgba(217,164,65,.2)}
 .naipes .naipe.nfull img{-webkit-mask-image:none!important;mask-image:none!important;mix-blend-mode:normal!important;margin:0!important;flex:none!important;border-radius:0!important;opacity:1!important;filter:none!important}
 .naipes .naipe.nfull{background:#efe3c6!important;padding:0!important}
+/* reglamento: tablas de valores y señas */
+.rtab{width:100%;border-collapse:collapse;font-size:.92em}
+.rtab th,.rtab td{padding:4px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.rtab th{font-weight:700;color:var(--ink);white-space:nowrap;width:1%}
+.rtab td{color:var(--muted)}
+.rtab.num td{color:var(--brass);font-weight:700}
+.rtab tr:last-child th,.rtab tr:last-child td{border-bottom:0}
+.rsenas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 10px;font-size:.88em}
+.rsenas div{display:flex;flex-direction:column;padding:3px 0;border-bottom:1px solid var(--line);min-width:0}
+.rsenas b{color:var(--ink)}.rsenas span{color:var(--muted)}
+.pg-rules .ptabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.pg-rules .ptabs::-webkit-scrollbar{display:none}.pg-rules .ptabs button{flex:none}
+.lessons{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.pg-tutorial>.box{flex:1 1 0;min-height:0}
+.pg-tutorial .fitw{flex:1 1 0;min-height:0;display:flex;flex-direction:column;gap:8px}
+.pg-tutorial .lessons{flex:1 1 0;min-height:0;display:flex;flex-direction:column;gap:6px;overflow:hidden}

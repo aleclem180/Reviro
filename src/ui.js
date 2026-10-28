@@ -556,15 +556,38 @@ function onOptsHTML(){const on=SET.on;return `<div class="over" data-a="close"><
     <div class="field"><span>Entrada por jugador</span>${seg('on.stake',ONSTAKES.map(v=>[v,v?fmt(v):'Amistosa']),on.stake,v=>+v>WAL.chips)}</div>${+on.stake?`<p class="note" style="margin:0">Premio: <b>${fmt(tablePrize(+on.stake,+on.n))}</b> fichas ${+on.n===4?'para cada ganador':'para el ganador'}.</p>`:''}
     <div class="btns"><button class="btn prim" data-a="create" ${on.stake>WAL.chips?'disabled':''}>Crear la mesa</button><button class="btn ghost" data-a="close">Cancelar</button></div></div></div>`}
 const RULES_ORDER=['1E','1B','7E','7O','3E','2E','1C','12E','11E','10E','7C','6E','5E','4E'];
-const RULES={cartas:()=>`<p>Mazo de 40 cartas españolas, sin ochos ni nueves. Tres cartas por jugador: gana la mano quien gana dos bazas.</p><p><b>Orden de las cartas</b>, de mayor a menor:</p><div class="rank">${RULES_ORDER.map(c=>cardHTML(c)).join('')}</div><p><b>Pardas:</b> si se empata la primera, define la segunda; si se empata la segunda o la tercera, gana quien ganó la primera; si se empatan todas, gana el mano.</p>`,
-  envido:()=>`<p><b>Envido</b> (2), <b>real envido</b> (3) y <b>falta envido</b>. Se canta solo en la primera baza, antes de tirar tu primera carta. El envido va primero: se puede cantar como respuesta a un truco todavía no querido.</p><p>No querido vale 1, o lo acumulado hasta el canto anterior.</p><p><b>El tanto</b> suma 20 más las dos cartas del mismo palo; las figuras valen 0. Si empatan, gana el mano.</p><p><b>Falta envido:</b> en las malas (a 30, cuando nadie llegó a 15) gana el partido; en las buenas da lo que le falta al que va ganando.</p>`,
-  flor:()=>`<p><b>Flor</b> (tres cartas del mismo palo) vale 3 y anula el envido.</p><p>Si el otro equipo también tiene: <b>con flor me achico</b> (4 para el primero), <b>contraflor</b> (6) o <b>contraflor al resto</b> (la falta).</p><p>Con flor activada, quien la tiene debe cantarla antes de tirar.</p>`,
-  truco:()=>`<p><b>Truco</b> (2), <b>retruco</b> (3) y <b>vale cuatro</b> (4). Solo sube el equipo que tiene el quiero. No querido da lo que valía antes del canto.</p><p><b>Irse al mazo</b> regala la mano; en la primera baza, sin envido cantado, el rival suma un punto más.</p>`,
-  mas:()=>`<p><b>Señas:</b> en 2 contra 2 tu compañero puede avisarte qué tiene con un gesto, y online vos también le podés hacer señas. Solo las ve tu equipo.</p><p><b>Fichas:</b> sirven para las mesas con entrada, los torneos y la tienda. Son de práctica y no tienen valor en dinero. Las <b>monedas</b> son otra forma de pagar en la tienda (las ganás jugando, con misiones y con logros) y nunca se cambian por fichas.</p>`};
+/* reglamento: una pestaña por tema, cada una entra entera en la pantalla */
+const rtab=(rows,cls='')=>`<table class="rtab ${cls}"><tbody>${rows.map(r=>`<tr>${r.map((c,k)=>k?`<td>${c}</td>`:`<th>${c}</th>`).join('')}</tr>`).join('')}</tbody></table>`;
+const RULES={
+  partida:()=>`<p>Se juega <b>1 contra 1</b> o <b>2 contra 2</b>, con los compañeros enfrentados. Cada uno recibe <b>3 cartas</b> y la partida va <b>a 15 o a 30 puntos</b>. A 30, los primeros 15 son <b>las malas</b> y los otros 15 <b>las buenas</b>.</p>
+    <p><b>El mano</b> es quien juega primero; cambia en cada mano, hacia la derecha. Gana los empates de envido.</p>
+    <p>En cada mano se juegan dos cosas por separado:</p>
+    ${rtab([['Envido','quién suma más con dos cartas del mismo palo'],['Truco','quién gana dos de las tres bazas']])}
+    <p>Podés ganar una y perder la otra. Los puntos se anotan al terminar la mano.</p>`,
+  cartas:()=>`<p>Mazo de 40 cartas españolas, sin ochos ni nueves. <b>Orden</b>, de mayor a menor:</p><div class="rank">${RULES_ORDER.map(c=>cardHTML(c)).join('')}</div>
+    <p>Siguen los <b>reyes</b>, <b>caballos</b> y <b>sotas</b>, los sietes de copa y basto, los seis, cincos y cuatros. Iguales de distinto palo empatan.</p>
+    <p><b>Pardas:</b> si se empata la primera baza, define la segunda; si se empata la segunda o la tercera, gana quien ganó la primera; si se empatan todas, gana el mano.</p>`,
+  envido:()=>`<p>Se canta <b>en la primera baza</b>, antes de tirar tu primera carta. Se puede encadenar: envido, envido, real envido, falta envido.</p>
+    ${rtab([['Envido','2'],['Real envido','3'],['Falta envido','lo que le falta al que va ganando'],['No querido','1, o lo que valía antes del último canto']],'num')}
+    <p><b>El tanto:</b> 20 más las dos cartas del mismo palo; las figuras valen 0. Sin dos del mismo palo, vale tu carta más alta. Ejemplo: 7 y 5 de oro = <b>32</b>.</p>
+    <p>Si empatan, gana el mano. <b>En las malas</b>, la falta envido gana el partido.</p>`,
+  flor:()=>`<p><b>Flor:</b> tres cartas del mismo palo. Solo cuenta si la mesa es <b>con flor</b>, y quien la tiene <b>debe cantarla</b> antes de tirar. Anula el envido.</p>
+    ${rtab([['Flor','3'],['Con flor me achico','4 para el que cantó primero'],['Contraflor','6'],['Contraflor al resto','lo que le falta al que va ganando']],'num')}
+    <p>Vale 20 más las tres cartas (las figuras en 0). Si los dos tienen flor, gana la más alta; si empatan, el mano.</p>`,
+  truco:()=>`<p>Se canta en cualquier momento de la mano, cuando te toca.</p>
+    ${rtab([['Truco','2'],['Retruco','3'],['Vale cuatro','4'],['No querido','lo que valía antes del canto']],'num')}
+    <p><b>Solo sube</b> el equipo que tiene el quiero: si aceptaste el truco, el retruco lo cantás vos.</p>
+    <p><b>El envido está primero:</b> si te cantan truco antes de tu primera carta, podés contestar con envido y después responder el truco.</p>
+    <p><b>Irse al mazo</b> regala la mano; en la primera baza y sin envido cantado, el rival suma un punto más.</p>`,
+  senas:()=>`<p>En <b>2 contra 2</b> tu compañero te avisa lo que tiene con gestos, y vos a él. Solo los ve tu equipo.</p>
+    <div class="rsenas">${Object.keys(SENA_SHORT).map(k=>{const [g,m]=SENA_SHORT[k].split(' · ');return `<div><b>${esc(g)}</b><span>${esc(m)}</span></div>`}).join('')}</div>`,
+  mas:()=>`<p><b>Fichas:</b> sirven para las mesas con entrada, los torneos y la tienda. Son de práctica y no tienen valor en dinero. Las <b>monedas</b> son otra forma de pagar en la tienda (las ganás jugando, con misiones y con logros) y nunca se cambian por fichas.</p>
+    <p><b>Abandonar</b> una partida cuenta como derrota. Online tenés 30 segundos por jugada; si no jugás, juega la máquina por vos.</p>
+    <p><b>Palabras:</b> <i>baza</i>, cada vuelta de cartas; <i>mano</i>, las tres bazas; <i>pardas</i>, empate; <i>tanto</i>, los puntos de envido; <i>las malas y las buenas</i>, las dos mitades de una partida a 30.</p>`};
 function rulesHTML(){return `<details class="rules"><summary>Reglamento</summary>${Object.values(RULES).map(f=>f()).join('')}</details>`}
-function rulesPageHTML(){const [tab,tabs]=ptabs('rules',[['cartas','Cartas'],['envido','Envido'],['flor','Flor'],['truco','Truco'],['mas','Más']],'cartas');
-  return phd('Reglamento','','extra')+tabs+`<section class="box rbody">${RULES[tab]()}</section>`}
-function tutorialPageHTML(){return phd('Tutorial','','extra')+tutorialBoxHTML()}
+function rulesPageHTML(){const [tab,tabs]=ptabs('rules',[['partida','Partida'],['cartas','Cartas'],['envido','Envido'],['flor','Flor'],['truco','Truco'],['senas','Señas'],['mas','Más']],'partida');
+  return phd('Reglamento','','menu')+tabs+`<section class="box rbody">${RULES[tab]()}</section>`}
+function tutorialPageHTML(){return phd('Tutorial','','menu')+tutorialBoxHTML()}
 /* ---------- tienda ---------- */
 function buyBtn(type,id,price,name){const own=owns(type,id,price),on=WAL.eq[type]===id;const it=itemOf(type,id);
   if(it&&it.boss&&!own)return `<button class="btn" disabled>Ganale al jefe de ${esc(ZM[it.boss].name)}</button>`;
@@ -1040,9 +1063,33 @@ const LESSONS=[
     return{t:'La máquina es mano: le toca empezar…'}}},
  {title:'La flor',mano:0,flor:true,hands:[['5O','6O','7O'],['1E','3B','12C']],script:[],
   coach(g){const h=g.hand,my=actor(g)===0;
-    if(h.ended)return{done:'¡Terminaste el tutorial! Ya sabés lo básico: bazas, envido, truco, cómo subir y la flor.'};
+    if(h.ended)return{done:'Flor cantada: 3 puntos. Cuando la mesa es con flor, quien la tiene está obligado a cantarla antes de tirar.'};
     if(!h.flor.done&&my)return{t:'Tus tres cartas son de oro: eso es flor y vale 3 puntos. Se canta antes de tirar y anula el envido. Cantá ¡Flor!',x:a=>a.t==='flor'};
     return{t:'Flor de 38: sumaste 3. Ahora jugá la mano; la máquina tiene cartas altas, así que tranquilo si la perdés.'}}},
+ {title:'Las pardas',mano:0,flor:false,hands:[['3E','2O','4O'],['3B','1O','5C']],script:[{t:'play',card:'3B'},{t:'play',card:'1O'}],
+  coach(g){const h=g.hand,my=actor(g)===0;
+    if(h.ended)return{done:'Primera parda y segunda tuya: ganaste la mano. Cuando la primera baza es parda, la define la segunda.'};
+    if(my&&h.results.length===0)return{t:'Tirá el 3 de espada. Los treses son de las cartas más altas, pero todos valen lo mismo: si el rival tira otro tres, la baza es parda (empate).',x:a=>a.t==='play'&&a.card==='3E'};
+    if(my&&h.results.length===1)return{t:'¡Parda! Ahora la segunda baza decide toda la mano. Seguís siendo vos el que arranca: tirá el 2 de oro, que le gana al ancho falso.',x:a=>a.t==='play'&&a.card==='2O'};
+    return{t:'Ahora juega la máquina…'}}},
+ {title:'Real envido',mano:0,flor:false,hands:[['6E','5E','12C'],['4O','7B','10C']],script:[{t:'noquiero'}],
+  coach(g){const h=g.hand,my=actor(g)===0;
+    if(h.ended)return{done:'Un envido no querido da 1 punto (o lo que valía antes del último canto). Cantar fuerte a veces asusta al rival.'};
+    if(!h.env.done&&!h.env.pending&&my)return{t:'6 y 5 de espada: 20 + 6 + 5 = 31 de envido. Con tanto alto, subí directo: cantá Real envido, que vale 3.',x:a=>a.t==='envido'&&a.kind==='real'};
+    if(h.env.pending)return{t:'La máquina lo está pensando…'};
+    return{t:'No quiso: sumaste 1 punto sin mostrar tus cartas. Ahora jugá la mano como quieras.'}}},
+ {title:'El envido está primero',mano:1,flor:false,hands:[['7B','4B','1C'],['3O','12E','5C']],script:[{t:'truco',level:2},{t:'quiero'}],
+  coach(g){const h=g.hand,my=actor(g)===0;
+    if(h.ended)return{done:'Aunque te canten truco, en la primera baza el envido va primero: se responde el envido y después el truco.'};
+    if(h.truco.pending&&!h.env.done&&!h.env.pending&&my)return{t:'La máquina cantó truco, pero todavía no tiraste ninguna carta: el envido está primero. Tenés 7 y 4 de basto, 31 de tanto. Contestá con Envido.',x:a=>a.t==='envido'};
+    if(h.env.pending)return{t:'Esperá: la máquina contesta el envido…'};
+    if(h.truco.pending&&h.truco.pending.level===2&&my)return{t:'Ganaste el envido. Ahora sí, respondé el truco que había quedado pendiente: querelo o no.',x:a=>a.t==='quiero'||a.t==='noquiero'};
+    return{t:'Seguí la mano como quieras.'}}},
+ {title:'Saber retirarse',mano:1,flor:false,hands:[['4C','5B','6O'],['1E','1B','7E']],script:[{t:'truco',level:2}],
+  coach(g){const h=g.hand,my=actor(g)===0;
+    if(h.ended)return{done:'Con cartas malas, no querer es buena jugada: perdiste 1 punto en vez de 2 o más. ¡Terminaste el tutorial completo!'};
+    if(h.truco.pending&&my)return{t:'La máquina cantó truco y tus cartas son de las más bajas del mazo: cuatro, cinco y seis. Si querés, casi seguro perdés 2. Decí No quiero y perdé solo 1.',x:a=>a.t==='noquiero'};
+    return{t:'La máquina es mano: le toca empezar…'}}},
 ];
 function startLesson(i){const L=LESSONS[i];if(!L)return;CAMP=null;
   const g=newMatch({n:2,target:30,flor:L.flor,stake:0,seats:[{me:true},{bot:true}],matchId:'tut-'+i+'-'+Date.now().toString(36),diff:'medio'});
@@ -1076,8 +1123,8 @@ function rankingHTML(){const head=phd('Ranking','','menu');if(!db||!uid)return h
   <div class="pbody">${RANK===null?'<p class="note">Cargando…</p>':fitList('rank-'+rankScope,rows.map((r,i)=>Object.assign({pos:i+1},r)),r=>`<li class="${r.id===uid?'me':''}"><span class="pos">${r.pos}</span>${avatarSVG(AVM[r.av]?r.av:'gaucho',36)}<span class="nm">${esc(r.id===uid?myDisp():((r.nick)||NAMES[r.id]||'Jugador'))}<small>${fmt(r.won||0)} ganadas de ${fmt(r.played||0)} · racha máx. ${r.best||0}</small></span><b>${fmt(r.pts||0)}</b></li>`,'lb',rankScope==='friends'?'<p class="note">Todavía no tenés amigos con partidas. Pasales tu link de amigo desde Perfil.</p>':'<p class="note">Todavía nadie terminó una partida. Jugá una y aparecés acá.</p>')}</div>
   <p class="note snote">Puntos: 30 por partida online ganada y 3, 8 o 15 por ganarle a la máquina en Fácil, Medio o Difícil.</p>`}
 function tutorialBoxHTML(){const done=WAL.tut||[];
-  return `<section class="box"><h2>¿Primera vez?</h2><p class="note">Cinco lecciones cortas con manos armadas para aprender bazas, envido, truco y flor. Cada una te da 20 monedas.</p>
-    <div class="lessons">${LESSONS.map((L,i)=>`<button type="button" class="lesson ${done.includes(i)?'ok':''}" data-a="lesson" data-i="${i}"><span>${done.includes(i)?'✓':i+1}</span>${esc(L.title)}</button>`).join('')}</div></section>`}
+  return `<section class="box"><h2>¿Primera vez?</h2><p class="note">${LESSONS.length} lecciones cortas con manos armadas: bazas, pardas, envido, real envido, truco, cómo subir, el envido primero, cuándo no querer y la flor. Cada una te da 20 monedas la primera vez.</p>
+    ${fitList('lessons',LESSONS.map((L,i)=>({L,i})),({L,i})=>`<button type="button" class="lesson ${done.includes(i)?'ok':''}" data-a="lesson" data-i="${i}"><span>${done.includes(i)?'✓':i+1}</span>${esc(L.title)}</button>`,'lessons')}</section>`}
 
 
 /* ---------- apodo y amigos ---------- */

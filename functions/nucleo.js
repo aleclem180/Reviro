@@ -32,7 +32,7 @@
     ESPERA_MANO_MS: 2200,                    // pausa entre una mano y la siguiente
     TOUR_ESPERA_MS: 5 * 60e3,                // torneos: pasado este tiempo se puede empezar con la IA por los que faltan
     T_CUT: 10, T_SPLIT: [60, 30, 10],
-    CARGAS: [500, 1000, 5000], LECCIONES: 5, LECCION_MONEDAS: 20,
+    CARGAS: [500, 1000, 5000], LECCIONES: 9, LECCION_MONEDAS: 20,
     ADMIN_EMAILS: ['alejandro.clemente05@gmail.com'],
   };
   const WAL0 = () => ({ chips: 1000, coins: 150, owned: [], stats: { played: 0, won: 0, streak: 0, best: 0, earned: 0, pts: 0 },

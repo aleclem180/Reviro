@@ -185,10 +185,10 @@ prueba('premio del día una vez por día y lecciones pagadas una sola vez', asyn
   assert((await N.billetera(ctxOf('a'), { op: 'diario' })).ya);
   pasa(24 * 3600e3);
   assert.strictEqual((await N.billetera(ctxOf('a'), { op: 'diario' })).coins, 60);
-  for (let i = 0; i < 5; i++) await N.billetera(ctxOf('a'), { op: 'tutorial', i });
-  for (let i = 0; i < 5; i++) await N.billetera(ctxOf('a'), { op: 'tutorial', i });
+  for (let i = 0; i < 9; i++) await N.billetera(ctxOf('a'), { op: 'tutorial', i });
+  for (let i = 0; i < 9; i++) await N.billetera(ctxOf('a'), { op: 'tutorial', i });
   const w = await S.get('wallets/a');
-  assert.strictEqual(w.coins - await misC(S, 'a'), 60 + 100);
+  assert.strictEqual(w.coins - await misC(S, 'a'), 60 + 9 * 20);
   assert(w.ach.done.includes('alumno'));
 });
 
