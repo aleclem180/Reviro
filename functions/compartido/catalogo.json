@@ -105,6 +105,18 @@
    "price": 550
   },
   {
+   "id": "ferretero",
+   "price": 400
+  },
+  {
+   "id": "mecanico",
+   "price": 400
+  },
+  {
+   "id": "maestra",
+   "price": 400
+  },
+  {
    "id": "sindicalista",
    "price": 500
   }
