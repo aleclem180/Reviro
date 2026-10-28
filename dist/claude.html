@@ -1649,6 +1649,17 @@ body:not([data-view=game]):not([data-view=room]) :is(.mode,.xb,.mz,.tcard,.lesso
   .game .score .mid b{font-size:1.1rem}
 }
 @media (min-width:720px){.game .score .sc svg{height:22px;width:auto}}
+/* el nombre del que no es mano queda centrado al lado de la foto */
+@container (min-width:480px){.felt.n2.duel .badge:not(:has(.m))>span:not(.m){grid-row:1 / span 2;align-self:center}}
+/* fósforos del anotador: ocupan todo el lugar que queda al lado del número, hasta un tope para que no se deformen */
+@media (min-width:720px){
+  .game .score .sc svg{width:100%;height:auto;max-height:30px;min-width:0}
+  .game .score .sc.them svg{justify-self:end}
+}
+@media (min-width:1180px) and (min-height:720px){
+  .game .score{grid-template-columns:minmax(0,310px) auto minmax(0,310px)}
+  .game .score .sc svg{max-height:34px}
+}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
