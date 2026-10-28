@@ -1653,3 +1653,29 @@ body:not([data-view=game]):not([data-view=room]) :is(.mode,.xb,.mz,.tcard,.lesso
   .game .score{grid-template-columns:minmax(0,310px) auto minmax(0,310px)}
   .game .score .sc svg{max-height:34px}
 }
+/* paño en compu: más margen interno; carteles, mazo y "la mano vale" más adentro; fotos de los jugadores más grandes */
+@container (min-width:480px){
+  .felt.n2.duel>.pos-top{top:22px!important}
+  .felt.n2.duel>.pos-bottom{bottom:22px!important}
+  .felt.n2.duel>.seat{left:26px!important}
+  .felt.n2.duel>.duelside{right:30px!important}
+  .felt.n2.duel>.duelstat{right:28px!important;bottom:24px!important}
+  .felt.n2.duel>.seat .badge>svg:first-child{width:56px;height:56px}
+  .felt.n2.duel>.seat .badge{padding:5px 16px 5px 5px;column-gap:10px;font-size:.95rem}
+}
+@media (min-width:1180px) and (min-height:720px){
+  .game .felt.n2.duel>.seat .badge>svg:first-child{width:64px!important;height:64px!important}
+  .game .felt.n2.duel>.seat .badge .av{width:64px!important;height:64px!important}
+  .game .felt.n2.duel .badge>span:not(.m){font-size:1.05rem}
+}
+/* que el cartel nunca pise las cartas del centro: si no entra, el nombre baja de renglón */
+@container (min-width:480px){
+  .felt.n2.duel>.seat .badge{max-width:max(120px,calc((100cqw - var(--pc) * 3.28) / 2 - 40px))!important}
+  .felt.n2.duel .badge>span:not(.m){white-space:normal!important;line-height:1.1}
+}
+/* mano a mano en compu: las cartas del centro dejan lugar fijo a la izquierda para los carteles y a la derecha para el mazo */
+@container (min-width:620px){
+  .felt.n2.duel .duelboard{justify-content:center!important;padding-left:210px!important;padding-right:76px!important;box-sizing:border-box}
+  .felt.n2.duel>*{--pc:clamp(40px,min(calc((100cqh - 30px) / 2.55),calc((100cqw - 300px) / 3.4)),250px)}
+  .felt.n2.duel>.seat .badge{max-width:190px!important}
+}
